@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/legal-referal.iml" filepath="$PROJECT_DIR$/.idea/legal-referal.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/legal-referral-api.iml" filepath="$PROJECT_DIR$/.idea/legal-referral-api.iml" />
     </modules>
   </component>
 </project>
