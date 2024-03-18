@@ -1,44 +1,24 @@
 package api
 
 import (
-	"context"
-
-	firebase "firebase.google.com/go/v4"
-	"firebase.google.com/go/v4/auth"
-
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
 
 	"github.com/imrishuroy/legal-referral/util"
 
-	"github.com/gin-gonic/gin"
-	"github.com/rs/zerolog/log"
-	"google.golang.org/api/option"
-
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
+	"github.com/gin-gonic/gin"
 )
 
 type Server struct {
 	config util.Config
 	store  db.Store
-	auth   *auth.Client
 	router *gin.Engine
 }
 
 func NewServer(config util.Config, store db.Store) (*Server, error) {
 
-	opt := option.WithCredentialsFile("./service-account-key.json")
-	app, err := firebase.NewApp(context.Background(), nil, opt)
-	if err != nil {
-		log.Fatal().Msg("Failed to create Firebase app")
-	}
-	//fmt.Println("firebase connection done ", app)
-	auth, err := app.Auth(context.Background())
-	if err != nil {
-		log.Fatal().Err(err).Msg("Failed to create Firebase auth client")
-	}
-
-	server := &Server{config: config, store: store, auth: auth}
+	server := &Server{config: config, store: store}
 	server.setupRouter()
 	return server, nil
 }

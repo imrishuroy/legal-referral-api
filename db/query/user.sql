@@ -1,15 +1,11 @@
 -- name: CreateUser :one
 INSERT INTO users (
-    id,
+    email,
     first_name,
     last_name,
-    mobile_number,
-    email,
-    bar_licence_no,
-    practicing_field,
-    experience
+    is_email_verified
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8
+    $1, $2, $3, $4
 ) RETURNING *;
 
 -- name: GetUserByEmail :one

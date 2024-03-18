@@ -18,14 +18,10 @@ type Profile struct {
 }
 
 type User struct {
-	ID              string `json:"id"`
-	FirstName       string `json:"first_name"`
-	LastName        string `json:"last_name"`
-	MobileNumber    string `json:"mobile_number"`
-	Email           string `json:"email"`
-	BarLicenceNo    string `json:"bar_licence_no"`
-	PracticingField string `json:"practicing_field"`
-	// in future experiences will have its own table
-	Experience int32     `json:"experience"`
-	JoinDate   time.Time `json:"join_date"`
+	ID              string    `json:"id"`
+	Email           string    `json:"email"`
+	FirstName       string    `json:"first_name"`
+	LastName        string    `json:"last_name"`
+	IsEmailVerified bool      `json:"is_email_verified"`
+	JoinDate        time.Time `json:"join_date"`
 }

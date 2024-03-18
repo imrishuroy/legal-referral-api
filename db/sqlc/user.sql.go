@@ -11,58 +11,43 @@ import (
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
-    id,
+    email,
     first_name,
     last_name,
-    mobile_number,
-    email,
-    bar_licence_no,
-    practicing_field,
-    experience
+    is_email_verified
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8
-) RETURNING id, first_name, last_name, mobile_number, email, bar_licence_no, practicing_field, experience, join_date
+    $1, $2, $3, $4
+) RETURNING id, email, first_name, last_name, is_email_verified, join_date
 `
 
 type CreateUserParams struct {
-	ID              string `json:"id"`
+	Email           string `json:"email"`
 	FirstName       string `json:"first_name"`
 	LastName        string `json:"last_name"`
-	MobileNumber    string `json:"mobile_number"`
-	Email           string `json:"email"`
-	BarLicenceNo    string `json:"bar_licence_no"`
-	PracticingField string `json:"practicing_field"`
-	Experience      int32  `json:"experience"`
+	IsEmailVerified bool   `json:"is_email_verified"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
 	row := q.db.QueryRow(ctx, createUser,
-		arg.ID,
+		arg.Email,
 		arg.FirstName,
 		arg.LastName,
-		arg.MobileNumber,
-		arg.Email,
-		arg.BarLicenceNo,
-		arg.PracticingField,
-		arg.Experience,
+		arg.IsEmailVerified,
 	)
 	var i User
 	err := row.Scan(
 		&i.ID,
+		&i.Email,
 		&i.FirstName,
 		&i.LastName,
-		&i.MobileNumber,
-		&i.Email,
-		&i.BarLicenceNo,
-		&i.PracticingField,
-		&i.Experience,
+		&i.IsEmailVerified,
 		&i.JoinDate,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, first_name, last_name, mobile_number, email, bar_licence_no, practicing_field, experience, join_date FROM users
+SELECT id, email, first_name, last_name, is_email_verified, join_date FROM users
 WHERE email = $1 LIMIT 1
 `
 
@@ -71,13 +56,10 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 	var i User
 	err := row.Scan(
 		&i.ID,
+		&i.Email,
 		&i.FirstName,
 		&i.LastName,
-		&i.MobileNumber,
-		&i.Email,
-		&i.BarLicenceNo,
-		&i.PracticingField,
-		&i.Experience,
+		&i.IsEmailVerified,
 		&i.JoinDate,
 	)
 	return i, err
