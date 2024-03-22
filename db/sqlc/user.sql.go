@@ -11,27 +11,33 @@ import (
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
+    id,
     email,
     first_name,
     last_name,
+    sign_up_method,
     is_email_verified
 ) VALUES (
-    $1, $2, $3, $4
-) RETURNING id, email, first_name, last_name, is_email_verified, join_date
+    $1, $2, $3, $4, $5, $6
+) RETURNING id, email, first_name, last_name, is_email_verified, sign_up_method, join_date
 `
 
 type CreateUserParams struct {
+	ID              string `json:"id"`
 	Email           string `json:"email"`
 	FirstName       string `json:"first_name"`
 	LastName        string `json:"last_name"`
+	SignUpMethod    int32  `json:"sign_up_method"`
 	IsEmailVerified bool   `json:"is_email_verified"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
 	row := q.db.QueryRow(ctx, createUser,
+		arg.ID,
 		arg.Email,
 		arg.FirstName,
 		arg.LastName,
+		arg.SignUpMethod,
 		arg.IsEmailVerified,
 	)
 	var i User
@@ -41,13 +47,14 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.FirstName,
 		&i.LastName,
 		&i.IsEmailVerified,
+		&i.SignUpMethod,
 		&i.JoinDate,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, first_name, last_name, is_email_verified, join_date FROM users
+SELECT id, email, first_name, last_name, is_email_verified, sign_up_method, join_date FROM users
 WHERE email = $1 LIMIT 1
 `
 
@@ -60,6 +67,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.FirstName,
 		&i.LastName,
 		&i.IsEmailVerified,
+		&i.SignUpMethod,
 		&i.JoinDate,
 	)
 	return i, err

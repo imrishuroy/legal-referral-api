@@ -12,13 +12,13 @@ dropdb:
 sqlc:
 	sqlc generate
 
-migrateup:
+migrateUp:
 	migrate -path db/migration -database "$(DB_URL)" -verbose up
 
-migratedown:
+migrateDown:
 	migrate -path db/migration -database "$(DB_URL)" -verbose down
 
 server:
 	go run main.go
 
-.PHONY: postgres createdb dropdb sqlc migrateup migratedown
+.PHONY: postgres createdb dropdb sqlc migrateUp migrateDown

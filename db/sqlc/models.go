@@ -23,5 +23,6 @@ type User struct {
 	FirstName       string    `json:"first_name"`
 	LastName        string    `json:"last_name"`
 	IsEmailVerified bool      `json:"is_email_verified"`
+	SignUpMethod    int32     `json:"sign_up_method"`
 	JoinDate        time.Time `json:"join_date"`
 }

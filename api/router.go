@@ -1,21 +1,25 @@
 package api
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/gin-gonic/gin"
+)
 
 func (server *Server) setupRouter() {
 	server.router = gin.Default()
 	server.router.GET("/", server.ping)
 	server.router.POST("/users", server.createUser)
 
-	server.router.POST("/auth/signup", server.SignUp)
+	auth := server.router.Group("/api/auth").
+		Use(signupMiddleware(server.firebaseAuth))
 
-	//idTokenRoutes := server.router.Group("/auth").Use(VerifyIDToken())
-	//idTokenRoutes.GET("/check-id-token", server.ping)
+	auth.POST("/sign-up", server.SignUp)
+	//auth.POST("/sign-in", server.SignIn)
 
-	authRoutes := server.router.Group("/api").Use(VerifyAccessToken(server.config))
+	authorizedRoutes := server.router.Group("/api").
+		Use(authMiddleware(server.firebaseAuth, server.config))
 
-	// authRoutes.POST("/signup", server.SignUp)
-	authRoutes.GET("/check-token", server.ping)
-	authRoutes.GET("/check-scope", server.checkScope)
+	authorizedRoutes.POST("/auth/sign-in", server.SignIn)
+	authorizedRoutes.GET("/check-token", server.ping)
+	authorizedRoutes.GET("/check-scope", server.checkScope)
 
 }

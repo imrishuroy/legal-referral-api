@@ -84,6 +84,6 @@ func (server *Server) createUser(ctx *gin.Context) {
 	//}
 
 	//ctx.JSON(http.StatusOK, user)
-	ctx.JSON(http.StatusOK, gin.H{"message": "user created successfully"})
+	ctx.JSON(http.StatusOK, gin.H{"message": "User created successfully"})
 
 }

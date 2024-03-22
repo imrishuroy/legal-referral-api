@@ -1,11 +1,10 @@
-CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-
 CREATE TABLE users (
-    id VARCHAR(20) PRIMARY KEY DEFAULT ('USR' || substring(encode(gen_random_bytes(8), 'hex') from 1 for 8)),
+    id VARCHAR PRIMARY KEY NOT NULL,
     email VARCHAR UNIQUE NOT NULL,
     first_name VARCHAR NOT NULL,
     last_name VARCHAR NOT NULL,
     is_email_verified BOOLEAN NOT NULL DEFAULT false,
+    sign_up_method INTEGER NOT NULL,
     join_date TIMESTAMPTZ NOT NULL DEFAULT current_timestamp
 );
 

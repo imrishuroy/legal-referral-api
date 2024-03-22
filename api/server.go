@@ -1,24 +1,44 @@
 package api
 
 import (
+	"context"
+	firebase "firebase.google.com/go/v4"
+	"firebase.google.com/go/v4/auth"
+	"fmt"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
+	"google.golang.org/api/option"
 
 	"github.com/imrishuroy/legal-referral/util"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 )
 
 type Server struct {
-	config util.Config
-	store  db.Store
-	router *gin.Engine
+	config       util.Config
+	store        db.Store
+	router       *gin.Engine
+	firebaseAuth *auth.Client
 }
 
 func NewServer(config util.Config, store db.Store) (*Server, error) {
 
-	server := &Server{config: config, store: store}
+	opt := option.WithCredentialsFile("./service-account-key.json")
+	app, err := firebase.NewApp(context.Background(), nil, opt)
+	if err != nil {
+		log.Fatal().Msg("Failed to create Firebase app")
+	}
+
+	fmt.Println("fb connection done ", app)
+
+	firebaseAuth, err := app.Auth(context.Background())
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to create Firebase auth client")
+	}
+
+	server := &Server{config: config, store: store, firebaseAuth: firebaseAuth}
 	server.setupRouter()
 	return server, nil
 }
@@ -32,7 +52,7 @@ func successResponse() gin.H {
 	return gin.H{"result": "success"}
 }
 
-func errorResponse(err error) gin.H {
+func ErrorResponse(err error) gin.H {
 	return gin.H{"error": err.Error()}
 }
 

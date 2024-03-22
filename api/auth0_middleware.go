@@ -20,6 +20,8 @@ import (
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 )
 
+// TODO: create a IDTokenMiddleware function that will verify the ID token
+
 // Validate if the posts scope is present in the token.
 func (c CustomClaims) Validate(ctx context.Context) error {
 	log.Info().Msg("Validating the id token")
@@ -43,7 +45,7 @@ func (c CustomClaims) HasScope(expectedScope string) bool {
 	return false
 }
 
-func VerifyAccessToken(config util.Config) gin.HandlerFunc {
+func VerifyAuth0AccessToken(config util.Config) gin.HandlerFunc {
 
 	issuerURL, err := url.Parse("https://" + config.Auth0Domain + "/")
 	if err != nil {
@@ -113,14 +115,28 @@ func ExtractEmailFromIDToken(ctx *gin.Context) string {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-
-		return "", nil
+		//return "", nil
+		return []byte("secret"), nil
 	})
+
 	if err != nil {
 
 	}
 
+	// check the token is expired or not
+	if !token.Valid {
+
+	}
+
 	if claims, ok := token.Claims.(jwt.MapClaims); ok {
+		exp := claims["exp"]
+		// check the token is expired or not
+		if exp != nil {
+			expTime := time.Unix(int64(exp.(float64)), 0)
+			if time.Now().After(expTime) {
+				return ""
+			}
+		}
 		email, ok := claims["email"].(string)
 		if !ok {
 			return ""
