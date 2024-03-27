@@ -10,8 +10,6 @@ import (
 
 	"github.com/imrishuroy/legal-referral/util"
 
-	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
-	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 )
@@ -52,24 +50,10 @@ func successResponse() gin.H {
 	return gin.H{"result": "success"}
 }
 
-func ErrorResponse(err error) gin.H {
+func errorResponse(err error) gin.H {
 	return gin.H{"error": err.Error()}
 }
 
 func (server *Server) ping(c *gin.Context) {
 	c.JSON(200, "pong")
-}
-
-func (server *Server) checkScope(ctx *gin.Context) {
-
-	token := ctx.Request.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
-
-	claims := token.CustomClaims.(*CustomClaims)
-	if !claims.HasScope("read:posts") {
-		ctx.JSON(403, gin.H{"error": "Insufficient scope"})
-		return
-	}
-
-	ctx.JSON(200, successResponse())
-
 }

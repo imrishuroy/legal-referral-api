@@ -18,7 +18,13 @@ migrateUp:
 migrateDown:
 	migrate -path db/migration -database "$(DB_URL)" -verbose down
 
+new_migration:
+	migrate create -ext sql -dir db/migration -seq $(name)
+
+migrateDown2:
+	migrate -path db/migration -database "$(DB_URL)" -verbose down 2
+
 server:
 	go run main.go
 
-.PHONY: postgres createdb dropdb sqlc migrateUp migrateDown
+.PHONY: postgres createdb dropdb sqlc migrateUp migrateDown migrateDown2 new_migration

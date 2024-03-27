@@ -10,7 +10,10 @@ import (
 
 type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteOTP(ctx context.Context, sessionID int64) error
+	GetOTP(ctx context.Context, sessionID int64) (Otp, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
+	StoreOTP(ctx context.Context, arg StoreOTPParams) (int64, error)
 }
 
 var _ Querier = (*Queries)(nil)

@@ -1,94 +1,51 @@
 package api
 
 import (
+	"context"
 	"errors"
+	"fmt"
+	"net/http"
+	"strings"
+
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
-	"github.com/imrishuroy/legal-referral/util"
-	"net/http"
 )
 
-const provider = "provider"
+const (
+	authorizationHeaderKey  = "authorization"
+	authorizationTypeBearer = "bearer"
+	authorizationPayloadKey = "authorization_payload"
+)
 
-func signupMiddleware(firebaseAuth *auth.Client) gin.HandlerFunc {
+func authMiddleware(auth *auth.Client) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		provider := ctx.GetHeader(provider)
-		if provider == "" {
-			err := errors.New("provider header is not provided")
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, ErrorResponse(err))
-			ctx.Abort()
+		authorizationHeader := ctx.GetHeader(authorizationHeaderKey)
+		if len(authorizationHeader) == 0 {
+			err := errors.New("authorization header is not provided")
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
 			return
 		}
-		signUpMethod, err := getSignUpMethod(provider)
-		if err != nil {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid provider"})
-			ctx.Abort()
+		fields := strings.Fields(authorizationHeader)
+		if len(fields) < 2 {
+			err := errors.New("invalid authorization header format")
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
 			return
 		}
-		switch signUpMethod {
-		case Email:
-			//if err := VerifyAuth0AccessToken(config); err != nil {
-			//	ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-			//	ctx.Abort()
-			//	return
-			//}
-			ctx.Next()
-		case Google, Apple:
-			// Call firebaseAuthMiddleware as middleware
-			firebaseAuthMiddlewareHandler := firebaseAuthMiddleware(firebaseAuth)
-			firebaseAuthMiddlewareHandler(ctx)
-		default:
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid provider"})
-			ctx.Abort()
-			return
-		}
-	}
-}
 
-func authMiddleware(firebaseAuth *auth.Client, config util.Config) gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		provider := ctx.GetHeader(provider)
-		if provider == "" {
-			err := errors.New("provider header is not provided")
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, ErrorResponse(err))
-			ctx.Abort()
+		authorizationType := strings.ToLower(fields[0])
+		if authorizationType != authorizationTypeBearer {
+			err := fmt.Errorf("unsupported authrorization type %s", authorizationType)
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
 			return
 		}
-		signUpMethod, err := getSignUpMethod(provider)
+		accessToken := fields[1]
+		idToken, err := auth.VerifyIDToken(context.Background(), accessToken)
 		if err != nil {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid provider"})
-			ctx.Abort()
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
 			return
 		}
-		switch signUpMethod {
-		case Email:
-			if err := VerifyAuth0AccessToken(config); err != nil {
-				ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
-				ctx.Abort()
-				return
-			}
-			ctx.Next()
-		case Google, Apple:
-			// Call firebaseAuthMiddleware as middleware
-			firebaseAuthMiddlewareHandler := firebaseAuthMiddleware(firebaseAuth)
-			firebaseAuthMiddlewareHandler(ctx)
-		default:
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid provider"})
-			ctx.Abort()
-			return
-		}
-	}
-}
+		ctx.Set(authorizationPayloadKey, idToken)
+		ctx.Next()
 
-func getSignUpMethod(provider string) (SignUpMethod, error) {
-	switch provider {
-	case "email":
-		return Email, nil
-	case "google":
-		return Google, nil
-	case "apple":
-		return Apple, nil
-	default:
-		return -1, errors.New("invalid provider")
 	}
 }

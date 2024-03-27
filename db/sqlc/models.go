@@ -8,13 +8,12 @@ import (
 	"time"
 )
 
-type Profile struct {
-	ID       int64  `json:"id"`
-	UserID   string `json:"user_id"`
-	Headline string `json:"headline"`
-	Summary  string `json:"summary"`
-	Industry string `json:"industry"`
-	Website  string `json:"website"`
+type Otp struct {
+	SessionID int64     `json:"session_id"`
+	UserID    string    `json:"user_id"`
+	Channel   string    `json:"channel"`
+	CreatedAt time.Time `json:"created_at"`
+	Otp       int32     `json:"otp"`
 }
 
 type User struct {
