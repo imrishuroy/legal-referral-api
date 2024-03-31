@@ -1,6 +1,6 @@
 -- name: StoreOTP :one
 INSERT INTO otps (
-    user_id,
+    email,
     channel,
     otp
 ) VALUES (

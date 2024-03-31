@@ -5,6 +5,7 @@ import (
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
+	"github.com/imrishuroy/legal-referral/util"
 	"net/http"
 )
 
@@ -18,31 +19,24 @@ type singUpRequest struct {
 	SignUpMethod    SignUpMethod `json:"sign_up_method"`
 }
 
+type signUpResponse struct {
+	SessionID int64   `json:"session_id"`
+	User      db.User `json:"user"`
+}
+
 func (server *Server) signUp(ctx *gin.Context) {
 
 	var req singUpRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
 		return
 	}
 
 	// check all the required fields
 	if req.Email == "" || req.FirstName == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Email and Name are required"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Email and Name are required"})
 		return
 	}
-
-	//var userId string
-	//var email string
-
-	//authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
-	//email = authPayload.Claims["email"].(string)
-	//userId = authPayload.UID
-
-	//if email != req.Email {
-	//	ctx.JSON(http.StatusBadRequest, gin.H{"error": "Email in the token and request body should be same"})
-	//	return
-	//}
 
 	// search if req email already exists in db
 	dbUser, err := server.store.GetUserByEmail(ctx, req.Email)
@@ -55,32 +49,51 @@ func (server *Server) signUp(ctx *gin.Context) {
 
 	// found the user with req email
 	if dbUser.ID != "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "user with email already exists"})
+		// TODO: don't throw error if user not found, instead return the user found, status code should be 200
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "user with email already exists"})
 		return
 	}
 
+	userId, err := util.GenerateUUID()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
 	// create the user
-	//arg := db.CreateUserParams{
-	//	//ID:              userId,
-	//	ID:              GenerateRandomAlphaNumeric(16),
-	//	Email:           req.Email,
-	//	FirstName:       req.FirstName,
-	//	LastName:        req.LastName,
-	//	SignUpMethod:    int32(req.SignUpMethod),
-	//	IsEmailVerified: req.IsEmailVerified,
-	//}
-	//
-	//user, err := server.store.CreateUser(ctx, arg)
-	//if err != nil {
-	//	errCode := db.ErrorCode(err)
-	//	if errCode == db.ForeignKeyViolation || errCode == db.UniqueViolation {
-	//		ctx.JSON(http.StatusForbidden, errorResponse(err))
-	//		return
-	//	}
-	//	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	//	return
-	//}
-	ctx.JSON(http.StatusOK, gin.H{"message": "User created successfully"})
+	arg := db.CreateUserParams{
+
+		ID:              userId,
+		Email:           req.Email,
+		FirstName:       req.FirstName,
+		LastName:        req.LastName,
+		SignUpMethod:    int32(req.SignUpMethod),
+		IsEmailVerified: req.IsEmailVerified,
+	}
+
+	user, err := server.store.CreateUser(ctx, arg)
+	if err != nil {
+		errCode := db.ErrorCode(err)
+		if errCode == db.ForeignKeyViolation || errCode == db.UniqueViolation {
+			ctx.JSON(http.StatusForbidden, errorResponse(err))
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	sessionId, err := sendEmailOTP(user.Email, server.store, ctx)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	signUpRes := signUpResponse{
+		SessionID: sessionId,
+		User:      user,
+	}
+
+	ctx.JSON(http.StatusOK, signUpRes)
 }
 
 type signInRequest struct {
@@ -90,7 +103,7 @@ type signInRequest struct {
 func (server *Server) signIn(ctx *gin.Context) {
 	var req signInRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
 		return
 	}
 

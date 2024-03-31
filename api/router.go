@@ -7,10 +7,14 @@ import (
 func (server *Server) setupRouter() {
 	server.router = gin.Default()
 	server.router.GET("/", server.ping).Use(CORSMiddleware())
-	server.router.POST("/otp", server.sendOTP)
-	server.router.POST("/otp/verify", server.verifyOTP)
-	server.router.POST("/users", server.createUser)
+	server.router.POST("/api/otp/email", server.sendEmailOTP)
+	server.router.POST("/api/otp/email/verify", server.verifyEmailOTP)
+	server.router.POST("/api/otp/mobile", server.sendMobileOTP)
+	server.router.POST("/api/otp/mobile/verify", server.verifyMobileOTP)
+
+	server.router.POST("/api/users", server.createUser)
 	server.router.POST("/api/sign-up", server.signUp)
+	server.router.POST("/api/license", server.saveLicense)
 
 	auth := server.router.Group("/api").
 		Use(authMiddleware(server.firebaseAuth))

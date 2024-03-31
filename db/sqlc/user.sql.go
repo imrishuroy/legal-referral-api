@@ -19,7 +19,7 @@ INSERT INTO users (
     is_email_verified
 ) VALUES (
     $1, $2, $3, $4, $5, $6
-) RETURNING id, email, first_name, last_name, is_email_verified, sign_up_method, join_date
+) RETURNING id, email, first_name, last_name, mobile, is_email_verified, is_mobile_verified, wizard_step, wizard_completed, sign_up_method, join_date
 `
 
 type CreateUserParams struct {
@@ -46,7 +46,11 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.Email,
 		&i.FirstName,
 		&i.LastName,
+		&i.Mobile,
 		&i.IsEmailVerified,
+		&i.IsMobileVerified,
+		&i.WizardStep,
+		&i.WizardCompleted,
 		&i.SignUpMethod,
 		&i.JoinDate,
 	)
@@ -54,7 +58,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, email, first_name, last_name, is_email_verified, sign_up_method, join_date FROM users
+SELECT id, email, first_name, last_name, mobile, is_email_verified, is_mobile_verified, wizard_step, wizard_completed, sign_up_method, join_date FROM users
 WHERE email = $1 LIMIT 1
 `
 
@@ -66,7 +70,89 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.Email,
 		&i.FirstName,
 		&i.LastName,
+		&i.Mobile,
 		&i.IsEmailVerified,
+		&i.IsMobileVerified,
+		&i.WizardStep,
+		&i.WizardCompleted,
+		&i.SignUpMethod,
+		&i.JoinDate,
+	)
+	return i, err
+}
+
+const getUserById = `-- name: GetUserById :one
+SELECT id, email, first_name, last_name, mobile, is_email_verified, is_mobile_verified, wizard_step, wizard_completed, sign_up_method, join_date FROM users
+WHERE id = $1 LIMIT 1
+`
+
+func (q *Queries) GetUserById(ctx context.Context, id string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserById, id)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.FirstName,
+		&i.LastName,
+		&i.Mobile,
+		&i.IsEmailVerified,
+		&i.IsMobileVerified,
+		&i.WizardStep,
+		&i.WizardCompleted,
+		&i.SignUpMethod,
+		&i.JoinDate,
+	)
+	return i, err
+}
+
+const updateUser = `-- name: UpdateUser :one
+UPDATE users
+SET
+    first_name = $2,
+    last_name = $3,
+    mobile = $4,
+    is_email_verified = $5,
+    is_mobile_verified = $6,
+    wizard_step = $7,
+    wizard_completed = $8
+WHERE
+    id = $1
+RETURNING id, email, first_name, last_name, mobile, is_email_verified, is_mobile_verified, wizard_step, wizard_completed, sign_up_method, join_date
+`
+
+type UpdateUserParams struct {
+	ID               string `json:"id"`
+	FirstName        string `json:"first_name"`
+	LastName         string `json:"last_name"`
+	Mobile           string `json:"mobile"`
+	IsEmailVerified  bool   `json:"is_email_verified"`
+	IsMobileVerified bool   `json:"is_mobile_verified"`
+	WizardStep       int32  `json:"wizard_step"`
+	WizardCompleted  bool   `json:"wizard_completed"`
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUser,
+		arg.ID,
+		arg.FirstName,
+		arg.LastName,
+		arg.Mobile,
+		arg.IsEmailVerified,
+		arg.IsMobileVerified,
+		arg.WizardStep,
+		arg.WizardCompleted,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Email,
+		&i.FirstName,
+		&i.LastName,
+		&i.Mobile,
+		&i.IsEmailVerified,
+		&i.IsMobileVerified,
+		&i.WizardStep,
+		&i.WizardCompleted,
 		&i.SignUpMethod,
 		&i.JoinDate,
 	)

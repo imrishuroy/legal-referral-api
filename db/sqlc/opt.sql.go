@@ -20,7 +20,7 @@ func (q *Queries) DeleteOTP(ctx context.Context, sessionID int64) error {
 }
 
 const getOTP = `-- name: GetOTP :one
-SELECT session_id, user_id, channel, created_at, otp FROM otps
+SELECT session_id, email, channel, created_at, otp FROM otps
 WHERE session_id = $1
 `
 
@@ -29,7 +29,7 @@ func (q *Queries) GetOTP(ctx context.Context, sessionID int64) (Otp, error) {
 	var i Otp
 	err := row.Scan(
 		&i.SessionID,
-		&i.UserID,
+		&i.Email,
 		&i.Channel,
 		&i.CreatedAt,
 		&i.Otp,
@@ -39,7 +39,7 @@ func (q *Queries) GetOTP(ctx context.Context, sessionID int64) (Otp, error) {
 
 const storeOTP = `-- name: StoreOTP :one
 INSERT INTO otps (
-    user_id,
+    email,
     channel,
     otp
 ) VALUES (
@@ -48,13 +48,13 @@ INSERT INTO otps (
 `
 
 type StoreOTPParams struct {
-	UserID  string `json:"user_id"`
+	Email   string `json:"email"`
 	Channel string `json:"channel"`
 	Otp     int32  `json:"otp"`
 }
 
 func (q *Queries) StoreOTP(ctx context.Context, arg StoreOTPParams) (int64, error) {
-	row := q.db.QueryRow(ctx, storeOTP, arg.UserID, arg.Channel, arg.Otp)
+	row := q.db.QueryRow(ctx, storeOTP, arg.Email, arg.Channel, arg.Otp)
 	var session_id int64
 	err := row.Scan(&session_id)
 	return session_id, err

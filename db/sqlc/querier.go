@@ -13,7 +13,10 @@ type Querier interface {
 	DeleteOTP(ctx context.Context, sessionID int64) error
 	GetOTP(ctx context.Context, sessionID int64) (Otp, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
+	GetUserById(ctx context.Context, id string) (User, error)
+	SaveLicense(ctx context.Context, arg SaveLicenseParams) (License, error)
 	StoreOTP(ctx context.Context, arg StoreOTPParams) (int64, error)
+	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)

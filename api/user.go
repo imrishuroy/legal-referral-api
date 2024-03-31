@@ -9,6 +9,43 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type UpdateUserRequest struct {
+	ID               string `json:"id"`
+	FirstName        string `json:"first_name"`
+	LastName         string `json:"last_name"`
+	Mobile           string `json:"mobile"`
+	IsEmailVerified  bool   `json:"is_email_verified"`
+	IsMobileVerified bool   `json:"is_mobile_verified"`
+	WizardStep       int32  `json:"wizard_step"`
+	WizardCompleted  bool   `json:"wizard_completed"`
+}
+
+func (server *Server) updateUser(ctx *gin.Context) {
+	var req db.UpdateUserParams
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	arg := db.UpdateUserParams{
+		ID:               req.ID,
+		FirstName:        req.FirstName,
+		LastName:         req.LastName,
+		Mobile:           req.Mobile,
+		IsEmailVerified:  req.IsEmailVerified,
+		IsMobileVerified: req.IsMobileVerified,
+		WizardStep:       req.WizardStep,
+		WizardCompleted:  req.WizardCompleted,
+	}
+
+	user, err := server.store.UpdateUser(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+	ctx.JSON(http.StatusOK, user)
+}
+
 type createUserReq struct {
 	Email           string       `json:"email"`
 	FirstName       string       `json:"first_name"`
