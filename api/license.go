@@ -34,5 +34,20 @@ func (server *Server) saveLicense(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
+
+	// update the wizard step
+
+	wizardStepArg := db.UpdateUserWizardStepParams{
+		ID:         req.UserID,
+		WizardStep: 2,
+	}
+
+	_, err = server.store.UpdateUserWizardStep(ctx, wizardStepArg)
+
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
 	ctx.JSON(http.StatusOK, license)
 }

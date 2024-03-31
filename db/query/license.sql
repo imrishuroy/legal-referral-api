@@ -1,5 +1,5 @@
 -- name: SaveLicense :one
-INSERT INTO license (
+INSERT INTO licenses (
     user_id,
     name,
     license_number,

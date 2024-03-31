@@ -4,6 +4,7 @@ CREATE TABLE users (
     first_name VARCHAR NOT NULL,
     last_name VARCHAR NOT NULL,
     mobile VARCHAR NOT NULL DEFAULT '',
+    address VARCHAR NOT NULL DEFAULT '',
     is_email_verified BOOLEAN NOT NULL DEFAULT false,
     is_mobile_verified BOOLEAN NOT NULL DEFAULT false,
     wizard_step INTEGER NOT NULL DEFAULT 0,

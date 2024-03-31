@@ -8,6 +8,14 @@ import (
 	"time"
 )
 
+type Experience struct {
+	ID               int64  `json:"id"`
+	UserID           string `json:"user_id"`
+	PracticeArea     string `json:"practice_area"`
+	PracticeLocation string `json:"practice_location"`
+	Experience       int32  `json:"experience"`
+}
+
 type License struct {
 	ID            int64  `json:"id"`
 	UserID        string `json:"user_id"`
@@ -31,6 +39,7 @@ type User struct {
 	FirstName        string    `json:"first_name"`
 	LastName         string    `json:"last_name"`
 	Mobile           string    `json:"mobile"`
+	Address          string    `json:"address"`
 	IsEmailVerified  bool      `json:"is_email_verified"`
 	IsMobileVerified bool      `json:"is_mobile_verified"`
 	WizardStep       int32     `json:"wizard_step"`

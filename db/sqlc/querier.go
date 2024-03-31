@@ -14,9 +14,13 @@ type Querier interface {
 	GetOTP(ctx context.Context, sessionID int64) (Otp, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, id string) (User, error)
+	GetUserWizardStep(ctx context.Context, id string) (int32, error)
+	SaveExperience(ctx context.Context, arg SaveExperienceParams) (Experience, error)
 	SaveLicense(ctx context.Context, arg SaveLicenseParams) (License, error)
 	StoreOTP(ctx context.Context, arg StoreOTPParams) (int64, error)
 	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
+	UpdateUserAboutYou(ctx context.Context, arg UpdateUserAboutYouParams) (User, error)
+	UpdateUserWizardStep(ctx context.Context, arg UpdateUserWizardStepParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)

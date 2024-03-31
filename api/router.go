@@ -12,9 +12,13 @@ func (server *Server) setupRouter() {
 	server.router.POST("/api/otp/mobile", server.sendMobileOTP)
 	server.router.POST("/api/otp/mobile/verify", server.verifyMobileOTP)
 
+	server.router.GET("/api/users/:user_id", server.getUser)
 	server.router.POST("/api/users", server.createUser)
 	server.router.POST("/api/sign-up", server.signUp)
 	server.router.POST("/api/license", server.saveLicense)
+	server.router.POST("/api/about-you", server.saveAboutYou)
+	server.router.POST("/api/experience", server.saveExperience)
+	server.router.GET("/api/users/:user_id/wizardstep", server.getUserWizardStep)
 
 	auth := server.router.Group("/api").
 		Use(authMiddleware(server.firebaseAuth))
