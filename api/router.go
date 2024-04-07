@@ -7,25 +7,25 @@ import (
 func (server *Server) setupRouter() {
 	server.router = gin.Default()
 	server.router.GET("/", server.ping).Use(CORSMiddleware())
-	server.router.POST("/api/otp/email", server.sendEmailOTP)
-	server.router.POST("/api/otp/email/verify", server.verifyEmailOTP)
-	server.router.POST("/api/otp/mobile", server.sendMobileOTP)
-	server.router.POST("/api/otp/mobile/verify", server.verifyMobileOTP)
 
-	server.router.GET("/api/users/:user_id", server.getUser)
-	server.router.POST("/api/users", server.createUser)
 	server.router.POST("/api/sign-up", server.signUp)
-	server.router.POST("/api/license", server.saveLicense)
-	server.router.POST("/api/about-you", server.saveAboutYou)
-	server.router.POST("/api/experience", server.saveExperience)
+	server.router.POST("/api/otp/send", server.sendOTP)
+	server.router.POST("/api/otp/verify", server.verifyOTP)
 	server.router.GET("/api/users/:user_id/wizardstep", server.getUserWizardStep)
+	server.router.POST("/api/custom-signup", server.customTokenSignUp)
 
 	auth := server.router.Group("/api").
 		Use(authMiddleware(server.firebaseAuth))
 
-	// auth.POST("/sign-up", server.signUp)
+	auth.POST("/users/:user_id/profile-image", server.updateUserImage)
+	auth.POST("/users", server.createUser)
 	auth.POST("/sign-in", server.signIn)
 	auth.GET("/check-token", server.ping)
+	auth.POST("/license", server.saveLicense)
+	auth.POST("/license/upload", server.uploadLicense)
+	auth.POST("/about-you", server.saveAboutYou)
+	auth.POST("/experience", server.saveExperience)
+	auth.GET("/users/:user_id", server.getUserById)
 
 }
 

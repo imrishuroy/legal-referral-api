@@ -38,7 +38,7 @@ func (server *Server) saveLicense(ctx *gin.Context) {
 	// update the wizard step
 
 	wizardStepArg := db.UpdateUserWizardStepParams{
-		ID:         req.UserID,
+		UserID:     req.UserID,
 		WizardStep: 2,
 	}
 
@@ -50,4 +50,42 @@ func (server *Server) saveLicense(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, license)
+}
+
+type uploadLicenseRequest struct {
+	UserId     string `json:"user_id" binding:"required"`
+	LicensePdf string `json:"license_pdf" binding:"required"`
+}
+
+func (server *Server) uploadLicense(ctx *gin.Context) {
+	var req uploadLicenseRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	uploadLicenseArg := db.UploadLicenseParams{
+		UserID:     req.UserId,
+		LicensePdf: &req.LicensePdf,
+	}
+
+	_, err := server.store.UploadLicense(ctx, uploadLicenseArg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	// update the wizard step
+	wizardStepArg := db.UpdateUserWizardStepParams{
+		UserID:     req.UserId,
+		WizardStep: 3,
+	}
+
+	_, err = server.store.UpdateUserWizardStep(ctx, wizardStepArg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "License uploaded successfully"})
 }

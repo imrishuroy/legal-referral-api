@@ -17,14 +17,14 @@ INSERT INTO experiences (
     experience
 ) VALUES (
     $1, $2, $3, $4
-) RETURNING id, user_id, practice_area, practice_location, experience
+) RETURNING experience_id, user_id, practice_area, practice_location, experience
 `
 
 type SaveExperienceParams struct {
 	UserID           string `json:"user_id"`
 	PracticeArea     string `json:"practice_area"`
 	PracticeLocation string `json:"practice_location"`
-	Experience       int32  `json:"experience"`
+	Experience       string `json:"experience"`
 }
 
 func (q *Queries) SaveExperience(ctx context.Context, arg SaveExperienceParams) (Experience, error) {
@@ -36,7 +36,7 @@ func (q *Queries) SaveExperience(ctx context.Context, arg SaveExperienceParams) 
 	)
 	var i Experience
 	err := row.Scan(
-		&i.ID,
+		&i.ExperienceID,
 		&i.UserID,
 		&i.PracticeArea,
 		&i.PracticeLocation,

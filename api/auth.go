@@ -9,19 +9,43 @@ import (
 	"net/http"
 )
 
-type SignUpMethod int
-
-type singUpRequest struct {
-	Email           string       `json:"email"`
-	FirstName       string       `json:"first_name"`
-	LastName        string       `json:"last_name"`
-	IsEmailVerified bool         `json:"is_email_verified"`
-	SignUpMethod    SignUpMethod `json:"sign_up_method"`
+type signUpCustomRequest struct {
+	Email string `json:"email"`
 }
 
-type signUpResponse struct {
-	SessionID int64   `json:"session_id"`
-	User      db.User `json:"user"`
+func (server *Server) customTokenSignUp(ctx *gin.Context) {
+	var req signUpCustomRequest
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+		return
+	}
+
+	uid, err := util.GenerateUUID()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	claims := map[string]interface{}{
+		"role":  "user",
+		"email": req.Email,
+	}
+	token, err := server.firebaseAuth.CustomTokenWithClaims(ctx, uid, claims)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+	ctx.JSON(http.StatusOK, token)
+}
+
+type SignupMethod int
+
+type singUpRequest struct {
+	Email         string       `json:"email"`
+	FirstName     string       `json:"first_name"`
+	LastName      string       `json:"last_name"`
+	EmailVerified bool         `json:"email_verified"`
+	SignupMethod  SignupMethod `json:"signup_method"`
 }
 
 func (server *Server) signUp(ctx *gin.Context) {
@@ -46,9 +70,8 @@ func (server *Server) signUp(ctx *gin.Context) {
 			return
 		}
 	}
-
 	// found the user with req email
-	if dbUser.ID != "" {
+	if dbUser.UserID != "" {
 		// TODO: don't throw error if user not found, instead return the user found, status code should be 200
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "user with email already exists"})
 		return
@@ -61,13 +84,12 @@ func (server *Server) signUp(ctx *gin.Context) {
 	}
 	// create the user
 	arg := db.CreateUserParams{
-
-		ID:              userId,
-		Email:           req.Email,
-		FirstName:       req.FirstName,
-		LastName:        req.LastName,
-		SignUpMethod:    int32(req.SignUpMethod),
-		IsEmailVerified: req.IsEmailVerified,
+		UserID:        userId,
+		Email:         req.Email,
+		FirstName:     req.FirstName,
+		LastName:      req.LastName,
+		SignupMethod:  int32(req.SignupMethod),
+		EmailVerified: req.EmailVerified,
 	}
 
 	user, err := server.store.CreateUser(ctx, arg)
@@ -81,19 +103,13 @@ func (server *Server) signUp(ctx *gin.Context) {
 		return
 	}
 
-	sessionId, err := sendEmailOTP(user.Email, server.store, ctx)
-
+	err = sendOTP(server, user.Email, "email", server.config.VerifyEmailServiceSID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	signUpRes := signUpResponse{
-		SessionID: sessionId,
-		User:      user,
-	}
-
-	ctx.JSON(http.StatusOK, signUpRes)
+	ctx.JSON(http.StatusOK, user)
 }
 
 type signInRequest struct {
@@ -125,12 +141,12 @@ func (server *Server) signIn(ctx *gin.Context) {
 	}
 
 	// found the user with req email
-	if dbUser.ID == "" {
+	if dbUser.UserID == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "user with email does not exists"})
 		return
 	}
 
-	if !dbUser.IsEmailVerified {
+	if !dbUser.EmailVerified {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Email is not verified, " +
 			"please verify your email to continue"})
 		return

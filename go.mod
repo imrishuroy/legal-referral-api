@@ -6,9 +6,11 @@ require (
 	firebase.google.com/go/v4 v4.13.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/golang-jwt/jwt/v5 v5.2.1
+	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.5.5
 	github.com/rs/zerolog v1.32.0
 	github.com/spf13/viper v1.18.2
+	github.com/twilio/twilio-go v1.19.1
 	google.golang.org/api v0.170.0
 )
 
@@ -38,7 +40,6 @@ require (
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/s2a-go v0.1.7 // indirect
-	github.com/google/uuid v1.6.0 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.2 // indirect
 	github.com/googleapis/gax-go/v2 v2.12.2 // indirect
 	github.com/hashicorp/hcl v1.0.0 // indirect
@@ -65,7 +66,6 @@ require (
 	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.9.0 // indirect
 	github.com/subosito/gotenv v1.6.0 // indirect
-	github.com/twilio/twilio-go v1.19.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	go.opencensus.io v0.24.0 // indirect

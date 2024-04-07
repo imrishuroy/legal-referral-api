@@ -11,7 +11,7 @@ type saveExperienceRequest struct {
 	UserId           string `json:"userId"`
 	PracticeArea     string `json:"practice_area"`
 	PracticeLocation string `json:"practice_location"`
-	Experience       int32  `json:"experience"`
+	Experience       string `json:"experience"`
 }
 
 func (server *Server) saveExperience(gin *gin.Context) {
@@ -40,12 +40,10 @@ func (server *Server) saveExperience(gin *gin.Context) {
 
 type saveAboutYouRequest struct {
 	UserId           string `json:"user_id"`
-	FirstName        string `json:"first_name"`
-	LastName         string `json:"last_name"`
 	Address          string `json:"address"`
 	PracticeArea     string `json:"practice_area"`
 	PracticeLocation string `json:"practice_location"`
-	Experience       int32  `json:"experience"`
+	Experience       string `json:"experience"`
 }
 
 func (server *Server) saveAboutYou(ctx *gin.Context) {
@@ -58,10 +56,8 @@ func (server *Server) saveAboutYou(ctx *gin.Context) {
 
 	// updating the address in user table
 	aboutArg := db.UpdateUserAboutYouParams{
-		ID:        req.UserId,
-		FirstName: req.FirstName,
-		LastName:  req.LastName,
-		Address:   req.Address,
+		UserID:  req.UserId,
+		Address: &req.Address,
 	}
 
 	_, err := server.store.UpdateUserAboutYou(ctx, aboutArg)
@@ -85,16 +81,15 @@ func (server *Server) saveAboutYou(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-
-	// update the wizard step
-	wizardStepArg := db.UpdateUserWizardStepParams{
-		ID:         req.UserId,
-		WizardStep: 3,
+	// mark the wizard as completed
+	wizardCompletedArg := db.MarkWizardCompletedParams{
+		UserID:          req.UserId,
+		WizardCompleted: true,
 	}
 
-	_, err = server.store.UpdateUserWizardStep(ctx, wizardStepArg)
+	_, err = server.store.MarkWizardCompleted(ctx, wizardCompletedArg)
 	if err != nil {
-		log.Logger.Error().Err(err).Msg("Error updating wizard step")
+		log.Logger.Error().Err(err).Msg("Error marking wizard as completed")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}

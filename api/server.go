@@ -43,6 +43,23 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 		Password: config.TwilioAuthToken,
 	})
 
+	//emailClient := twilio.NewRestClient()
+	//
+	//emailParams := &verify.CreateVerificationParams{}
+	//emailParams.SetTo("imrishuroy@gmail.com")
+	//emailParams.SetChannel("email")
+	//
+	//resp, err := emailClient.VerifyV2.CreateVerification("VAd17367eb59ab06c2c75ad5412af809b6", emailParams)
+	//if err != nil {
+	//	log.Err(err).Msg("Error while sending email verification")
+	//} else {
+	//	if resp.Sid != nil {
+	//		log.Info().Msgf("Email verification sent successfully to %s", " resp.Sid")
+	//	} else {
+	//		log.Info().Msgf("Email verification sent successfully to %s", " resp.Sid")
+	//	}
+	//}
+
 	server := &Server{config: config, store: store, firebaseAuth: firebaseAuth, twilioClient: twilioClient}
 	server.setupRouter()
 	return server, nil

@@ -12,16 +12,16 @@ dropdb:
 sqlc:
 	sqlc generate
 
-migrateUp:
+migrateup:
 	migrate -path db/migration -database "$(DB_URL)" -verbose up
 
-migrateDown:
+migratedown:
 	migrate -path db/migration -database "$(DB_URL)" -verbose down
 
 new_migration:
 	migrate create -ext sql -dir db/migration -seq $(name)
 
-migrateDown2:
+migratedown2:
 	migrate -path db/migration -database "$(DB_URL)" -verbose down 2
 
 server:

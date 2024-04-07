@@ -8,3 +8,11 @@ INSERT INTO licenses (
 ) VALUES (
     $1, $2, $3, $4, $5
 ) RETURNING *;
+
+-- name: UploadLicense :one
+UPDATE licenses
+SET
+    license_pdf = $1
+WHERE
+    user_id = $2
+RETURNING *;
