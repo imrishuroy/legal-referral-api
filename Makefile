@@ -1,5 +1,5 @@
 #DB_URL=postgres://root:IWSIWDF2024@localhost:5432/legal_referral_db?sslmode=disable
-DB_URL=postgres://legal_referral_db_user:x3Jbh8AOAuk1hGaFOc5ccFx8tzuzmkLb@dpg-co9dhbq0si5c739arjs0-a.singapore-postgres.render.com/legal_referral_db
+DB_URL=postgres://legal_referral_db_user:x3Jbh8AOAuk1hGaFOc5ccFx8tzuzmkLb@dpg-co9dhbq0si5c739arjs0-a.singapore-postgres.render.com/legal_referral_db?sslmode=disable
 
 postgres:
 	docker run --name legal-referral-db -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=IWSIWDF2024 -d postgres:16.2-alpine3.19

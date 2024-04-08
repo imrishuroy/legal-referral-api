@@ -8,6 +8,7 @@ func (server *Server) setupRouter() {
 	server.router = gin.Default()
 	server.router.GET("/", server.ping).Use(CORSMiddleware())
 
+	server.router.POST("/sign-in", server.signIn)
 	server.router.POST("/api/sign-up", server.signUp)
 	server.router.POST("/api/otp/send", server.sendOTP)
 	server.router.POST("/api/otp/verify", server.verifyOTP)
@@ -19,7 +20,6 @@ func (server *Server) setupRouter() {
 
 	auth.POST("/users/:user_id/profile-image", server.updateUserImage)
 	auth.POST("/users", server.createUser)
-	auth.POST("/sign-in", server.signIn)
 	auth.GET("/check-token", server.ping)
 	auth.POST("/license", server.saveLicense)
 	auth.POST("/license/upload", server.uploadLicense)

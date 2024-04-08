@@ -39,7 +39,7 @@ func (server *Server) saveLicense(ctx *gin.Context) {
 
 	wizardStepArg := db.UpdateUserWizardStepParams{
 		UserID:     req.UserID,
-		WizardStep: 2,
+		WizardStep: 1,
 	}
 
 	_, err = server.store.UpdateUserWizardStep(ctx, wizardStepArg)
@@ -78,7 +78,7 @@ func (server *Server) uploadLicense(ctx *gin.Context) {
 	// update the wizard step
 	wizardStepArg := db.UpdateUserWizardStepParams{
 		UserID:     req.UserId,
-		WizardStep: 3,
+		WizardStep: 2,
 	}
 
 	_, err = server.store.UpdateUserWizardStep(ctx, wizardStepArg)
