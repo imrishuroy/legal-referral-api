@@ -15,6 +15,8 @@ func (server *Server) setupRouter() {
 	server.router.GET("/api/users/:user_id/wizardstep", server.getUserWizardStep)
 	server.router.POST("/api/custom-signup", server.customTokenSignUp)
 
+	server.router.POST("/api/reset-password", server.resetPassword)
+
 	auth := server.router.Group("/api").
 		Use(authMiddleware(server.firebaseAuth))
 
