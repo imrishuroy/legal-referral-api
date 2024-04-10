@@ -91,9 +91,13 @@ func (server *Server) getUserById(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
 		return
 	}
-	user, err := server.store.GetUserById(ctx, req.UserID)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+	user, _ := server.store.GetUserById(ctx, req.UserID)
+	// if err != nil {
+	//	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+	//	return
+	// }
+	if user.UserID == "" {
+		ctx.JSON(http.StatusOK, nil)
 		return
 	}
 	ctx.JSON(http.StatusOK, user)
