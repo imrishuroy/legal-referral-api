@@ -3,12 +3,27 @@ package api
 import (
 	"errors"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/rs/zerolog/log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
+
+type SignupMethod int32
+
+const (
+	Email SignupMethod = iota
+	Google
+	Microsoft
+	LinkedIn
+)
+
+func (s SignupMethod) String() string {
+	return [...]string{"Email", "Google", "Microsoft", "LinkedIn"}[s]
+}
+func (s SignupMethod) Int32() int32 {
+	return int32(s)
+}
 
 type createUserReq struct {
 	UserId         string       `json:"user_id"`
@@ -92,10 +107,7 @@ func (server *Server) getUserById(ctx *gin.Context) {
 		return
 	}
 	user, _ := server.store.GetUserById(ctx, req.UserID)
-	// if err != nil {
-	//	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	//	return
-	// }
+	// if the user not found returning nil, not error
 	if user.UserID == "" {
 		ctx.JSON(http.StatusOK, nil)
 		return
@@ -114,39 +126,6 @@ type updateUserRequest struct {
 	MobileVerified  bool   `json:"mobile_verified"`
 	WizardStep      int32  `json:"wizard_step"`
 	WizardCompleted bool   `json:"wizard_completed"`
-}
-
-func (server *Server) updateUser(ctx *gin.Context) {
-	var req updateUserRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
-		return
-	}
-
-	var mobileTxt pgtype.Text
-	mobileTxt.String = req.Mobile
-
-	var addressTxt pgtype.Text
-	addressTxt.String = req.Address
-
-	arg := db.UpdateUserParams{
-		UserID:          req.ID,
-		FirstName:       req.FirstName,
-		LastName:        req.LastName,
-		Mobile:          &req.Mobile,
-		Address:         &req.Address,
-		EmailVerified:   req.EmailVerified,
-		MobileVerified:  req.MobileVerified,
-		WizardStep:      req.WizardStep,
-		WizardCompleted: req.WizardCompleted,
-	}
-
-	user, err := server.store.UpdateUser(ctx, arg)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
-	ctx.JSON(http.StatusOK, user)
 }
 
 type getUserWizardStepReq struct {
@@ -248,4 +227,39 @@ func (server *Server) markWizardCompleted(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "Wizard marked as completed"})
+}
+
+type saveAboutYouReq struct {
+	UserId           string `json:"user_id"`
+	Address          string `json:"address"`
+	PracticeArea     string `json:"practice_area"`
+	PracticeLocation string `json:"practice_location"`
+	Experience       string `json:"experience"`
+}
+
+func (server *Server) saveAboutYou(ctx *gin.Context) {
+
+	var req saveAboutYouReq
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	arg := db.SaveAboutYouParams{
+		UserID:           req.UserId,
+		Address:          &req.Address,
+		PracticeArea:     &req.PracticeArea,
+		PracticeLocation: &req.PracticeLocation,
+		Experience:       &req.Experience,
+		WizardCompleted:  true,
+	}
+
+	_, err := server.store.SaveAboutYou(ctx, arg)
+	if err != nil {
+		log.Logger.Error().Err(err).Msg("Error updating user about you")
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "About you saved successfully"})
 }

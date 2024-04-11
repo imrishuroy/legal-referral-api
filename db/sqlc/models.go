@@ -8,14 +8,6 @@ import (
 	"time"
 )
 
-type Experience struct {
-	ExperienceID     int64  `json:"experience_id"`
-	UserID           string `json:"user_id"`
-	PracticeArea     string `json:"practice_area"`
-	PracticeLocation string `json:"practice_location"`
-	Experience       string `json:"experience"`
-}
-
 type License struct {
 	LicenseID     int64   `json:"license_id"`
 	UserID        string  `json:"user_id"`
@@ -27,17 +19,24 @@ type License struct {
 }
 
 type User struct {
-	UserID          string    `json:"user_id"`
-	Email           string    `json:"email"`
-	FirstName       string    `json:"first_name"`
-	LastName        string    `json:"last_name"`
-	Mobile          *string   `json:"mobile"`
-	Address         *string   `json:"address"`
-	ImageUrl        *string   `json:"image_url"`
-	EmailVerified   bool      `json:"email_verified"`
-	MobileVerified  bool      `json:"mobile_verified"`
-	WizardStep      int32     `json:"wizard_step"`
-	WizardCompleted bool      `json:"wizard_completed"`
-	SignupMethod    int32     `json:"signup_method"`
-	JoinDate        time.Time `json:"join_date"`
+	UserID                  string    `json:"user_id"`
+	Email                   string    `json:"email"`
+	FirstName               string    `json:"first_name"`
+	LastName                string    `json:"last_name"`
+	About                   *string   `json:"about"`
+	Mobile                  *string   `json:"mobile"`
+	Address                 *string   `json:"address"`
+	ImageUrl                *string   `json:"image_url"`
+	EmailVerified           bool      `json:"email_verified"`
+	MobileVerified          bool      `json:"mobile_verified"`
+	WizardStep              int32     `json:"wizard_step"`
+	WizardCompleted         bool      `json:"wizard_completed"`
+	SignupMethod            int32     `json:"signup_method"`
+	PracticeArea            *string   `json:"practice_area"`
+	PracticeLocation        *string   `json:"practice_location"`
+	Experience              *string   `json:"experience"`
+	AverageBillingPerClient *int32    `json:"average_billing_per_client"`
+	CaseResolutionRate      *int32    `json:"case_resolution_rate"`
+	OpenToReferral          bool      `json:"open_to_referral"`
+	JoinDate                time.Time `json:"join_date"`
 }

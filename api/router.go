@@ -8,12 +8,8 @@ func (server *Server) setupRouter() {
 	server.router = gin.Default()
 	server.router.GET("/", server.ping).Use(CORSMiddleware())
 
-	server.router.POST("/sign-in", server.signIn)
-	server.router.POST("/api/sign-up", server.signUp)
 	server.router.POST("/api/otp/send", server.sendOTP)
 	server.router.POST("/api/otp/verify", server.verifyOTP)
-	server.router.GET("/api/users/:user_id/wizardstep", server.getUserWizardStep)
-	server.router.POST("/api/custom-signup", server.customTokenSignUp)
 
 	server.router.POST("/api/reset-password", server.resetPassword)
 
@@ -22,13 +18,12 @@ func (server *Server) setupRouter() {
 
 	auth.POST("/users/:user_id/profile-image", server.updateUserImage)
 	auth.POST("/users", server.createUser)
+	auth.GET("/users/:user_id", server.getUserById)
+	server.router.GET("/api/users/:user_id/wizardstep", server.getUserWizardStep)
 	auth.GET("/check-token", server.ping)
 	auth.POST("/license", server.saveLicense)
 	auth.POST("/license/upload", server.uploadLicense)
 	auth.POST("/about-you", server.saveAboutYou)
-	auth.POST("/experience", server.saveExperience)
-	auth.GET("/users/:user_id", server.getUserById)
-
 }
 
 func CORSMiddleware() gin.HandlerFunc {

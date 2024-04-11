@@ -3,6 +3,7 @@ CREATE TABLE users (
     email VARCHAR UNIQUE NOT NULL,
     first_name VARCHAR NOT NULL,
     last_name VARCHAR NOT NULL,
+    about VARCHAR,
     mobile VARCHAR,
     address VARCHAR,
     image_url VARCHAR,
@@ -11,6 +12,12 @@ CREATE TABLE users (
     wizard_step INTEGER NOT NULL DEFAULT 0,
     wizard_completed BOOLEAN NOT NULL DEFAULT false,
     signup_method INTEGER NOT NULL,
+    practice_area VARCHAR,
+    practice_location VARCHAR,
+    experience VARCHAR,
+    average_billing_per_client INTEGER,
+    case_resolution_rate INTEGER,
+    open_to_referral BOOLEAN NOT NULL DEFAULT false,
     join_date TIMESTAMPTZ NOT NULL DEFAULT current_timestamp
 );
 
