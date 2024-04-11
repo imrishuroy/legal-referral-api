@@ -8,24 +8,36 @@ import (
 	"time"
 )
 
-type Profile struct {
-	ID       int64  `json:"id"`
-	UserID   string `json:"user_id"`
-	Headline string `json:"headline"`
-	Summary  string `json:"summary"`
-	Industry string `json:"industry"`
-	Website  string `json:"website"`
+type Experience struct {
+	ExperienceID     int64  `json:"experience_id"`
+	UserID           string `json:"user_id"`
+	PracticeArea     string `json:"practice_area"`
+	PracticeLocation string `json:"practice_location"`
+	Experience       string `json:"experience"`
+}
+
+type License struct {
+	LicenseID     int64   `json:"license_id"`
+	UserID        string  `json:"user_id"`
+	Name          string  `json:"name"`
+	LicenseNumber string  `json:"license_number"`
+	IssueDate     string  `json:"issue_date"`
+	IssueState    string  `json:"issue_state"`
+	LicensePdf    *string `json:"license_pdf"`
 }
 
 type User struct {
-	ID              string `json:"id"`
-	FirstName       string `json:"first_name"`
-	LastName        string `json:"last_name"`
-	MobileNumber    string `json:"mobile_number"`
-	Email           string `json:"email"`
-	BarLicenceNo    string `json:"bar_licence_no"`
-	PracticingField string `json:"practicing_field"`
-	// in future experiences will have its own table
-	Experience int32     `json:"experience"`
-	JoinDate   time.Time `json:"join_date"`
+	UserID          string    `json:"user_id"`
+	Email           string    `json:"email"`
+	FirstName       string    `json:"first_name"`
+	LastName        string    `json:"last_name"`
+	Mobile          *string   `json:"mobile"`
+	Address         *string   `json:"address"`
+	ImageUrl        *string   `json:"image_url"`
+	EmailVerified   bool      `json:"email_verified"`
+	MobileVerified  bool      `json:"mobile_verified"`
+	WizardStep      int32     `json:"wizard_step"`
+	WizardCompleted bool      `json:"wizard_completed"`
+	SignupMethod    int32     `json:"signup_method"`
+	JoinDate        time.Time `json:"join_date"`
 }

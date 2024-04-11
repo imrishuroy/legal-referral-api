@@ -11,58 +11,65 @@ import (
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (
-    id,
+    user_id,
+    email,
+    mobile,
     first_name,
     last_name,
-    mobile_number,
-    email,
-    bar_licence_no,
-    practicing_field,
-    experience
+    signup_method,
+    email_verified,
+    mobile_verified,
+    image_url
 ) VALUES (
-    $1, $2, $3, $4, $5, $6, $7, $8
-) RETURNING id, first_name, last_name, mobile_number, email, bar_licence_no, practicing_field, experience, join_date
+    $1, $2, $3, $4, $5, $6, $7, $8, $9
+) RETURNING user_id, email, first_name, last_name, mobile, address, image_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, join_date
 `
 
 type CreateUserParams struct {
-	ID              string `json:"id"`
-	FirstName       string `json:"first_name"`
-	LastName        string `json:"last_name"`
-	MobileNumber    string `json:"mobile_number"`
-	Email           string `json:"email"`
-	BarLicenceNo    string `json:"bar_licence_no"`
-	PracticingField string `json:"practicing_field"`
-	Experience      int32  `json:"experience"`
+	UserID         string  `json:"user_id"`
+	Email          string  `json:"email"`
+	Mobile         *string `json:"mobile"`
+	FirstName      string  `json:"first_name"`
+	LastName       string  `json:"last_name"`
+	SignupMethod   int32   `json:"signup_method"`
+	EmailVerified  bool    `json:"email_verified"`
+	MobileVerified bool    `json:"mobile_verified"`
+	ImageUrl       *string `json:"image_url"`
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
 	row := q.db.QueryRow(ctx, createUser,
-		arg.ID,
+		arg.UserID,
+		arg.Email,
+		arg.Mobile,
 		arg.FirstName,
 		arg.LastName,
-		arg.MobileNumber,
-		arg.Email,
-		arg.BarLicenceNo,
-		arg.PracticingField,
-		arg.Experience,
+		arg.SignupMethod,
+		arg.EmailVerified,
+		arg.MobileVerified,
+		arg.ImageUrl,
 	)
 	var i User
 	err := row.Scan(
-		&i.ID,
+		&i.UserID,
+		&i.Email,
 		&i.FirstName,
 		&i.LastName,
-		&i.MobileNumber,
-		&i.Email,
-		&i.BarLicenceNo,
-		&i.PracticingField,
-		&i.Experience,
+		&i.Mobile,
+		&i.Address,
+		&i.ImageUrl,
+		&i.EmailVerified,
+		&i.MobileVerified,
+		&i.WizardStep,
+		&i.WizardCompleted,
+		&i.SignupMethod,
 		&i.JoinDate,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, first_name, last_name, mobile_number, email, bar_licence_no, practicing_field, experience, join_date FROM users
+SELECT user_id, email, first_name, last_name, mobile, address, image_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, join_date FROM users
 WHERE email = $1 LIMIT 1
 `
 
@@ -70,14 +77,328 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 	row := q.db.QueryRow(ctx, getUserByEmail, email)
 	var i User
 	err := row.Scan(
-		&i.ID,
+		&i.UserID,
+		&i.Email,
 		&i.FirstName,
 		&i.LastName,
-		&i.MobileNumber,
+		&i.Mobile,
+		&i.Address,
+		&i.ImageUrl,
+		&i.EmailVerified,
+		&i.MobileVerified,
+		&i.WizardStep,
+		&i.WizardCompleted,
+		&i.SignupMethod,
+		&i.JoinDate,
+	)
+	return i, err
+}
+
+const getUserById = `-- name: GetUserById :one
+SELECT user_id, email, first_name, last_name, mobile, address, image_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, join_date FROM users
+WHERE user_id = $1 LIMIT 1
+`
+
+func (q *Queries) GetUserById(ctx context.Context, userID string) (User, error) {
+	row := q.db.QueryRow(ctx, getUserById, userID)
+	var i User
+	err := row.Scan(
+		&i.UserID,
 		&i.Email,
-		&i.BarLicenceNo,
-		&i.PracticingField,
-		&i.Experience,
+		&i.FirstName,
+		&i.LastName,
+		&i.Mobile,
+		&i.Address,
+		&i.ImageUrl,
+		&i.EmailVerified,
+		&i.MobileVerified,
+		&i.WizardStep,
+		&i.WizardCompleted,
+		&i.SignupMethod,
+		&i.JoinDate,
+	)
+	return i, err
+}
+
+const getUserWizardStep = `-- name: GetUserWizardStep :one
+SELECT wizard_step
+FROM users
+WHERE user_id = $1
+`
+
+func (q *Queries) GetUserWizardStep(ctx context.Context, userID string) (int32, error) {
+	row := q.db.QueryRow(ctx, getUserWizardStep, userID)
+	var wizard_step int32
+	err := row.Scan(&wizard_step)
+	return wizard_step, err
+}
+
+const markWizardCompleted = `-- name: MarkWizardCompleted :one
+UPDATE users
+SET
+    wizard_completed = $2
+WHERE
+    user_id = $1
+RETURNING user_id, email, first_name, last_name, mobile, address, image_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, join_date
+`
+
+type MarkWizardCompletedParams struct {
+	UserID          string `json:"user_id"`
+	WizardCompleted bool   `json:"wizard_completed"`
+}
+
+func (q *Queries) MarkWizardCompleted(ctx context.Context, arg MarkWizardCompletedParams) (User, error) {
+	row := q.db.QueryRow(ctx, markWizardCompleted, arg.UserID, arg.WizardCompleted)
+	var i User
+	err := row.Scan(
+		&i.UserID,
+		&i.Email,
+		&i.FirstName,
+		&i.LastName,
+		&i.Mobile,
+		&i.Address,
+		&i.ImageUrl,
+		&i.EmailVerified,
+		&i.MobileVerified,
+		&i.WizardStep,
+		&i.WizardCompleted,
+		&i.SignupMethod,
+		&i.JoinDate,
+	)
+	return i, err
+}
+
+const updateEmailVerificationStatus = `-- name: UpdateEmailVerificationStatus :one
+UPDATE users
+SET
+    email_verified = $2
+WHERE
+    user_id = $1
+RETURNING user_id, email, first_name, last_name, mobile, address, image_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, join_date
+`
+
+type UpdateEmailVerificationStatusParams struct {
+	UserID        string `json:"user_id"`
+	EmailVerified bool   `json:"email_verified"`
+}
+
+func (q *Queries) UpdateEmailVerificationStatus(ctx context.Context, arg UpdateEmailVerificationStatusParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateEmailVerificationStatus, arg.UserID, arg.EmailVerified)
+	var i User
+	err := row.Scan(
+		&i.UserID,
+		&i.Email,
+		&i.FirstName,
+		&i.LastName,
+		&i.Mobile,
+		&i.Address,
+		&i.ImageUrl,
+		&i.EmailVerified,
+		&i.MobileVerified,
+		&i.WizardStep,
+		&i.WizardCompleted,
+		&i.SignupMethod,
+		&i.JoinDate,
+	)
+	return i, err
+}
+
+const updateMobileVerificationStatus = `-- name: UpdateMobileVerificationStatus :one
+UPDATE users
+SET
+    mobile = $2,
+    mobile_verified = $3
+WHERE
+    user_id = $1
+RETURNING user_id, email, first_name, last_name, mobile, address, image_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, join_date
+`
+
+type UpdateMobileVerificationStatusParams struct {
+	UserID         string  `json:"user_id"`
+	Mobile         *string `json:"mobile"`
+	MobileVerified bool    `json:"mobile_verified"`
+}
+
+func (q *Queries) UpdateMobileVerificationStatus(ctx context.Context, arg UpdateMobileVerificationStatusParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateMobileVerificationStatus, arg.UserID, arg.Mobile, arg.MobileVerified)
+	var i User
+	err := row.Scan(
+		&i.UserID,
+		&i.Email,
+		&i.FirstName,
+		&i.LastName,
+		&i.Mobile,
+		&i.Address,
+		&i.ImageUrl,
+		&i.EmailVerified,
+		&i.MobileVerified,
+		&i.WizardStep,
+		&i.WizardCompleted,
+		&i.SignupMethod,
+		&i.JoinDate,
+	)
+	return i, err
+}
+
+const updateUser = `-- name: UpdateUser :one
+UPDATE users
+SET
+    first_name = $2,
+    last_name = $3,
+    mobile = $4,
+    address = $5,
+    email_verified = $6,
+    mobile_verified = $7,
+    wizard_step = $8,
+    wizard_completed = $9
+WHERE
+    user_id = $1
+RETURNING user_id, email, first_name, last_name, mobile, address, image_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, join_date
+`
+
+type UpdateUserParams struct {
+	UserID          string  `json:"user_id"`
+	FirstName       string  `json:"first_name"`
+	LastName        string  `json:"last_name"`
+	Mobile          *string `json:"mobile"`
+	Address         *string `json:"address"`
+	EmailVerified   bool    `json:"email_verified"`
+	MobileVerified  bool    `json:"mobile_verified"`
+	WizardStep      int32   `json:"wizard_step"`
+	WizardCompleted bool    `json:"wizard_completed"`
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUser,
+		arg.UserID,
+		arg.FirstName,
+		arg.LastName,
+		arg.Mobile,
+		arg.Address,
+		arg.EmailVerified,
+		arg.MobileVerified,
+		arg.WizardStep,
+		arg.WizardCompleted,
+	)
+	var i User
+	err := row.Scan(
+		&i.UserID,
+		&i.Email,
+		&i.FirstName,
+		&i.LastName,
+		&i.Mobile,
+		&i.Address,
+		&i.ImageUrl,
+		&i.EmailVerified,
+		&i.MobileVerified,
+		&i.WizardStep,
+		&i.WizardCompleted,
+		&i.SignupMethod,
+		&i.JoinDate,
+	)
+	return i, err
+}
+
+const updateUserAboutYou = `-- name: UpdateUserAboutYou :one
+UPDATE users
+SET
+    address = $2
+WHERE
+    user_id = $1
+RETURNING user_id, email, first_name, last_name, mobile, address, image_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, join_date
+`
+
+type UpdateUserAboutYouParams struct {
+	UserID  string  `json:"user_id"`
+	Address *string `json:"address"`
+}
+
+func (q *Queries) UpdateUserAboutYou(ctx context.Context, arg UpdateUserAboutYouParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserAboutYou, arg.UserID, arg.Address)
+	var i User
+	err := row.Scan(
+		&i.UserID,
+		&i.Email,
+		&i.FirstName,
+		&i.LastName,
+		&i.Mobile,
+		&i.Address,
+		&i.ImageUrl,
+		&i.EmailVerified,
+		&i.MobileVerified,
+		&i.WizardStep,
+		&i.WizardCompleted,
+		&i.SignupMethod,
+		&i.JoinDate,
+	)
+	return i, err
+}
+
+const updateUserImageUrl = `-- name: UpdateUserImageUrl :one
+UPDATE users
+SET
+    image_url = $2
+WHERE
+    user_id = $1
+RETURNING user_id, email, first_name, last_name, mobile, address, image_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, join_date
+`
+
+type UpdateUserImageUrlParams struct {
+	UserID   string  `json:"user_id"`
+	ImageUrl *string `json:"image_url"`
+}
+
+func (q *Queries) UpdateUserImageUrl(ctx context.Context, arg UpdateUserImageUrlParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserImageUrl, arg.UserID, arg.ImageUrl)
+	var i User
+	err := row.Scan(
+		&i.UserID,
+		&i.Email,
+		&i.FirstName,
+		&i.LastName,
+		&i.Mobile,
+		&i.Address,
+		&i.ImageUrl,
+		&i.EmailVerified,
+		&i.MobileVerified,
+		&i.WizardStep,
+		&i.WizardCompleted,
+		&i.SignupMethod,
+		&i.JoinDate,
+	)
+	return i, err
+}
+
+const updateUserWizardStep = `-- name: UpdateUserWizardStep :one
+UPDATE users
+SET
+    wizard_step = $2
+WHERE
+    user_id = $1
+RETURNING user_id, email, first_name, last_name, mobile, address, image_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, join_date
+`
+
+type UpdateUserWizardStepParams struct {
+	UserID     string `json:"user_id"`
+	WizardStep int32  `json:"wizard_step"`
+}
+
+func (q *Queries) UpdateUserWizardStep(ctx context.Context, arg UpdateUserWizardStepParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserWizardStep, arg.UserID, arg.WizardStep)
+	var i User
+	err := row.Scan(
+		&i.UserID,
+		&i.Email,
+		&i.FirstName,
+		&i.LastName,
+		&i.Mobile,
+		&i.Address,
+		&i.ImageUrl,
+		&i.EmailVerified,
+		&i.MobileVerified,
+		&i.WizardStep,
+		&i.WizardCompleted,
+		&i.SignupMethod,
 		&i.JoinDate,
 	)
 	return i, err

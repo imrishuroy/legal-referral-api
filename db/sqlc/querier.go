@@ -11,6 +11,18 @@ import (
 type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
+	GetUserById(ctx context.Context, userID string) (User, error)
+	GetUserWizardStep(ctx context.Context, userID string) (int32, error)
+	MarkWizardCompleted(ctx context.Context, arg MarkWizardCompletedParams) (User, error)
+	SaveExperience(ctx context.Context, arg SaveExperienceParams) (Experience, error)
+	SaveLicense(ctx context.Context, arg SaveLicenseParams) (License, error)
+	UpdateEmailVerificationStatus(ctx context.Context, arg UpdateEmailVerificationStatusParams) (User, error)
+	UpdateMobileVerificationStatus(ctx context.Context, arg UpdateMobileVerificationStatusParams) (User, error)
+	UpdateUser(ctx context.Context, arg UpdateUserParams) (User, error)
+	UpdateUserAboutYou(ctx context.Context, arg UpdateUserAboutYouParams) (User, error)
+	UpdateUserImageUrl(ctx context.Context, arg UpdateUserImageUrlParams) (User, error)
+	UpdateUserWizardStep(ctx context.Context, arg UpdateUserWizardStepParams) (User, error)
+	UploadLicense(ctx context.Context, arg UploadLicenseParams) (License, error)
 }
 
 var _ Querier = (*Queries)(nil)
