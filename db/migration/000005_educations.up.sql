@@ -4,15 +4,14 @@ CREATE TABLE educations (
     school VARCHAR NOT NULL,
     degree VARCHAR NOT NULL,
     field_of_study VARCHAR NOT NULL,
-    start_date TIMESTAMPTZ NOT NULL,
-    end_date TIMESTAMPTZ,
+    start_date DATE NOT NULL,
+    end_date DATE,
     current BOOLEAN NOT NULL DEFAULT FALSE,
     grade VARCHAR NOT NULL,
-    achievements TEXT,
+    achievements TEXT NOT NULL,
     skills TEXT[] NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
-    CHECK (start_date < end_date),
-    CHECK (current = (end_date IS NULL))
+    CHECK (start_date < end_date)
 );
 
 -- Indexes

@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"firebase.google.com/go/v4/auth"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
 	"github.com/rs/zerolog/log"
 	"net/http"
@@ -108,6 +109,13 @@ func (server *Server) getUserById(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
 		return
 	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID != req.UserID {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
 	user, _ := server.store.GetUserById(ctx, req.UserID)
 
 	// if the user not found returning nil, not error
@@ -233,7 +241,6 @@ func (server *Server) markWizardCompleted(ctx *gin.Context) {
 }
 
 type saveAboutYouReq struct {
-	UserId           string `json:"user_id"`
 	Address          string `json:"address"`
 	PracticeArea     string `json:"practice_area"`
 	PracticeLocation string `json:"practice_location"`
@@ -248,8 +255,14 @@ func (server *Server) saveAboutYou(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
 	arg := db.SaveAboutYouParams{
-		UserID:           req.UserId,
+		UserID:           authPayload.UID,
 		Address:          &req.Address,
 		PracticeArea:     &req.PracticeArea,
 		PracticeLocation: &req.PracticeLocation,

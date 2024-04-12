@@ -3,7 +3,7 @@ CREATE TABLE licenses (
     user_id VARCHAR NOT NULL,
     name VARCHAR NOT NULL,
     license_number VARCHAR NOT NULL,
-    issue_date TIMESTAMPTZ NOT NULL,
+    issue_date DATE NOT NULL,
     issue_state VARCHAR NOT NULL,
     license_pdf VARCHAR,
     FOREIGN KEY (user_id) REFERENCES users(user_id)

@@ -12,8 +12,7 @@ func (server *Server) setupRouter() {
 	server.router.POST("/api/otp/verify", server.verifyOTP)
 
 	server.router.POST("/api/reset-password", server.resetPassword)
-
-	server.router.POST("/api/experience", server.addExperience)
+	server.router.GET("/api/users/:user_id/wizardstep", server.getUserWizardStep)
 
 	auth := server.router.Group("/api").
 		Use(authMiddleware(server.firebaseAuth))
@@ -21,11 +20,14 @@ func (server *Server) setupRouter() {
 	auth.POST("/users/:user_id/profile-image", server.updateUserImage)
 	auth.POST("/users", server.createUser)
 	auth.GET("/users/:user_id", server.getUserById)
-	server.router.GET("/api/users/:user_id/wizardstep", server.getUserWizardStep)
 	auth.GET("/check-token", server.ping)
 	auth.POST("/license", server.saveLicense)
 	auth.POST("/license/upload", server.uploadLicense)
 	auth.POST("/about-you", server.saveAboutYou)
+	auth.POST("/api/experience", server.addExperience)
+	auth.POST("/api/education", server.addEducation)
+	auth.POST("/api/review", server.addReview)
+	auth.POST("/api/social", server.addSocial)
 }
 
 func CORSMiddleware() gin.HandlerFunc {

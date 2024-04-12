@@ -1,19 +1,19 @@
 package api
 
 import (
+	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/rs/zerolog/log"
 	"net/http"
-	"time"
 )
 
 type saveLicenseRequest struct {
-	UserID        string    `json:"user_id" binding:"required"`
-	Name          string    `json:"name" binding:"required"`
-	LicenseNumber string    `json:"license_number" binding:"required"`
-	IssueDate     time.Time `json:"issue_date" binding:"required"`
-	IssueState    string    `json:"issue_state" binding:"required"`
+	Name          string      `json:"name" binding:"required"`
+	LicenseNumber string      `json:"license_number" binding:"required"`
+	IssueDate     pgtype.Date `json:"issue_date" binding:"required"`
+	IssueState    string      `json:"issue_state" binding:"required"`
 }
 
 func (server *Server) saveLicense(ctx *gin.Context) {
@@ -24,8 +24,14 @@ func (server *Server) saveLicense(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
 	arg := db.SaveLicenseParams{
-		UserID:        req.UserID,
+		UserID:        authPayload.UID,
 		Name:          req.Name,
 		LicenseNumber: req.LicenseNumber,
 		IssueDate:     req.IssueDate,
@@ -39,9 +45,8 @@ func (server *Server) saveLicense(ctx *gin.Context) {
 	}
 
 	// update the wizard step
-
 	wizardStepArg := db.UpdateUserWizardStepParams{
-		UserID:     req.UserID,
+		UserID:     authPayload.UID,
 		WizardStep: 1,
 	}
 
@@ -56,7 +61,6 @@ func (server *Server) saveLicense(ctx *gin.Context) {
 }
 
 type uploadLicenseRequest struct {
-	UserId     string `json:"user_id" binding:"required"`
 	LicensePdf string `json:"license_pdf" binding:"required"`
 }
 
@@ -67,8 +71,14 @@ func (server *Server) uploadLicense(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
 	uploadLicenseArg := db.UploadLicenseParams{
-		UserID:     req.UserId,
+		UserID:     authPayload.UID,
 		LicensePdf: &req.LicensePdf,
 	}
 
@@ -80,7 +90,7 @@ func (server *Server) uploadLicense(ctx *gin.Context) {
 
 	// update the wizard step
 	wizardStepArg := db.UpdateUserWizardStepParams{
-		UserID:     req.UserId,
+		UserID:     authPayload.UID,
 		WizardStep: 2,
 	}
 
