@@ -9,6 +9,7 @@ import (
 )
 
 type Querier interface {
+	AddExperience(ctx context.Context, arg AddExperienceParams) (Experience, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, userID string) (User, error)

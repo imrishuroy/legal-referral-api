@@ -13,6 +13,8 @@ func (server *Server) setupRouter() {
 
 	server.router.POST("/api/reset-password", server.resetPassword)
 
+	server.router.POST("/api/experience", server.addExperience)
+
 	auth := server.router.Group("/api").
 		Use(authMiddleware(server.firebaseAuth))
 

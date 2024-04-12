@@ -3,21 +3,24 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
+	"github.com/rs/zerolog/log"
 	"net/http"
+	"time"
 )
 
 type saveLicenseRequest struct {
-	UserID        string `json:"user_id" binding:"required"`
-	Name          string `json:"name" binding:"required"`
-	LicenseNumber string `json:"license_number" binding:"required"`
-	IssueDate     string `json:"issue_date" binding:"required"`
-	IssueState    string `json:"issue_state" binding:"required"`
+	UserID        string    `json:"user_id" binding:"required"`
+	Name          string    `json:"name" binding:"required"`
+	LicenseNumber string    `json:"license_number" binding:"required"`
+	IssueDate     time.Time `json:"issue_date" binding:"required"`
+	IssueState    string    `json:"issue_state" binding:"required"`
 }
 
 func (server *Server) saveLicense(ctx *gin.Context) {
-	var req db.SaveLicenseParams
+	var req saveLicenseRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		log.Error().Err(err).Msg("Failed to bind JSON")
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
 		return
 	}
 

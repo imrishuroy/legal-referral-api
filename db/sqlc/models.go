@@ -6,16 +6,62 @@ package db
 
 import (
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Education struct {
+	EducationID  int64              `json:"education_id"`
+	UserID       string             `json:"user_id"`
+	School       string             `json:"school"`
+	Degree       string             `json:"degree"`
+	FieldOfStudy string             `json:"field_of_study"`
+	StartDate    time.Time          `json:"start_date"`
+	EndDate      pgtype.Timestamptz `json:"end_date"`
+	Current      bool               `json:"current"`
+	Grade        string             `json:"grade"`
+	Achievements *string            `json:"achievements"`
+	Skills       []string           `json:"skills"`
+}
+
+type Experience struct {
+	ExperienceID     int64       `json:"experience_id"`
+	UserID           string      `json:"user_id"`
+	Title            string      `json:"title"`
+	PracticeArea     string      `json:"practice_area"`
+	CompanyName      string      `json:"company_name"`
+	PracticeLocation string      `json:"practice_location"`
+	StartDate        pgtype.Date `json:"start_date"`
+	EndDate          pgtype.Date `json:"end_date"`
+	Current          bool        `json:"current"`
+	Description      string      `json:"description"`
+	Skills           []string    `json:"skills"`
+}
+
 type License struct {
-	LicenseID     int64   `json:"license_id"`
-	UserID        string  `json:"user_id"`
-	Name          string  `json:"name"`
-	LicenseNumber string  `json:"license_number"`
-	IssueDate     string  `json:"issue_date"`
-	IssueState    string  `json:"issue_state"`
-	LicensePdf    *string `json:"license_pdf"`
+	LicenseID     int64     `json:"license_id"`
+	UserID        string    `json:"user_id"`
+	Name          string    `json:"name"`
+	LicenseNumber string    `json:"license_number"`
+	IssueDate     time.Time `json:"issue_date"`
+	IssueState    string    `json:"issue_state"`
+	LicensePdf    *string   `json:"license_pdf"`
+}
+
+type Review struct {
+	ReviewID   int32              `json:"review_id"`
+	UserID     *string            `json:"user_id"`
+	ReviewerID *string            `json:"reviewer_id"`
+	ReviewText *string            `json:"review_text"`
+	Rating     *int32             `json:"rating"`
+	Timestamp  pgtype.Timestamptz `json:"timestamp"`
+}
+
+type Social struct {
+	SocialID     int64  `json:"social_id"`
+	UserID       string `json:"user_id"`
+	PlatformName string `json:"platform_name"`
+	LinkUrl      string `json:"link_url"`
 }
 
 type User struct {

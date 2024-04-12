@@ -1,5 +1,5 @@
 CREATE TABLE users (
-    user_id VARCHAR PRIMARY KEY NOT NULL,
+    user_id VARCHAR PRIMARY KEY,
     email VARCHAR UNIQUE NOT NULL,
     first_name VARCHAR NOT NULL,
     last_name VARCHAR NOT NULL,
@@ -21,6 +21,6 @@ CREATE TABLE users (
     join_date TIMESTAMPTZ NOT NULL DEFAULT current_timestamp
 );
 
+-- Indexes
 CREATE INDEX ON "users" ("first_name");
-
 CREATE INDEX ON "users" ("last_name");

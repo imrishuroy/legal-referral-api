@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 )
 
 const saveLicense = `-- name: SaveLicense :one
@@ -22,11 +23,11 @@ INSERT INTO licenses (
 `
 
 type SaveLicenseParams struct {
-	UserID        string `json:"user_id"`
-	Name          string `json:"name"`
-	LicenseNumber string `json:"license_number"`
-	IssueDate     string `json:"issue_date"`
-	IssueState    string `json:"issue_state"`
+	UserID        string    `json:"user_id"`
+	Name          string    `json:"name"`
+	LicenseNumber string    `json:"license_number"`
+	IssueDate     time.Time `json:"issue_date"`
+	IssueState    string    `json:"issue_state"`
 }
 
 func (q *Queries) SaveLicense(ctx context.Context, arg SaveLicenseParams) (License, error) {

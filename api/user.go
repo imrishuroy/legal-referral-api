@@ -63,8 +63,10 @@ func (server *Server) createUser(ctx *gin.Context) {
 		}
 	}
 	// found the user with req email
+	// Check if dbUser.UserID is not empty, indicating that a user with that email already exists
 	if dbUser.UserID != "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "user with email already exists"})
+		// If a user with the provided email already exists, return a bad request response
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "User with email already exists"})
 		return
 	}
 
@@ -107,6 +109,7 @@ func (server *Server) getUserById(ctx *gin.Context) {
 		return
 	}
 	user, _ := server.store.GetUserById(ctx, req.UserID)
+
 	// if the user not found returning nil, not error
 	if user.UserID == "" {
 		ctx.JSON(http.StatusOK, nil)
