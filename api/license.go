@@ -6,6 +6,7 @@ import (
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/rs/zerolog/log"
+	"mime/multipart"
 	"net/http"
 )
 
@@ -60,16 +61,31 @@ func (server *Server) saveLicense(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, license)
 }
 
-type uploadLicenseRequest struct {
-	LicensePdf string `json:"license_pdf" binding:"required"`
-}
-
 func (server *Server) uploadLicense(ctx *gin.Context) {
-	var req uploadLicenseRequest
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+
+	form, err := ctx.MultipartForm()
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Error parsing form"})
 		return
 	}
+
+	files := form.File["license_pdf"]
+	if len(files) == 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "No file uploaded"})
+		return
+	}
+
+	file, err := files[0].Open()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error opening file"})
+		return
+	}
+	defer func(file multipart.File) {
+		err := file.Close()
+		if err != nil {
+
+		}
+	}(file)
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
@@ -77,12 +93,18 @@ func (server *Server) uploadLicense(ctx *gin.Context) {
 		return
 	}
 
-	uploadLicenseArg := db.UploadLicenseParams{
-		UserID:     authPayload.UID,
-		LicensePdf: &req.LicensePdf,
+	fileName := authPayload.UID + getFileExtension(files[0])
+	url, err := server.uploadfile(file, fileName, files[0].Header.Get("Content-Type"), "licenses")
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error uploading file"})
+		return
 	}
 
-	_, err := server.store.UploadLicense(ctx, uploadLicenseArg)
+	uploadLicenseArg := db.UploadLicenseParams{
+		UserID:     authPayload.UID,
+		LicensePdf: &url,
+	}
+	_, err = server.store.UploadLicense(ctx, uploadLicenseArg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

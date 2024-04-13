@@ -6,17 +6,20 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/rs/zerolog/log"
 	"mime/multipart"
+	"path/filepath"
 	"strings"
 	"time"
 )
 
-func (server *Server) uploadfile(file multipart.File, fileName string, contentType string) (string, error) {
+func (server *Server) uploadfile(file multipart.File, fileName string, contentType string, folderName string) (string, error) {
 	// Create a session with S3
 	svc := s3.New(server.awsSession)
 
+	bucketName := server.config.AWSBucketPrefix + "-" + folderName
+
 	// Upload the file to S3
 	_, err := svc.PutObject(&s3.PutObjectInput{
-		Bucket:               aws.String(server.config.AWSBucketName),
+		Bucket:               aws.String(bucketName),
 		Key:                  aws.String(fileName),
 		Body:                 file,
 		ContentType:          aws.String(contentType),
@@ -29,7 +32,7 @@ func (server *Server) uploadfile(file multipart.File, fileName string, contentTy
 		return "", err
 	}
 
-	url := generateS3URL(server.config.AWSRegion, server.config.AWSBucketName, fileName)
+	url := generateS3URL(server.config.AWSRegion, server.config.AWSBucketPrefix, fileName)
 	return url, nil
 }
 
@@ -50,4 +53,15 @@ func generateS3URL(region, bucketName, key string) string {
 	url := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, key)
 	url = strings.ReplaceAll(url, " ", "+")
 	return url
+}
+
+func getFileExtension(fileHeader *multipart.FileHeader) string {
+	// Get the filename from the FileHeader
+	filename := fileHeader.Filename
+
+	// Use filepath.Ext to get the extension
+	extension := filepath.Ext(filename)
+
+	// Return the extension
+	return extension
 }

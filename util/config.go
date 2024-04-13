@@ -19,7 +19,7 @@ type Config struct {
 	AWSRegion              string `mapstructure:"AWS_REGION"`
 	AWSAccessKeyID         string `mapstructure:"AWS_ACCESS_KEY_ID"`
 	AWSSecretKey           string `mapstructure:"AWS_SECRET_KEY"`
-	AWSBucketName          string `mapstructure:"AWS_BUCKET_NAME"`
+	AWSBucketPrefix        string `mapstructure:"AWS_BUCKET_PREFIX"`
 }
 
 // LoadConfig reads configuration from file or environment variables
