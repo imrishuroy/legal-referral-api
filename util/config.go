@@ -16,6 +16,10 @@ type Config struct {
 	TwilioAuthToken        string `mapstructure:"TWILIO_AUTH_TOKEN"`
 	VerifyMobileServiceSID string `mapstructure:"VERIFY_MOBILE_SERVICE_SID"`
 	VerifyEmailServiceSID  string `mapstructure:"VERIFY_EMAIL_SERVICE_SID"`
+	AWSRegion              string `mapstructure:"AWS_REGION"`
+	AWSAccessKeyID         string `mapstructure:"AWS_ACCESS_KEY_ID"`
+	AWSSecretKey           string `mapstructure:"AWS_SECRET_KEY"`
+	AWSBucketName          string `mapstructure:"AWS_BUCKET_NAME"`
 }
 
 // LoadConfig reads configuration from file or environment variables

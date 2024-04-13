@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	db "github.com/imrishuroy/legal-referral/db/sqlc"
 	"github.com/rs/zerolog/log"
 	verify "github.com/twilio/twilio-go/rest/verify/v2"
 	"net/http"
@@ -83,6 +84,18 @@ func (server *Server) verifyOTP(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid OTP"})
 		return
 	} else {
+		if req.UserId != "" {
+			mobileUpdateArg := db.UpdateMobileVerificationStatusParams{
+				UserID:         req.UserId,
+				Mobile:         &req.To,
+				MobileVerified: true,
+			}
+			_, err := server.store.UpdateMobileVerificationStatus(ctx, mobileUpdateArg)
+			if err != nil {
+				ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+				return
+			}
+		}
 		ctx.JSON(http.StatusOK, gin.H{"message": "OTP verified successfully"})
 		return
 	}
