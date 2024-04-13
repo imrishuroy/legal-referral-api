@@ -17,10 +17,10 @@ func (server *Server) setupRouter() {
 	auth := server.router.Group("/api").
 		Use(authMiddleware(server.firebaseAuth))
 
-	auth.POST("/users/:user_id/profile-image", server.updateUserImage)
-	auth.POST("/users", server.createUser)
-	auth.GET("/users/:user_id", server.getUserById)
 	auth.GET("/check-token", server.ping)
+	auth.POST("/users", server.createUser)
+	auth.POST("/users/:user_id/profile-image", server.updateUserImage)
+	auth.GET("/users/:user_id", server.getUserById)
 	auth.POST("/license", server.saveLicense)
 	auth.POST("/license/upload", server.uploadLicense)
 	auth.POST("/about-you", server.saveAboutYou)

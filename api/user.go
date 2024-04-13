@@ -27,7 +27,6 @@ func (s SignupMethod) Int32() int32 {
 }
 
 type createUserReq struct {
-	UserId         string       `json:"user_id"`
 	Email          string       `json:"email"`
 	FirstName      string       `json:"first_name"`
 	LastName       string       `json:"last_name"`
@@ -55,8 +54,14 @@ func (server *Server) createUser(ctx *gin.Context) {
 		return
 	}
 
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
 	// search if req email already exists in db
-	dbUser, err := server.store.GetUserById(ctx, req.UserId)
+	dbUser, err := server.store.GetUserById(ctx, authPayload.UID)
 	if err != nil {
 		if !errors.Is(err, db.ErrRecordNotFound) {
 			ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -73,7 +78,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 
 	// create user
 	arg := db.CreateUserParams{
-		UserID:         req.UserId,
+		UserID:         authPayload.UID,
 		FirstName:      req.FirstName,
 		LastName:       req.LastName,
 		Email:          req.Email,
