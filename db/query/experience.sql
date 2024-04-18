@@ -3,7 +3,7 @@ INSERT INTO experiences (
     user_id,
     title,
     practice_area,
-    company_name,
+    firm_id,
     practice_location,
     start_date,
     end_date,

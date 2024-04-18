@@ -9,9 +9,9 @@ import (
 )
 
 type addSocialReq struct {
-	UserID       string `json:"user_id" binding:"required"`
-	PlatformName string `json:"platform_name" binding:"required"`
-	LinkUrl      string `json:"link_url" binding:"required"`
+	EntityType string `json:"entity_type" binding:"required"`
+	Platform   string `json:"platform" binding:"required"`
+	Link       string `json:"link" binding:"required"`
 }
 
 func (server *Server) addSocial(ctx *gin.Context) {
@@ -23,14 +23,15 @@ func (server *Server) addSocial(ctx *gin.Context) {
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Unauthorized"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Unauthorized"})
 		return
 	}
 
 	arg := db.AddSocialParams{
-		UserID:       authPayload.UID,
-		PlatformName: req.PlatformName,
-		LinkUrl:      req.LinkUrl,
+		EntityID:   authPayload.UID,
+		EntityType: req.EntityType,
+		Platform:   req.Platform,
+		Link:       req.Link,
 	}
 
 	social, err := server.store.AddSocial(ctx, arg)

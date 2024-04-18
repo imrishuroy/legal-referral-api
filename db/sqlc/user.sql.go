@@ -381,6 +381,63 @@ func (q *Queries) UpdateUserImageUrl(ctx context.Context, arg UpdateUserImageUrl
 	return i, err
 }
 
+const updateUserInfo = `-- name: UpdateUserInfo :one
+UPDATE users
+SET
+    first_name = $2,
+    last_name = $3,
+    average_billing_per_client = $4,
+    case_resolution_rate = $5,
+    about = $6
+WHERE
+    user_id = $1
+RETURNING user_id, email, first_name, last_name, about, mobile, address, image_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, join_date
+`
+
+type UpdateUserInfoParams struct {
+	UserID                  string  `json:"user_id"`
+	FirstName               string  `json:"first_name"`
+	LastName                string  `json:"last_name"`
+	AverageBillingPerClient *int32  `json:"average_billing_per_client"`
+	CaseResolutionRate      *int32  `json:"case_resolution_rate"`
+	About                   *string `json:"about"`
+}
+
+func (q *Queries) UpdateUserInfo(ctx context.Context, arg UpdateUserInfoParams) (User, error) {
+	row := q.db.QueryRow(ctx, updateUserInfo,
+		arg.UserID,
+		arg.FirstName,
+		arg.LastName,
+		arg.AverageBillingPerClient,
+		arg.CaseResolutionRate,
+		arg.About,
+	)
+	var i User
+	err := row.Scan(
+		&i.UserID,
+		&i.Email,
+		&i.FirstName,
+		&i.LastName,
+		&i.About,
+		&i.Mobile,
+		&i.Address,
+		&i.ImageUrl,
+		&i.EmailVerified,
+		&i.MobileVerified,
+		&i.WizardStep,
+		&i.WizardCompleted,
+		&i.SignupMethod,
+		&i.PracticeArea,
+		&i.PracticeLocation,
+		&i.Experience,
+		&i.AverageBillingPerClient,
+		&i.CaseResolutionRate,
+		&i.OpenToReferral,
+		&i.JoinDate,
+	)
+	return i, err
+}
+
 const updateUserWizardStep = `-- name: UpdateUserWizardStep :one
 UPDATE users
 SET

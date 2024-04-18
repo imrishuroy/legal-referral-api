@@ -1,8 +1,9 @@
 -- name: AddSocial :one
 INSERT INTO socials (
-    user_id,
-    platform_name,
-    link_url
+    entity_id,
+    entity_type,
+    platform,
+    link
 ) VALUES (
-    $1, $2, $3
+    $1, $2, $3, $4
 ) RETURNING *;

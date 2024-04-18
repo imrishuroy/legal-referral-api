@@ -16,7 +16,7 @@ INSERT INTO experiences (
     user_id,
     title,
     practice_area,
-    company_name,
+    firm_id,
     practice_location,
     start_date,
     end_date,
@@ -25,14 +25,14 @@ INSERT INTO experiences (
     skills
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9, $10
-) RETURNING experience_id, user_id, title, practice_area, company_name, practice_location, start_date, end_date, current, description, skills
+) RETURNING experience_id, user_id, title, practice_area, firm_id, practice_location, start_date, end_date, current, description, skills
 `
 
 type AddExperienceParams struct {
 	UserID           string      `json:"user_id"`
 	Title            string      `json:"title"`
 	PracticeArea     string      `json:"practice_area"`
-	CompanyName      string      `json:"company_name"`
+	FirmID           int64       `json:"firm_id"`
 	PracticeLocation string      `json:"practice_location"`
 	StartDate        pgtype.Date `json:"start_date"`
 	EndDate          pgtype.Date `json:"end_date"`
@@ -46,7 +46,7 @@ func (q *Queries) AddExperience(ctx context.Context, arg AddExperienceParams) (E
 		arg.UserID,
 		arg.Title,
 		arg.PracticeArea,
-		arg.CompanyName,
+		arg.FirmID,
 		arg.PracticeLocation,
 		arg.StartDate,
 		arg.EndDate,
@@ -60,7 +60,7 @@ func (q *Queries) AddExperience(ctx context.Context, arg AddExperienceParams) (E
 		&i.UserID,
 		&i.Title,
 		&i.PracticeArea,
-		&i.CompanyName,
+		&i.FirmID,
 		&i.PracticeLocation,
 		&i.StartDate,
 		&i.EndDate,

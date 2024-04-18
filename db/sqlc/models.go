@@ -29,13 +29,23 @@ type Experience struct {
 	UserID           string      `json:"user_id"`
 	Title            string      `json:"title"`
 	PracticeArea     string      `json:"practice_area"`
-	CompanyName      string      `json:"company_name"`
+	FirmID           int64       `json:"firm_id"`
 	PracticeLocation string      `json:"practice_location"`
 	StartDate        pgtype.Date `json:"start_date"`
 	EndDate          pgtype.Date `json:"end_date"`
 	Current          bool        `json:"current"`
 	Description      string      `json:"description"`
 	Skills           []string    `json:"skills"`
+}
+
+type Firm struct {
+	FirmID   int64  `json:"firm_id"`
+	Name     string `json:"name"`
+	LogoUrl  string `json:"logo_url"`
+	OrgType  string `json:"org_type"`
+	Website  string `json:"website"`
+	Location string `json:"location"`
+	About    string `json:"about"`
 }
 
 type License struct {
@@ -48,6 +58,16 @@ type License struct {
 	LicensePdf    *string     `json:"license_pdf"`
 }
 
+type Pricing struct {
+	PriceID          int64          `json:"price_id"`
+	UserID           string         `json:"user_id"`
+	ServiceType      string         `json:"service_type"`
+	PerHourPrice     pgtype.Numeric `json:"per_hour_price"`
+	PerHearingPrice  pgtype.Numeric `json:"per_hearing_price"`
+	ContingencyPrice *string        `json:"contingency_price"`
+	HybridPrice      *string        `json:"hybrid_price"`
+}
+
 type Review struct {
 	ReviewID   int64     `json:"review_id"`
 	UserID     string    `json:"user_id"`
@@ -58,10 +78,11 @@ type Review struct {
 }
 
 type Social struct {
-	SocialID     int64  `json:"social_id"`
-	UserID       string `json:"user_id"`
-	PlatformName string `json:"platform_name"`
-	LinkUrl      string `json:"link_url"`
+	SocialID   int64  `json:"social_id"`
+	EntityID   string `json:"entity_id"`
+	EntityType string `json:"entity_type"`
+	Platform   string `json:"platform"`
+	Link       string `json:"link"`
 }
 
 type User struct {

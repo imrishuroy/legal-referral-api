@@ -243,3 +243,43 @@ func (server *Server) saveAboutYou(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "About you saved successfully"})
 }
+
+type updateUserInfo struct {
+	FirstName               string `json:"first_name" binding:"required"`
+	LastName                string `json:"last_name" binding:"required"`
+	AverageBillingPerClient int32  `json:"average_billing_per_client" binding:"required"`
+	CaseResolutionRate      int32  `json:"case_resolution_rate" binding:"required"`
+	About                   string `json:"about" binding:"required"`
+}
+
+func (server *Server) updateUserInfo(ctx *gin.Context) {
+	var req updateUserInfo
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		log.Error().Err(err).Msg("Invalid request body")
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+		return
+	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	arg := db.UpdateUserInfoParams{
+		UserID:                  authPayload.UID,
+		FirstName:               req.FirstName,
+		LastName:                req.LastName,
+		AverageBillingPerClient: &req.AverageBillingPerClient,
+		CaseResolutionRate:      &req.CaseResolutionRate,
+		About:                   &req.About,
+	}
+
+	user, err := server.store.UpdateUserInfo(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, user)
+}

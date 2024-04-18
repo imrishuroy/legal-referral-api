@@ -12,13 +12,27 @@ import (
 type addExperienceReq struct {
 	Title            string      `json:"title" binding:"required"`
 	PracticeArea     string      `json:"practice_area" binding:"required"`
-	CompanyName      string      `json:"company_name" binding:"required"`
+	FirmID           int64       `json:"firm_id" binding:"required"`
 	PracticeLocation string      `json:"practice_location" binding:"required"`
 	StartDate        pgtype.Date `json:"start_date" binding:"required"`
 	EndDate          pgtype.Date `json:"end_date" binding:"required"`
 	Current          bool        `json:"current"`
 	Description      string      `json:"description" binding:"required"`
 	Skills           []string    `json:"skills" binding:"required"`
+}
+
+type Experience struct {
+	ExperienceID     int64       `json:"experience_id"`
+	UserID           string      `json:"user_id"`
+	Title            string      `json:"title"`
+	PracticeArea     string      `json:"practice_area"`
+	Firm             db.Firm     `json:"firm"`
+	PracticeLocation string      `json:"practice_location"`
+	StartDate        pgtype.Date `json:"start_date"`
+	EndDate          pgtype.Date `json:"end_date"`
+	Current          bool        `json:"current"`
+	Description      string      `json:"description"`
+	Skills           []string    `json:"skills"`
 }
 
 func (server *Server) addExperience(ctx *gin.Context) {
@@ -39,7 +53,7 @@ func (server *Server) addExperience(ctx *gin.Context) {
 		UserID:           authPayload.UID,
 		Title:            req.Title,
 		PracticeArea:     req.PracticeArea,
-		CompanyName:      req.CompanyName,
+		FirmID:           req.FirmID,
 		PracticeLocation: req.PracticeLocation,
 		StartDate:        req.StartDate,
 		EndDate:          req.EndDate,
@@ -55,11 +69,33 @@ func (server *Server) addExperience(ctx *gin.Context) {
 		return
 	}
 
-	experience, err := server.store.AddExperience(ctx, arg)
+	expRes, err := server.store.AddExperience(ctx, arg)
 	if err != nil {
 		log.Error().Err(err).Msg("Error adding experience")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
+	}
+
+	// get the firm details
+	firm, err := server.store.GetFirm(ctx, expRes.FirmID)
+	if err != nil {
+		log.Error().Err(err).Msg("Error getting firm details")
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	experience := Experience{
+		ExperienceID:     expRes.ExperienceID,
+		UserID:           expRes.UserID,
+		Title:            expRes.Title,
+		PracticeArea:     expRes.PracticeArea,
+		Firm:             firm,
+		PracticeLocation: expRes.PracticeLocation,
+		StartDate:        expRes.StartDate,
+		EndDate:          expRes.EndDate,
+		Current:          expRes.Current,
+		Description:      expRes.Description,
+		Skills:           expRes.Skills,
 	}
 
 	ctx.JSON(http.StatusOK, experience)

@@ -11,28 +11,36 @@ import (
 
 const addSocial = `-- name: AddSocial :one
 INSERT INTO socials (
-    user_id,
-    platform_name,
-    link_url
+    entity_id,
+    entity_type,
+    platform,
+    link
 ) VALUES (
-    $1, $2, $3
-) RETURNING social_id, user_id, platform_name, link_url
+    $1, $2, $3, $4
+) RETURNING social_id, entity_id, entity_type, platform, link
 `
 
 type AddSocialParams struct {
-	UserID       string `json:"user_id"`
-	PlatformName string `json:"platform_name"`
-	LinkUrl      string `json:"link_url"`
+	EntityID   string `json:"entity_id"`
+	EntityType string `json:"entity_type"`
+	Platform   string `json:"platform"`
+	Link       string `json:"link"`
 }
 
 func (q *Queries) AddSocial(ctx context.Context, arg AddSocialParams) (Social, error) {
-	row := q.db.QueryRow(ctx, addSocial, arg.UserID, arg.PlatformName, arg.LinkUrl)
+	row := q.db.QueryRow(ctx, addSocial,
+		arg.EntityID,
+		arg.EntityType,
+		arg.Platform,
+		arg.Link,
+	)
 	var i Social
 	err := row.Scan(
 		&i.SocialID,
-		&i.UserID,
-		&i.PlatformName,
-		&i.LinkUrl,
+		&i.EntityID,
+		&i.EntityType,
+		&i.Platform,
+		&i.Link,
 	)
 	return i, err
 }

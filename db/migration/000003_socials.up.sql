@@ -1,7 +1,8 @@
 CREATE TABLE socials (
     social_id  BIGSERIAL PRIMARY KEY,
-    user_id VARCHAR NOT NULL,
-    platform_name VARCHAR NOT NULL,
-    link_url VARCHAR NOT NULL,
-    UNIQUE(user_id, platform_name)
+    entity_id VARCHAR NOT NULL, -- This will store either user_id or company_id
+    entity_type VARCHAR NOT NULL, -- 'user' or 'company'
+    platform VARCHAR NOT NULL,
+    link VARCHAR NOT NULL,
+    UNIQUE(entity_id, entity_type, platform)
 );

@@ -78,3 +78,15 @@ SET
 WHERE
     user_id = $1
 RETURNING *;
+
+-- name: UpdateUserInfo :one
+UPDATE users
+SET
+    first_name = $2,
+    last_name = $3,
+    average_billing_per_client = $4,
+    case_resolution_rate = $5,
+    about = $6
+WHERE
+    user_id = $1
+RETURNING *;
