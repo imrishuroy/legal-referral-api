@@ -7,3 +7,4 @@ INSERT INTO socials (
 ) VALUES (
     $1, $2, $3, $4
 ) RETURNING *;
+

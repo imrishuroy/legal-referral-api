@@ -9,3 +9,14 @@ INSERT INTO pricing (
 ) VALUES (
     $1, $2, $3, $4, $5, $6
 ) RETURNING *;
+
+-- name: UpdatePrice :one
+UPDATE pricing SET
+    service_type = $2,
+    per_hour_price = $3,
+    per_hearing_price = $4,
+    contingency_price = $5,
+    hybrid_price = $6
+WHERE
+    price_id = $1
+RETURNING *;

@@ -1,6 +1,8 @@
 package api
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -16,6 +18,7 @@ func (server *Server) uploadfile(file multipart.File, fileName string, contentTy
 	svc := s3.New(server.awsSession)
 
 	bucketName := server.config.AWSBucketPrefix + "-" + folderName
+	log.Info().Msgf("Uploading file to bucket: %s", bucketName)
 
 	// Upload the file to S3
 	_, err := svc.PutObject(&s3.PutObjectInput{
@@ -32,7 +35,7 @@ func (server *Server) uploadfile(file multipart.File, fileName string, contentTy
 		return "", err
 	}
 
-	url := generateS3URL(server.config.AWSRegion, server.config.AWSBucketPrefix, fileName)
+	url := generateS3URL(server.config.AWSRegion, bucketName, fileName)
 	return url, nil
 }
 
@@ -64,4 +67,21 @@ func getFileExtension(fileHeader *multipart.FileHeader) string {
 
 	// Return the extension
 	return extension
+}
+
+func generateUniqueFilename() string {
+	// Get the current time
+	timestamp := time.Now().Format("20060102_150405")
+
+	// Generate a random component
+	randomBytes := make([]byte, 4)
+	_, err := rand.Read(randomBytes)
+	if err != nil {
+		panic(err)
+	}
+	randomComponent := hex.EncodeToString(randomBytes)
+
+	// Combine timestamp and random component to form the filename
+	filename := fmt.Sprintf("%s_%s", timestamp, randomComponent)
+	return filename
 }

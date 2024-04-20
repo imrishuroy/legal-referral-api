@@ -8,7 +8,7 @@ INSERT INTO users (
     signup_method,
     email_verified,
     mobile_verified,
-    image_url
+    avatar_url
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9
 ) RETURNING *;
@@ -34,10 +34,10 @@ WHERE
     user_id = $1
 RETURNING *;
 
--- name: UpdateUserImageUrl :one
+-- name: UpdateUserAvatarUrl :one
 UPDATE users
 SET
-    image_url = $2
+    avatar_url = $2
 WHERE
     user_id = $1
 RETURNING *;
@@ -90,3 +90,11 @@ SET
 WHERE
     user_id = $1
 RETURNING *;
+
+-- name: UpdateUserBannerImage :exec
+UPDATE users
+SET
+    banner_url = $2
+WHERE
+    user_id = $1;
+

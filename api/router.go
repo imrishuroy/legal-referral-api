@@ -33,6 +33,9 @@ func (server *Server) setupRouter() {
 	auth.POST("/review", server.addReview)
 	auth.POST("/social", server.addSocial)
 	auth.POST("/price", server.addPrice)
+	auth.PUT("/price/:price_id", server.updatePrice)
+	auth.PUT("/users/:user_id/toggle-referral", server.toggleOpenToReferral)
+	auth.PUT("/users/:user_id/banner", server.updateUserBannerImage)
 
 }
 

@@ -93,7 +93,8 @@ type User struct {
 	About                   *string   `json:"about"`
 	Mobile                  *string   `json:"mobile"`
 	Address                 *string   `json:"address"`
-	ImageUrl                *string   `json:"image_url"`
+	AvatarUrl               *string   `json:"avatar_url"`
+	BannerUrl               *string   `json:"banner_url"`
 	EmailVerified           bool      `json:"email_verified"`
 	MobileVerified          bool      `json:"mobile_verified"`
 	WizardStep              int32     `json:"wizard_step"`

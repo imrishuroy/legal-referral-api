@@ -16,7 +16,13 @@ type Querier interface {
 	AddReview(ctx context.Context, arg AddReviewParams) (Review, error)
 	AddSocial(ctx context.Context, arg AddSocialParams) (Social, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
-	FetchUserProfile(ctx context.Context, userID string) ([]FetchUserProfileRow, error)
+	// -- name: FetchUserProfile :one
+	// SELECT sqlc.embed(users),
+	// COALESCE(sqlc.embed(pricing), '{}') as pricing
+	// FROM users
+	// LEFT JOIN pricing ON pricing.user_id = users.user_id
+	// WHERE users.user_id = $1;
+	FetchUserProfile2(ctx context.Context, userID string) (FetchUserProfile2Row, error)
 	GetFirm(ctx context.Context, firmID int64) (Firm, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, userID string) (User, error)
@@ -25,9 +31,12 @@ type Querier interface {
 	MarkWizardCompleted(ctx context.Context, arg MarkWizardCompletedParams) (User, error)
 	SaveAboutYou(ctx context.Context, arg SaveAboutYouParams) (User, error)
 	SaveLicense(ctx context.Context, arg SaveLicenseParams) (License, error)
+	ToggleOpenToRefferal(ctx context.Context, arg ToggleOpenToRefferalParams) error
 	UpdateEmailVerificationStatus(ctx context.Context, arg UpdateEmailVerificationStatusParams) (User, error)
 	UpdateMobileVerificationStatus(ctx context.Context, arg UpdateMobileVerificationStatusParams) (User, error)
-	UpdateUserImageUrl(ctx context.Context, arg UpdateUserImageUrlParams) (User, error)
+	UpdatePrice(ctx context.Context, arg UpdatePriceParams) (Pricing, error)
+	UpdateUserAvatarUrl(ctx context.Context, arg UpdateUserAvatarUrlParams) (User, error)
+	UpdateUserBannerImage(ctx context.Context, arg UpdateUserBannerImageParams) error
 	UpdateUserInfo(ctx context.Context, arg UpdateUserInfoParams) (User, error)
 	UpdateUserWizardStep(ctx context.Context, arg UpdateUserWizardStepParams) (User, error)
 	UploadLicense(ctx context.Context, arg UploadLicenseParams) (License, error)

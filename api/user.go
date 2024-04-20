@@ -94,7 +94,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 		LastName:       lastName[0],
 		Email:          email[0],
 		Mobile:         &mobile[0],
-		ImageUrl:       &userImageUrl,
+		AvatarUrl:      &userImageUrl,
 		EmailVerified:  true,
 		MobileVerified: int32(userSignUpMethod) == 0,
 		SignupMethod:   int32(userSignUpMethod),

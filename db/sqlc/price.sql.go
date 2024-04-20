@@ -54,3 +54,46 @@ func (q *Queries) AddPrice(ctx context.Context, arg AddPriceParams) (Pricing, er
 	)
 	return i, err
 }
+
+const updatePrice = `-- name: UpdatePrice :one
+UPDATE pricing SET
+    service_type = $2,
+    per_hour_price = $3,
+    per_hearing_price = $4,
+    contingency_price = $5,
+    hybrid_price = $6
+WHERE
+    price_id = $1
+RETURNING price_id, user_id, service_type, per_hour_price, per_hearing_price, contingency_price, hybrid_price
+`
+
+type UpdatePriceParams struct {
+	PriceID          int64          `json:"price_id"`
+	ServiceType      string         `json:"service_type"`
+	PerHourPrice     pgtype.Numeric `json:"per_hour_price"`
+	PerHearingPrice  pgtype.Numeric `json:"per_hearing_price"`
+	ContingencyPrice *string        `json:"contingency_price"`
+	HybridPrice      *string        `json:"hybrid_price"`
+}
+
+func (q *Queries) UpdatePrice(ctx context.Context, arg UpdatePriceParams) (Pricing, error) {
+	row := q.db.QueryRow(ctx, updatePrice,
+		arg.PriceID,
+		arg.ServiceType,
+		arg.PerHourPrice,
+		arg.PerHearingPrice,
+		arg.ContingencyPrice,
+		arg.HybridPrice,
+	)
+	var i Pricing
+	err := row.Scan(
+		&i.PriceID,
+		&i.UserID,
+		&i.ServiceType,
+		&i.PerHourPrice,
+		&i.PerHearingPrice,
+		&i.ContingencyPrice,
+		&i.HybridPrice,
+	)
+	return i, err
+}
