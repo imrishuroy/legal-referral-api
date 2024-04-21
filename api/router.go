@@ -27,15 +27,28 @@ func (server *Server) setupRouter() {
 	auth.POST("/license/upload", server.uploadLicense)
 	auth.POST("/about-you", server.saveAboutYou)
 	auth.GET("/users/:user_id/profile", server.fetchUserProfile)
-	auth.POST("/experience", server.addExperience)
-	auth.POST("/education", server.addEducation)
+
 	auth.PUT("/users/info", server.updateUserInfo)
 	auth.POST("/review", server.addReview)
-	auth.POST("/social", server.addSocial)
+	auth.POST("/socials", server.addSocial)
+	auth.PUT("/socials/:social_id", server.updateSocial)
+	auth.GET("/socials/:entity_type/:entity_id", server.listSocials)
 	auth.POST("/price", server.addPrice)
 	auth.PUT("/price/:price_id", server.updatePrice)
 	auth.PUT("/users/:user_id/toggle-referral", server.toggleOpenToReferral)
 	auth.PUT("/users/:user_id/banner", server.updateUserBannerImage)
+
+	// profile/experiences
+	auth.POST("/users/:user_id/experiences", server.addExperience)
+	auth.GET("/users/:user_id/experiences", server.listExperiences)
+	auth.PUT("/users/:user_id/experiences/:experience_id", server.updateExperience)
+	auth.DELETE("/users/:user_id/experiences/:experience_id", server.deleteExperience)
+
+	// profile/educations
+	auth.POST("/users/:user_id/educations", server.addEducation)
+	auth.GET("/users/:user_id/educations", server.listEducations)
+	auth.PUT("/users/:user_id/educations/:education_id", server.updateEducation)
+	auth.DELETE("/users/:user_id/educations/:education_id", server.deleteEducation)
 
 }
 

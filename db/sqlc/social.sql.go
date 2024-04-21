@@ -44,3 +44,67 @@ func (q *Queries) AddSocial(ctx context.Context, arg AddSocialParams) (Social, e
 	)
 	return i, err
 }
+
+const listSocials = `-- name: ListSocials :many
+SELECT social_id, entity_id, entity_type, platform, link FROM socials
+WHERE entity_id = $1 AND entity_type = $2
+`
+
+type ListSocialsParams struct {
+	EntityID   string `json:"entity_id"`
+	EntityType string `json:"entity_type"`
+}
+
+func (q *Queries) ListSocials(ctx context.Context, arg ListSocialsParams) ([]Social, error) {
+	rows, err := q.db.Query(ctx, listSocials, arg.EntityID, arg.EntityType)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Social{}
+	for rows.Next() {
+		var i Social
+		if err := rows.Scan(
+			&i.SocialID,
+			&i.EntityID,
+			&i.EntityType,
+			&i.Platform,
+			&i.Link,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateSocial = `-- name: UpdateSocial :one
+UPDATE socials
+SET
+    platform = $2,
+    link = $3
+WHERE social_id = $1
+RETURNING social_id, entity_id, entity_type, platform, link
+`
+
+type UpdateSocialParams struct {
+	SocialID int64  `json:"social_id"`
+	Platform string `json:"platform"`
+	Link     string `json:"link"`
+}
+
+func (q *Queries) UpdateSocial(ctx context.Context, arg UpdateSocialParams) (Social, error) {
+	row := q.db.QueryRow(ctx, updateSocial, arg.SocialID, arg.Platform, arg.Link)
+	var i Social
+	err := row.Scan(
+		&i.SocialID,
+		&i.EntityID,
+		&i.EntityType,
+		&i.Platform,
+		&i.Link,
+	)
+	return i, err
+}
