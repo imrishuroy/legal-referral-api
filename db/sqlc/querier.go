@@ -18,13 +18,7 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteEducation(ctx context.Context, educationID int64) error
 	DeleteExperience(ctx context.Context, experienceID int64) error
-	// -- name: FetchUserProfile :one
-	// SELECT sqlc.embed(users),
-	// COALESCE(sqlc.embed(pricing), '{}') as pricing
-	// FROM users
-	// LEFT JOIN pricing ON pricing.user_id = users.user_id
-	// WHERE users.user_id = $1;
-	FetchUserProfile2(ctx context.Context, userID string) (FetchUserProfile2Row, error)
+	FetchUserProfile(ctx context.Context, userID string) (FetchUserProfileRow, error)
 	GetFirm(ctx context.Context, firmID int64) (Firm, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, userID string) (User, error)
@@ -65,6 +59,7 @@ type Querier interface {
 	UpdateMobileVerificationStatus(ctx context.Context, arg UpdateMobileVerificationStatusParams) (User, error)
 	UpdatePrice(ctx context.Context, arg UpdatePriceParams) (Pricing, error)
 	UpdateSocial(ctx context.Context, arg UpdateSocialParams) (Social, error)
+	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error
 	UpdateUserAvatarUrl(ctx context.Context, arg UpdateUserAvatarUrlParams) (User, error)
 	UpdateUserBannerImage(ctx context.Context, arg UpdateUserBannerImageParams) error
 	UpdateUserInfo(ctx context.Context, arg UpdateUserInfoParams) (User, error)

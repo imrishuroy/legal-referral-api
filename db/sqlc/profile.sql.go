@@ -11,8 +11,7 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-const fetchUserProfile2 = `-- name: FetchUserProfile2 :one
-
+const fetchUserProfile = `-- name: FetchUserProfile :one
 SELECT
     users.user_id,
     users.first_name,
@@ -36,7 +35,7 @@ LEFT JOIN pricing ON pricing.user_id = users.user_id
 WHERE users.user_id = $1
 `
 
-type FetchUserProfile2Row struct {
+type FetchUserProfileRow struct {
 	UserID                  string         `json:"user_id"`
 	FirstName               string         `json:"first_name"`
 	LastName                string         `json:"last_name"`
@@ -55,15 +54,9 @@ type FetchUserProfile2Row struct {
 	HybridPrice             *string        `json:"hybrid_price"`
 }
 
-// -- name: FetchUserProfile :one
-// SELECT sqlc.embed(users),
-// COALESCE(sqlc.embed(pricing), '{}') as pricing
-// FROM users
-// LEFT JOIN pricing ON pricing.user_id = users.user_id
-// WHERE users.user_id = $1;
-func (q *Queries) FetchUserProfile2(ctx context.Context, userID string) (FetchUserProfile2Row, error) {
-	row := q.db.QueryRow(ctx, fetchUserProfile2, userID)
-	var i FetchUserProfile2Row
+func (q *Queries) FetchUserProfile(ctx context.Context, userID string) (FetchUserProfileRow, error) {
+	row := q.db.QueryRow(ctx, fetchUserProfile, userID)
+	var i FetchUserProfileRow
 	err := row.Scan(
 		&i.UserID,
 		&i.FirstName,
@@ -98,5 +91,21 @@ type ToggleOpenToRefferalParams struct {
 
 func (q *Queries) ToggleOpenToRefferal(ctx context.Context, arg ToggleOpenToRefferalParams) error {
 	_, err := q.db.Exec(ctx, toggleOpenToRefferal, arg.UserID, arg.OpenToReferral)
+	return err
+}
+
+const updateUserAvatar = `-- name: UpdateUserAvatar :exec
+UPDATE users
+SET avatar_url = $2
+WHERE user_id = $1
+`
+
+type UpdateUserAvatarParams struct {
+	UserID    string  `json:"user_id"`
+	AvatarUrl *string `json:"avatar_url"`
+}
+
+func (q *Queries) UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error {
+	_, err := q.db.Exec(ctx, updateUserAvatar, arg.UserID, arg.AvatarUrl)
 	return err
 }

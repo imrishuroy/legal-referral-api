@@ -93,7 +93,7 @@ func (server *Server) uploadLicense(ctx *gin.Context) {
 		return
 	}
 
-	fileName := authPayload.UID + getFileExtension(files[0])
+	fileName := generateUniqueFilename() + getFileExtension(files[0])
 	url, err := server.uploadfile(file, fileName, files[0].Header.Get("Content-Type"), "licenses")
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error uploading file"})

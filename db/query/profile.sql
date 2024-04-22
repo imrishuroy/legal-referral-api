@@ -1,11 +1,9 @@
--- -- name: FetchUserProfile :one
--- SELECT sqlc.embed(users),
--- COALESCE(sqlc.embed(pricing), '{}') as pricing
--- FROM users
--- LEFT JOIN pricing ON pricing.user_id = users.user_id
--- WHERE users.user_id = $1;
+-- name: UpdateUserAvatar :exec
+UPDATE users
+SET avatar_url = $2
+WHERE user_id = $1;
 
--- name: FetchUserProfile2 :one
+-- name: FetchUserProfile :one
 SELECT
     users.user_id,
     users.first_name,
@@ -27,7 +25,6 @@ SELECT
 FROM users
 LEFT JOIN pricing ON pricing.user_id = users.user_id
 WHERE users.user_id = $1;
-
 
 -- name: ToggleOpenToRefferal :exec
 UPDATE users

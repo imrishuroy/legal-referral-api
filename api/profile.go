@@ -10,6 +10,64 @@ import (
 	"net/http"
 )
 
+func (server *Server) updateUserAvatar(ctx *gin.Context) {
+
+	form, err := ctx.MultipartForm()
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Error parsing form"})
+		return
+	}
+
+	files := form.File["file"]
+	if len(files) == 0 {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "No file uploaded"})
+		return
+	}
+
+	file, err := files[0].Open()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error opening file"})
+		return
+	}
+	defer func(file multipart.File) {
+		err := file.Close()
+		if err != nil {
+
+		}
+	}(file)
+
+	userID := ctx.Param("user_id")
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID != userID {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	fileName := generateUniqueFilename() + getFileExtension(files[0])
+	url, err := server.uploadfile(file, fileName, files[0].Header.Get("Content-Type"), "user-images")
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error uploading file"})
+		return
+	}
+
+	arg := db.UpdateUserAvatarParams{
+		UserID:    userID,
+		AvatarUrl: &url,
+	}
+
+	err = server.store.UpdateUserAvatar(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	log.Info().Msgf("avatar url %v", url)
+
+	ctx.String(http.StatusOK, url)
+
+}
+
 type toggleOpenToReferralReq struct {
 	OpenToReferral bool `json:"open_to_referral"`
 }
@@ -61,7 +119,7 @@ func (server *Server) fetchUserProfile(ctx *gin.Context) {
 		return
 	}
 
-	profile, err := server.store.FetchUserProfile2(ctx, userID)
+	profile, err := server.store.FetchUserProfile(ctx, userID)
 	log.Error().Err(err).Msg("error fetching user profile")
 	if err != nil {
 		if errors.Is(err, db.ErrRecordNotFound) {

@@ -38,6 +38,9 @@ func (server *Server) setupRouter() {
 	auth.PUT("/users/:user_id/toggle-referral", server.toggleOpenToReferral)
 	auth.PUT("/users/:user_id/banner", server.updateUserBannerImage)
 
+	// profile/user
+	auth.PUT("/users/:user_id/avatar", server.updateUserAvatar)
+
 	// profile/experiences
 	auth.POST("/users/:user_id/experiences", server.addExperience)
 	auth.GET("/users/:user_id/experiences", server.listExperiences)
