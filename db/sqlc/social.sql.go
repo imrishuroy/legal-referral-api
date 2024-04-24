@@ -45,6 +45,16 @@ func (q *Queries) AddSocial(ctx context.Context, arg AddSocialParams) (Social, e
 	return i, err
 }
 
+const deleteSocial = `-- name: DeleteSocial :exec
+DELETE FROM socials
+WHERE social_id = $1
+`
+
+func (q *Queries) DeleteSocial(ctx context.Context, socialID int64) error {
+	_, err := q.db.Exec(ctx, deleteSocial, socialID)
+	return err
+}
+
 const listSocials = `-- name: ListSocials :many
 SELECT social_id, entity_id, entity_type, platform, link FROM socials
 WHERE entity_id = $1 AND entity_type = $2

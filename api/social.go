@@ -119,3 +119,27 @@ func (server *Server) listSocials(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, socials)
 }
+
+func (server *Server) deleteSocial(ctx *gin.Context) {
+
+	socialIDParam := ctx.Param("social_id")
+	socialID, err := strconv.ParseInt(socialIDParam, 10, 64)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid entity id"})
+		return
+	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	err = server.store.DeleteSocial(ctx, socialID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"message": "success"})
+}

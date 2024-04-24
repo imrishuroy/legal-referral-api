@@ -19,3 +19,7 @@ RETURNING *;
 -- name: ListSocials :many
 SELECT * FROM socials
 WHERE entity_id = $1 AND entity_type = $2;
+
+-- name: DeleteSocial :exec
+DELETE FROM socials
+WHERE social_id = $1;

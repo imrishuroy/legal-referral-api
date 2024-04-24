@@ -69,7 +69,7 @@ func (server *Server) uploadLicense(ctx *gin.Context) {
 		return
 	}
 
-	files := form.File["license_pdf"]
+	files := form.File["file"]
 	if len(files) == 0 {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "No file uploaded"})
 		return

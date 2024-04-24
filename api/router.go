@@ -30,9 +30,7 @@ func (server *Server) setupRouter() {
 
 	auth.PUT("/users/info", server.updateUserInfo)
 	auth.POST("/review", server.addReview)
-	auth.POST("/socials", server.addSocial)
-	auth.PUT("/socials/:social_id", server.updateSocial)
-	auth.GET("/socials/:entity_type/:entity_id", server.listSocials)
+
 	auth.POST("/price", server.addPrice)
 	auth.PUT("/price/:price_id", server.updatePrice)
 	auth.PUT("/users/:user_id/toggle-referral", server.toggleOpenToReferral)
@@ -40,6 +38,12 @@ func (server *Server) setupRouter() {
 
 	// profile/user
 	auth.PUT("/users/:user_id/avatar", server.updateUserAvatar)
+
+	// profile/socials
+	auth.POST("/socials", server.addSocial)
+	auth.PUT("/socials/:social_id", server.updateSocial)
+	auth.GET("/socials/:entity_type/:entity_id", server.listSocials)
+	auth.DELETE("/socials/:social_id", server.deleteSocial)
 
 	// profile/experiences
 	auth.POST("/users/:user_id/experiences", server.addExperience)
