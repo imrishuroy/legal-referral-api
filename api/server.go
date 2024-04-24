@@ -5,12 +5,15 @@ import (
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
 	"github.com/twilio/twilio-go"
 	"google.golang.org/api/option"
 
 	"github.com/imrishuroy/legal-referral/util"
 
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 )
@@ -21,6 +24,7 @@ type Server struct {
 	router       *gin.Engine
 	firebaseAuth *auth.Client
 	twilioClient *twilio.RestClient
+	awsSession   *session.Session
 }
 
 func NewServer(config util.Config, store db.Store) (*Server, error) {
@@ -43,24 +47,24 @@ func NewServer(config util.Config, store db.Store) (*Server, error) {
 		Password: config.TwilioAuthToken,
 	})
 
-	//emailClient := twilio.NewRestClient()
-	//
-	//emailParams := &verify.CreateVerificationParams{}
-	//emailParams.SetTo("imrishuroy@gmail.com")
-	//emailParams.SetChannel("email")
-	//
-	//resp, err := emailClient.VerifyV2.CreateVerification("VAd17367eb59ab06c2c75ad5412af809b6", emailParams)
-	//if err != nil {
-	//	log.Err(err).Msg("Error while sending email verification")
-	//} else {
-	//	if resp.Sid != nil {
-	//		log.Info().Msgf("Email verification sent successfully to %s", " resp.Sid")
-	//	} else {
-	//		log.Info().Msgf("Email verification sent successfully to %s", " resp.Sid")
-	//	}
-	//}
+	awsSession, err := session.NewSession(&aws.Config{
+		Region:      aws.String(config.AWSRegion),
+		Credentials: credentials.NewStaticCredentials(config.AWSAccessKeyID, config.AWSSecretKey, ""),
+	})
 
-	server := &Server{config: config, store: store, firebaseAuth: firebaseAuth, twilioClient: twilioClient}
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to create AWS session")
+		return nil, err
+	}
+
+	server := &Server{
+		config:       config,
+		store:        store,
+		firebaseAuth: firebaseAuth,
+		twilioClient: twilioClient,
+		awsSession:   awsSession,
+	}
+
 	server.setupRouter()
 	return server, nil
 }

@@ -5,7 +5,6 @@ sql:
     engine: "postgresql"
     gen:
       go:
-
         package: "db"
         out: "db/sqlc"
         sql_package: "pgx/v5"
@@ -18,9 +17,6 @@ sql:
             go_type: "time.Time"
           - db_type: "uuid"
             go_type: "github.com/google/uuid.UUID"
-
-
-#overrides:
-#  go:
-#    rename:
-#      cach: "Cache"
+#          - db_type: "date"
+#            go_type: "time.Time"
+#            nullable: true

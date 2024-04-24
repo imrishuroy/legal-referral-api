@@ -8,25 +8,10 @@ INSERT INTO users (
     signup_method,
     email_verified,
     mobile_verified,
-    image_url
+    avatar_url
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9
 ) RETURNING *;
-
--- name: UpdateUser :one
-UPDATE users
-SET
-    first_name = $2,
-    last_name = $3,
-    mobile = $4,
-    address = $5,
-    email_verified = $6,
-    mobile_verified = $7,
-    wizard_step = $8,
-    wizard_completed = $9
-WHERE
-    user_id = $1
-RETURNING *;
 
 -- name: GetUserById :one
 SELECT * FROM users
@@ -49,18 +34,10 @@ WHERE
     user_id = $1
 RETURNING *;
 
--- name: UpdateUserAboutYou :one
+-- name: UpdateUserAvatarUrl :one
 UPDATE users
 SET
-    address = $2
-WHERE
-    user_id = $1
-RETURNING *;
-
--- name: UpdateUserImageUrl :one
-UPDATE users
-SET
-    image_url = $2
+    avatar_url = $2
 WHERE
     user_id = $1
 RETURNING *;
@@ -89,3 +66,35 @@ SET
 WHERE
     user_id = $1
 RETURNING *;
+
+-- name: SaveAboutYou :one
+UPDATE users
+SET
+    address = $2,
+    practice_area = $3,
+    practice_location = $4,
+    experience = $5,
+    wizard_completed = $6
+WHERE
+    user_id = $1
+RETURNING *;
+
+-- name: UpdateUserInfo :one
+UPDATE users
+SET
+    first_name = $2,
+    last_name = $3,
+    average_billing_per_client = $4,
+    case_resolution_rate = $5,
+    about = $6
+WHERE
+    user_id = $1
+RETURNING *;
+
+-- name: UpdateUserBannerImage :exec
+UPDATE users
+SET
+    banner_url = $2
+WHERE
+    user_id = $1;
+
