@@ -82,10 +82,12 @@ func (q *Queries) DeleteExperience(ctx context.Context, experienceID int64) erro
 }
 
 const listExperiences = `-- name: ListExperiences :many
+
 SELECT experiences.experience_id, experiences.user_id, experiences.title, experiences.practice_area, experiences.firm_id, experiences.practice_location, experiences.start_date, experiences.end_date, experiences.current, experiences.description, experiences.skills, firms.firm_id, firms.name, firms.logo_url, firms.org_type, firms.website, firms.location, firms.about
 FROM experiences
 JOIN firms ON experiences.firm_id = firms.firm_id
 WHERE user_id = $1
+ORDER BY COALESCE(experiences.end_date, CURRENT_DATE) DESC
 `
 
 type ListExperiencesRow struct {
@@ -93,6 +95,11 @@ type ListExperiencesRow struct {
 	Firm       Firm       `json:"firm"`
 }
 
+// -- name: ListExperiences :many
+// SELECT sqlc.embed(experiences), sqlc.embed(firms)
+// FROM experiences
+// JOIN firms ON experiences.firm_id = firms.firm_id
+// WHERE user_id = $1;
 func (q *Queries) ListExperiences(ctx context.Context, userID string) ([]ListExperiencesRow, error) {
 	rows, err := q.db.Query(ctx, listExperiences, userID)
 	if err != nil {

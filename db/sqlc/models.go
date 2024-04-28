@@ -10,6 +10,28 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type CanceledRecommendation struct {
+	ID                int32     `json:"id"`
+	UserID            string    `json:"user_id"`
+	RecommendedUserID string    `json:"recommended_user_id"`
+	CanceledAt        time.Time `json:"canceled_at"`
+}
+
+type Connection struct {
+	ID          int32     `json:"id"`
+	SenderID    string    `json:"sender_id"`
+	RecipientID string    `json:"recipient_id"`
+	CreatedAt   time.Time `json:"created_at"`
+}
+
+type ConnectionInvitation struct {
+	ID          int32     `json:"id"`
+	SenderID    string    `json:"sender_id"`
+	RecipientID string    `json:"recipient_id"`
+	Status      int32     `json:"status"`
+	CreatedAt   time.Time `json:"created_at"`
+}
+
 type Education struct {
 	EducationID  int64       `json:"education_id"`
 	UserID       string      `json:"user_id"`

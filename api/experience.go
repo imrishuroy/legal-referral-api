@@ -22,20 +22,6 @@ type addUpdateExperienceReq struct {
 	Skills           []string    `json:"skills" binding:"required"`
 }
 
-//type Experience struct {
-//	ExperienceID     int64       `json:"experience_id"`
-//	UserID           string      `json:"user_id"`
-//	Title            string      `json:"title"`
-//	PracticeArea     string      `json:"practice_area"`
-//	Firm             db.Firm     `json:"firm"`
-//	PracticeLocation string      `json:"practice_location"`
-//	StartDate        pgtype.Date `json:"start_date"`
-//	EndDate          pgtype.Date `json:"end_date"`
-//	Current          bool        `json:"current"`
-//	Description      string      `json:"description"`
-//	Skills           []string    `json:"skills"`
-//}
-
 type UserExperience struct {
 	Experience db.Experience `json:"experience"`
 	Firm       db.Firm       `json:"firm"`
@@ -70,7 +56,7 @@ func (server *Server) addExperience(ctx *gin.Context) {
 
 	// check if end time is greater than start time when end time is provided
 
-	if !req.Current && req.EndDate.Time.Before(req.StartDate.Time) {
+	if !req.Current && (req.EndDate.Time.Before(req.StartDate.Time) || req.EndDate.Time.Equal(req.StartDate.Time)) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "End date should be greater than start date"})
 		return
 	}
@@ -89,21 +75,6 @@ func (server *Server) addExperience(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-
-	//experience := Experience{
-	//	ExperienceID:     expRes.ExperienceID,
-	//	UserID:           expRes.UserID,
-	//	Title:            expRes.Title,
-	//	PracticeArea:     expRes.PracticeArea,
-	//	Firm:             firm,
-	//	PracticeLocation: expRes.PracticeLocation,
-	//	StartDate:        expRes.StartDate,
-	//	EndDate:          expRes.EndDate,
-	//	Current:          expRes.Current,
-	//	Description:      expRes.Description,
-	//	Skills:           expRes.Skills,
-	//}
-
 	experience := UserExperience{
 		Experience: expRes,
 		Firm:       firm,
@@ -182,7 +153,7 @@ func (server *Server) updateExperience(ctx *gin.Context) {
 	log.Info().Msgf("End date: %v", req.EndDate.Time)
 
 	// check if end time is greater than start time when end time is provided
-	if !req.Current && req.EndDate.Time.Before(req.StartDate.Time) {
+	if !req.Current && (req.EndDate.Time.Before(req.StartDate.Time) || req.EndDate.Time.Equal(req.StartDate.Time)) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "End date should be greater than start date"})
 		return
 	}

@@ -9,12 +9,15 @@ import (
 )
 
 type Querier interface {
+	AcceptConnection(ctx context.Context, id int32) (ConnectionInvitation, error)
+	AddConnection(ctx context.Context, arg AddConnectionParams) error
 	AddEducation(ctx context.Context, arg AddEducationParams) (Education, error)
 	AddExperience(ctx context.Context, arg AddExperienceParams) (Experience, error)
 	AddFirm(ctx context.Context, arg AddFirmParams) (Firm, error)
 	AddPrice(ctx context.Context, arg AddPriceParams) (Pricing, error)
 	AddReview(ctx context.Context, arg AddReviewParams) (Review, error)
 	AddSocial(ctx context.Context, arg AddSocialParams) (Social, error)
+	CancelRecommendation(ctx context.Context, arg CancelRecommendationParams) error
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteEducation(ctx context.Context, educationID int64) error
 	DeleteExperience(ctx context.Context, experienceID int64) error
@@ -24,13 +27,24 @@ type Querier interface {
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, userID string) (User, error)
 	GetUserWizardStep(ctx context.Context, userID string) (int32, error)
+	ListConnectionInvitations(ctx context.Context, arg ListConnectionInvitationsParams) ([]ListConnectionInvitationsRow, error)
+	ListConnections(ctx context.Context, arg ListConnectionsParams) ([]ListConnectionsRow, error)
 	ListEducations(ctx context.Context, userID string) ([]Education, error)
+	// -- name: ListExperiences :many
+	// SELECT sqlc.embed(experiences), sqlc.embed(firms)
+	// FROM experiences
+	// JOIN firms ON experiences.firm_id = firms.firm_id
+	// WHERE user_id = $1;
 	ListExperiences(ctx context.Context, userID string) ([]ListExperiencesRow, error)
 	ListFirms(ctx context.Context, arg ListFirmsParams) ([]Firm, error)
+	ListRecommendations(ctx context.Context, arg ListRecommendationsParams) ([]ListRecommendationsRow, error)
+	ListRecommendations2(ctx context.Context, arg ListRecommendations2Params) ([]ListRecommendations2Row, error)
 	ListSocials(ctx context.Context, arg ListSocialsParams) ([]Social, error)
 	MarkWizardCompleted(ctx context.Context, arg MarkWizardCompletedParams) (User, error)
+	RejectConnection(ctx context.Context, arg RejectConnectionParams) error
 	SaveAboutYou(ctx context.Context, arg SaveAboutYouParams) (User, error)
 	SaveLicense(ctx context.Context, arg SaveLicenseParams) (License, error)
+	SendConnection(ctx context.Context, arg SendConnectionParams) (int32, error)
 	ToggleOpenToRefferal(ctx context.Context, arg ToggleOpenToRefferalParams) error
 	UpdateEducation(ctx context.Context, arg UpdateEducationParams) (Education, error)
 	UpdateEmailVerificationStatus(ctx context.Context, arg UpdateEmailVerificationStatusParams) (User, error)

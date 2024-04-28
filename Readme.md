@@ -7,3 +7,4 @@ create a new db migration
 
 
 https://github.com/sqlc-dev/sqlc/issues/1062
+

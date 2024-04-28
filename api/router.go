@@ -57,6 +57,15 @@ func (server *Server) setupRouter() {
 	auth.PUT("/users/:user_id/educations/:education_id", server.updateEducation)
 	auth.DELETE("/users/:user_id/educations/:education_id", server.deleteEducation)
 
+	// network
+	auth.POST("/connections/send", server.sendConnection)
+	auth.POST("/connections/:id/accept", server.acceptConnection)
+	auth.POST("/connections/:id/reject", server.rejectConnection)
+	auth.GET("/connections/invitations/:user_id", server.listConnectionInvitations)
+	auth.GET("/connections/:user_id", server.listConnections)
+	auth.GET("recommendations/:user_id", server.listRecommendations)
+	auth.POST("recommendations/cancel", server.cancelRecommendation)
+
 }
 
 func CORSMiddleware() gin.HandlerFunc {

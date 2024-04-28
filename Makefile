@@ -23,7 +23,7 @@ new_migration:
 	migrate create -ext sql -dir db/migration -seq $(name)
 
 migratedown2:
-	migrate -path db/migration -database "$(DB_URL)" -verbose down 2
+	migrate -path db/migration -database "$(DB_URL)" -verbose down 8
 
 server:
 	go run main.go
