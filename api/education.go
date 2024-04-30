@@ -49,7 +49,7 @@ func (server *Server) addEducation(ctx *gin.Context) {
 		Skills:       req.Skills,
 	}
 
-	if !req.Current && req.EndDate.Time.Before(req.StartDate.Time) {
+	if !req.Current && (req.EndDate.Time.Before(req.StartDate.Time) || req.EndDate.Time.Equal(req.StartDate.Time)) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "End date should be greater than start date"})
 		return
 	}
@@ -116,7 +116,7 @@ func (server *Server) updateEducation(ctx *gin.Context) {
 		Skills:       req.Skills,
 	}
 
-	if !req.Current && req.EndDate.Time.Before(req.StartDate.Time) {
+	if !req.Current && (req.EndDate.Time.Before(req.StartDate.Time) || req.EndDate.Time.Equal(req.StartDate.Time)) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "End date should be greater than start date"})
 		return
 	}
