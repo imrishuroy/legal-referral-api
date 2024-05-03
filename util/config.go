@@ -20,6 +20,8 @@ type Config struct {
 	AWSAccessKeyID         string `mapstructure:"AWS_ACCESS_KEY_ID"`
 	AWSSecretKey           string `mapstructure:"AWS_SECRET_KEY"`
 	AWSBucketPrefix        string `mapstructure:"AWS_BUCKET_PREFIX"`
+	LinkedinClientID       string `mapstructure:"LINKEDIN_CLIENT_ID"`
+	LinkedinClientSecret   string `mapstructure:"LINKEDIN_CLIENT_SECRET"`
 }
 
 // LoadConfig reads configuration from file or environment variables

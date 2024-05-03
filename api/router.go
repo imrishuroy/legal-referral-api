@@ -16,6 +16,8 @@ func (server *Server) setupRouter() {
 	server.router.POST("/api/firm", server.addFirm)
 	server.router.GET("/api/firms", server.listFirms)
 
+	server.router.POST("/api/sign-in/linkedin", server.linkedinLogin)
+
 	auth := server.router.Group("/api").
 		Use(authMiddleware(server.firebaseAuth))
 
