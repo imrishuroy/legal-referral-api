@@ -15,8 +15,8 @@ type SignupMethod int32
 const (
 	Email SignupMethod = iota
 	Google
-	Microsoft
 	LinkedIn
+	Facebook
 )
 
 func (s SignupMethod) String() string {
