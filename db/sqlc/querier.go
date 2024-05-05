@@ -44,6 +44,11 @@ type Querier interface {
 	RejectConnection(ctx context.Context, arg RejectConnectionParams) error
 	SaveAboutYou(ctx context.Context, arg SaveAboutYouParams) (User, error)
 	SaveLicense(ctx context.Context, arg SaveLicenseParams) (License, error)
+	Search1stDegreeConnections(ctx context.Context, arg Search1stDegreeConnectionsParams) ([]Search1stDegreeConnectionsRow, error)
+	// Exclude the current user
+	// Retrieve user information for the second-degree connections
+	Search2ndDegreeConnections(ctx context.Context, arg Search2ndDegreeConnectionsParams) ([]Search2ndDegreeConnectionsRow, error)
+	SearchAllUsers(ctx context.Context, query string) ([]SearchAllUsersRow, error)
 	SendConnection(ctx context.Context, arg SendConnectionParams) (int32, error)
 	ToggleOpenToRefferal(ctx context.Context, arg ToggleOpenToRefferalParams) error
 	UpdateEducation(ctx context.Context, arg UpdateEducationParams) (Education, error)

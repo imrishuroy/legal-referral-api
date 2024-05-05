@@ -65,8 +65,9 @@ func (server *Server) setupRouter() {
 	auth.POST("/connections/:id/reject", server.rejectConnection)
 	auth.GET("/connections/invitations/:user_id", server.listConnectionInvitations)
 	auth.GET("/connections/:user_id", server.listConnections)
-	auth.GET("recommendations/:user_id", server.listRecommendations)
-	auth.POST("recommendations/cancel", server.cancelRecommendation)
+	auth.GET("/recommendations/:user_id", server.listRecommendations)
+	auth.POST("/recommendations/cancel", server.cancelRecommendation)
+	auth.GET("/search/users", server.searchUsers)
 
 }
 
