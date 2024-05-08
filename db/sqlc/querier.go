@@ -18,6 +18,7 @@ type Querier interface {
 	AddReview(ctx context.Context, arg AddReviewParams) (Review, error)
 	AddSocial(ctx context.Context, arg AddSocialParams) (Social, error)
 	CancelRecommendation(ctx context.Context, arg CancelRecommendationParams) error
+	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteEducation(ctx context.Context, educationID int64) error
 	DeleteExperience(ctx context.Context, experienceID int64) error
@@ -37,6 +38,7 @@ type Querier interface {
 	// WHERE user_id = $1;
 	ListExperiences(ctx context.Context, userID string) ([]ListExperiencesRow, error)
 	ListFirms(ctx context.Context, arg ListFirmsParams) ([]Firm, error)
+	ListMessages(ctx context.Context, roomID string) ([]Message, error)
 	ListRecommendations(ctx context.Context, arg ListRecommendationsParams) ([]ListRecommendationsRow, error)
 	ListRecommendations2(ctx context.Context, arg ListRecommendations2Params) ([]ListRecommendations2Row, error)
 	ListSocials(ctx context.Context, arg ListSocialsParams) ([]Social, error)

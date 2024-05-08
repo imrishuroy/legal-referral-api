@@ -10,6 +10,13 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Attachment struct {
+	AttachmentID   int32  `json:"attachment_id"`
+	MessageID      int32  `json:"message_id"`
+	AttachmentUrl  string `json:"attachment_url"`
+	AttachmentType string `json:"attachment_type"`
+}
+
 type CanceledRecommendation struct {
 	ID                int32     `json:"id"`
 	UserID            string    `json:"user_id"`
@@ -78,6 +85,19 @@ type License struct {
 	IssueDate     pgtype.Date `json:"issue_date"`
 	IssueState    string      `json:"issue_state"`
 	LicensePdf    *string     `json:"license_pdf"`
+}
+
+type Message struct {
+	MessageID       int32     `json:"message_id"`
+	ParentMessageID *int32    `json:"parent_message_id"`
+	SenderID        string    `json:"sender_id"`
+	RecipientID     string    `json:"recipient_id"`
+	Message         string    `json:"message"`
+	HasAttachment   bool      `json:"has_attachment"`
+	AttachmentID    *int32    `json:"attachment_id"`
+	IsRead          bool      `json:"is_read"`
+	RoomID          string    `json:"room_id"`
+	SentAt          time.Time `json:"sent_at"`
 }
 
 type Pricing struct {
