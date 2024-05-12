@@ -71,11 +71,14 @@ func (server *Server) setupRouter() {
 	auth.GET("/search/users", server.searchUsers)
 
 	// chat
-	auth.GET("/messages/:room_id", server.listMessages)
-	server.router.GET("/api/chat/:roomId", func(ctx *gin.Context) {
-		roomId := ctx.Param("roomId")
+
+	auth.GET("/chat/:room_id", func(ctx *gin.Context) {
+		roomId := ctx.Param("room_id")
 		chat.ServeWS(ctx, roomId, server.hub)
 	})
+	auth.GET("/chat/:room_id/messages", server.listMessages)
+	auth.GET("/chat/users/:user_id/rooms", server.listChatRooms)
+	auth.POST("/chat/rooms", server.createChatRoom)
 
 }
 

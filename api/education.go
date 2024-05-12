@@ -32,7 +32,7 @@ func (server *Server) addEducation(ctx *gin.Context) {
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Unauthorized"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Unauthorized"})
 		return
 	}
 

@@ -24,6 +24,14 @@ type CanceledRecommendation struct {
 	CanceledAt        time.Time `json:"canceled_at"`
 }
 
+type ChatRoom struct {
+	RoomID        string             `json:"room_id"`
+	User1ID       string             `json:"user1_id"`
+	User2ID       string             `json:"user2_id"`
+	LastMessageAt pgtype.Timestamptz `json:"last_message_at"`
+	CreatedAt     time.Time          `json:"created_at"`
+}
+
 type Connection struct {
 	ID          int32     `json:"id"`
 	SenderID    string    `json:"sender_id"`

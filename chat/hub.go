@@ -100,7 +100,8 @@ func (h *Hub) HandleMessage(message Message) {
 		IsRead:          message.IsRead,
 		RoomID:          message.RoomID,
 	}
-	_, err := h.store.CreateMessage(context.Background(), arg)
+	m, err := h.store.CreateMessage(context.Background(), arg)
+	message.MessageID = m.MessageID
 	if err != nil {
 		log.Error().Err(err).Msg("Error creating message")
 		return

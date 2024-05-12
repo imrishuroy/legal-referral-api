@@ -13,5 +13,16 @@ INSERT INTO messages (
 ) RETURNING *;
 
 -- name: ListMessages :many
-SELECT * FROM messages
-WHERE room_id = $1;
+SELECT
+    m1.*,
+    m2.*
+FROM
+    messages m1
+        LEFT JOIN
+    messages m2 ON m1.parent_message_id = m2.message_id
+WHERE
+    m1.room_id = $1
+ORDER BY
+    m1.sent_at DESC
+OFFSET $2
+    LIMIT $3;
