@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/imrishuroy/legal-referral/chat"
+	redis "github.com/imrishuroy/legal-referral/db/redis"
 
 	"github.com/imrishuroy/legal-referral/api"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
@@ -31,8 +33,13 @@ func main() {
 
 	store := db.NewStore(connPool)
 
+	redisClient := redis.NewRedis()
+
+	hub := chat.NewHub(store)
+	go hub.Run()
+
 	// api server setup
-	server, err := api.NewServer(config, store)
+	server, err := api.NewServer(config, store, redisClient, hub)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create server:")
 	}

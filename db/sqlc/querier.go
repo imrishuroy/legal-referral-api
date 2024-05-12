@@ -18,15 +18,19 @@ type Querier interface {
 	AddReview(ctx context.Context, arg AddReviewParams) (Review, error)
 	AddSocial(ctx context.Context, arg AddSocialParams) (Social, error)
 	CancelRecommendation(ctx context.Context, arg CancelRecommendationParams) error
+	CreateChatRoom(ctx context.Context, arg CreateChatRoomParams) (CreateChatRoomRow, error)
+	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteEducation(ctx context.Context, educationID int64) error
 	DeleteExperience(ctx context.Context, experienceID int64) error
 	DeleteSocial(ctx context.Context, socialID int64) error
 	FetchUserProfile(ctx context.Context, userID string) (FetchUserProfileRow, error)
+	GetChatRoom(ctx context.Context, roomID string) (GetChatRoomRow, error)
 	GetFirm(ctx context.Context, firmID int64) (Firm, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, userID string) (User, error)
 	GetUserWizardStep(ctx context.Context, userID string) (int32, error)
+	ListChatRooms(ctx context.Context, user1ID string) ([]ListChatRoomsRow, error)
 	ListConnectionInvitations(ctx context.Context, arg ListConnectionInvitationsParams) ([]ListConnectionInvitationsRow, error)
 	ListConnections(ctx context.Context, arg ListConnectionsParams) ([]ListConnectionsRow, error)
 	ListEducations(ctx context.Context, userID string) ([]Education, error)
@@ -37,6 +41,7 @@ type Querier interface {
 	// WHERE user_id = $1;
 	ListExperiences(ctx context.Context, userID string) ([]ListExperiencesRow, error)
 	ListFirms(ctx context.Context, arg ListFirmsParams) ([]Firm, error)
+	ListMessages(ctx context.Context, arg ListMessagesParams) ([]ListMessagesRow, error)
 	ListRecommendations(ctx context.Context, arg ListRecommendationsParams) ([]ListRecommendationsRow, error)
 	ListRecommendations2(ctx context.Context, arg ListRecommendations2Params) ([]ListRecommendations2Row, error)
 	ListSocials(ctx context.Context, arg ListSocialsParams) ([]Social, error)

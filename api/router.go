@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/imrishuroy/legal-referral/chat"
 )
 
 func (server *Server) setupRouter() {
@@ -68,6 +69,16 @@ func (server *Server) setupRouter() {
 	auth.GET("/recommendations/:user_id", server.listRecommendations)
 	auth.POST("/recommendations/cancel", server.cancelRecommendation)
 	auth.GET("/search/users", server.searchUsers)
+
+	// chat
+
+	auth.GET("/chat/:room_id", func(ctx *gin.Context) {
+		roomId := ctx.Param("room_id")
+		chat.ServeWS(ctx, roomId, server.hub)
+	})
+	auth.GET("/chat/:room_id/messages", server.listMessages)
+	auth.GET("/chat/users/:user_id/rooms", server.listChatRooms)
+	auth.POST("/chat/rooms", server.createChatRoom)
 
 }
 
