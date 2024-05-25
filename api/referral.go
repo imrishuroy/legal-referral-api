@@ -30,7 +30,6 @@ func (server *Server) addReferral(ctx *gin.Context) {
 		return
 	}
 
-	//var referrals []db.Referral
 	for _, referredUserID := range req.ReferredUserIDs {
 		arg := db.CreateReferralParams{
 			ReferredUserID:            referredUserID,
@@ -46,7 +45,6 @@ func (server *Server) addReferral(ctx *gin.Context) {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
 		}
-		//referrals = append(referrals, referral)
 	}
 
 	ctx.String(http.StatusCreated, "Referral created")
