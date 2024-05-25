@@ -52,7 +52,7 @@ SELECT ci.id, ci.sender_id, ci.recipient_id, ci.status, ci.created_at,
        u.about,
        u.avatar_url
 FROM connection_invitations ci
-JOIN users u ON ci.recipient_id = u.user_id
+JOIN users u ON ci.sender_id = u.user_id
 WHERE ci.recipient_id = $1 AND ci.status = 0
 ORDER BY ci.created_at DESC
 OFFSET $2
@@ -108,15 +108,29 @@ func (q *Queries) ListConnectionInvitations(ctx context.Context, arg ListConnect
 }
 
 const listConnections = `-- name: ListConnections :many
-SELECT ci.id, ci.sender_id, ci.recipient_id, ci.created_at,
-       u.first_name,
-       u.last_name,
-       u.about,
-       u.avatar_url
+SELECT
+    ci.id, ci.sender_id, ci.recipient_id, ci.created_at,
+    CASE
+        WHEN u1.user_id = $3 THEN u2.first_name
+        ELSE u1.first_name
+        END as first_name,
+    CASE
+        WHEN u1.user_id = $3 THEN u2.last_name
+        ELSE u1.last_name
+        END as last_name,
+    CASE
+        WHEN u1.user_id = $3 THEN u2.about
+        ELSE u1.about
+        END as about,
+    CASE
+        WHEN u1.user_id = $3 THEN u2.avatar_url
+        ELSE u1.avatar_url
+        END as avatar_url
 FROM connections ci
-JOIN users u ON ci.recipient_id = u.user_id
+         JOIN users u1 ON ci.sender_id = u1.user_id
+         JOIN users u2 ON ci.recipient_id = u2.user_id
 WHERE sender_id = $3::text OR recipient_id = $3
-ORDER BY created_at DESC
+ORDER BY ci.created_at DESC
 OFFSET $1
 LIMIT $2
 `
@@ -128,14 +142,14 @@ type ListConnectionsParams struct {
 }
 
 type ListConnectionsRow struct {
-	ID          int32     `json:"id"`
-	SenderID    string    `json:"sender_id"`
-	RecipientID string    `json:"recipient_id"`
-	CreatedAt   time.Time `json:"created_at"`
-	FirstName   string    `json:"first_name"`
-	LastName    string    `json:"last_name"`
-	About       *string   `json:"about"`
-	AvatarUrl   *string   `json:"avatar_url"`
+	ID          int32       `json:"id"`
+	SenderID    string      `json:"sender_id"`
+	RecipientID string      `json:"recipient_id"`
+	CreatedAt   time.Time   `json:"created_at"`
+	FirstName   interface{} `json:"first_name"`
+	LastName    interface{} `json:"last_name"`
+	About       interface{} `json:"about"`
+	AvatarUrl   interface{} `json:"avatar_url"`
 }
 
 func (q *Queries) ListConnections(ctx context.Context, arg ListConnectionsParams) ([]ListConnectionsRow, error) {

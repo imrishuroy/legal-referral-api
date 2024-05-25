@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/imrishuroy/legal-referral/chat"
 )
 
 func (server *Server) setupRouter() {
@@ -15,6 +16,8 @@ func (server *Server) setupRouter() {
 	server.router.GET("/api/users/:user_id/wizardstep", server.getUserWizardStep)
 	server.router.POST("/api/firm", server.addFirm)
 	server.router.GET("/api/firms", server.listFirms)
+
+	server.router.POST("/api/sign-in/linkedin", server.linkedinLogin)
 
 	auth := server.router.Group("/api").
 		Use(authMiddleware(server.firebaseAuth))
@@ -63,9 +66,44 @@ func (server *Server) setupRouter() {
 	auth.POST("/connections/:id/reject", server.rejectConnection)
 	auth.GET("/connections/invitations/:user_id", server.listConnectionInvitations)
 	auth.GET("/connections/:user_id", server.listConnections)
-	auth.GET("recommendations/:user_id", server.listRecommendations)
-	auth.POST("recommendations/cancel", server.cancelRecommendation)
+	auth.GET("/recommendations/:user_id", server.listRecommendations)
+	auth.POST("/recommendations/cancel", server.cancelRecommendation)
+	auth.GET("/search/users", server.searchUsers)
 
+	// chat
+	auth.GET("/chat/:room_id", func(ctx *gin.Context) {
+		roomId := ctx.Param("room_id")
+		chat.ServeWS(ctx, roomId, server.hub)
+	})
+	auth.GET("/chat/:room_id/messages", server.listMessages)
+	auth.GET("/chat/users/:user_id/rooms", server.listChatRooms)
+	auth.POST("/chat/rooms", server.createChatRoom)
+
+	// referral
+	auth.POST("/referral", server.addReferral)
+	auth.GET("/referrals/:user_id/active", server.listActiveReferrals)
+
+	auth.GET("/referrals/users/:referral_id", server.listReferredUsers)
+	auth.GET("/users/:user_id/proposals", server.listProposals)
+	auth.POST("/proposals", server.createProposal)
+	auth.PUT("/proposals/:proposal_id", server.updateProposal)
+	auth.GET("users/:user_id/proposals/:referral_id", server.getProposal)
+
+	// project
+	auth.POST("/projects/award", server.awardProject)
+	auth.GET("/projects/active/:user_id", server.listActiveProjects)
+	auth.GET("/projects/awarded/:user_id", server.listAwardedProjects)
+
+	auth.PUT("/projects/:project_id/accept", server.acceptProject)
+	auth.PUT("/projects/:project_id/reject", server.rejectProject)
+	auth.PUT("/projects/:project_id/start", server.startProject)
+	auth.PUT("/projects/:project_id/complete", server.completeProject)
+	auth.PUT("/projects/:project_id/initiate-complete", server.initiateCompleteProject)
+	auth.PUT("/projects/:project_id/cancel/initiate-complete", server.cancelInitiateCompleteProject)
+	auth.GET("/projects/completed/:user_id", server.listCompletedProjects)
+
+	auth.POST("projects/review", server.createProjectReview)
+	auth.GET("projects/review/:project_id", server.getProjectReview)
 }
 
 func CORSMiddleware() gin.HandlerFunc {
