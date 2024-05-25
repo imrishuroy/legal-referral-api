@@ -71,7 +71,6 @@ func (server *Server) setupRouter() {
 	auth.GET("/search/users", server.searchUsers)
 
 	// chat
-
 	auth.GET("/chat/:room_id", func(ctx *gin.Context) {
 		roomId := ctx.Param("room_id")
 		chat.ServeWS(ctx, roomId, server.hub)
@@ -80,6 +79,31 @@ func (server *Server) setupRouter() {
 	auth.GET("/chat/users/:user_id/rooms", server.listChatRooms)
 	auth.POST("/chat/rooms", server.createChatRoom)
 
+	// referral
+	auth.POST("/referral", server.addReferral)
+	auth.GET("/referrals/:user_id/active", server.listActiveReferrals)
+
+	auth.GET("/referrals/users/:referral_id", server.listReferredUsers)
+	auth.GET("/users/:user_id/proposals", server.listProposals)
+	auth.POST("/proposals", server.createProposal)
+	auth.PUT("/proposals/:proposal_id", server.updateProposal)
+	auth.GET("users/:user_id/proposals/:referral_id", server.getProposal)
+
+	// project
+	auth.POST("/projects/award", server.awardProject)
+	auth.GET("/projects/active/:user_id", server.listActiveProjects)
+	auth.GET("/projects/awarded/:user_id", server.listAwardedProjects)
+
+	auth.PUT("/projects/:project_id/accept", server.acceptProject)
+	auth.PUT("/projects/:project_id/reject", server.rejectProject)
+	auth.PUT("/projects/:project_id/start", server.startProject)
+	auth.PUT("/projects/:project_id/complete", server.completeProject)
+	auth.PUT("/projects/:project_id/initiate-complete", server.initiateCompleteProject)
+	auth.PUT("/projects/:project_id/cancel/initiate-complete", server.cancelInitiateCompleteProject)
+	auth.GET("/projects/completed/:user_id", server.listCompletedProjects)
+
+	auth.POST("projects/review", server.createProjectReview)
+	auth.GET("projects/review/:project_id", server.getProjectReview)
 }
 
 func CORSMiddleware() gin.HandlerFunc {
