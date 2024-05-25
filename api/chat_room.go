@@ -53,25 +53,32 @@ func (server *Server) createChatRoom(ctx *gin.Context) {
 		User2ID: req.User2ID,
 	}
 
-	chatRoom, err := server.store.CreateChatRoom(ctx, arg)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to create chat room")
-		// {"level":"error","error":"ERROR: duplicate key value violates unique constraint \"chat_rooms_pkey\" (SQLSTATE 23505)","time":"2024-05-12T14:32:31+05:30","message":"Failed to create chat room"}
-		//handle this error
-		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+	// Check if chat room already exists
+	getChatRoomArg := db.GetChatRoomParams{
+		RoomID:  req.RoomID,
+		User1ID: req.User1ID,
+	}
 
-			chatRoom, err := server.store.GetChatRoom(ctx, req.RoomID)
+	chatRoom, err := server.store.GetChatRoom(ctx, getChatRoomArg)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to get chat room")
+		if strings.Contains(err.Error(), "no rows in result set") {
+
+			chatRoom, err := server.store.CreateChatRoom(ctx, arg)
 			if err != nil {
+				log.Error().Err(err).Msg("Failed to create chat room")
 				ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 				return
 			}
 			ctx.JSON(http.StatusOK, chatRoom)
 			return
-		}
 
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+		} else {
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			return
+		}
 	}
 
 	ctx.JSON(http.StatusOK, chatRoom)
+
 }

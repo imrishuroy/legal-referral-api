@@ -5,10 +5,149 @@
 package db
 
 import (
+	"database/sql/driver"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
+
+type ProjectStatus string
+
+const (
+	ProjectStatusActive            ProjectStatus = "active"
+	ProjectStatusAwarded           ProjectStatus = "awarded"
+	ProjectStatusAccepted          ProjectStatus = "accepted"
+	ProjectStatusRejected          ProjectStatus = "rejected"
+	ProjectStatusStarted           ProjectStatus = "started"
+	ProjectStatusCompleteInitiated ProjectStatus = "complete_initiated"
+	ProjectStatusCompleted         ProjectStatus = "completed"
+	ProjectStatusCancelled         ProjectStatus = "cancelled"
+)
+
+func (e *ProjectStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ProjectStatus(s)
+	case string:
+		*e = ProjectStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ProjectStatus: %T", src)
+	}
+	return nil
+}
+
+type NullProjectStatus struct {
+	ProjectStatus ProjectStatus `json:"project_status"`
+	Valid         bool          `json:"valid"` // Valid is true if ProjectStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullProjectStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.ProjectStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ProjectStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullProjectStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ProjectStatus), nil
+}
+
+type ProposalStatus string
+
+const (
+	ProposalStatusActive    ProposalStatus = "active"
+	ProposalStatusAccepted  ProposalStatus = "accepted"
+	ProposalStatusRejected  ProposalStatus = "rejected"
+	ProposalStatusCancelled ProposalStatus = "cancelled"
+)
+
+func (e *ProposalStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ProposalStatus(s)
+	case string:
+		*e = ProposalStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ProposalStatus: %T", src)
+	}
+	return nil
+}
+
+type NullProposalStatus struct {
+	ProposalStatus ProposalStatus `json:"proposal_status"`
+	Valid          bool           `json:"valid"` // Valid is true if ProposalStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullProposalStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.ProposalStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ProposalStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullProposalStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ProposalStatus), nil
+}
+
+type ReferralsStatus string
+
+const (
+	ReferralsStatusActive    ReferralsStatus = "active"
+	ReferralsStatusAwarded   ReferralsStatus = "awarded"
+	ReferralsStatusCompleted ReferralsStatus = "completed"
+	ReferralsStatusCancelled ReferralsStatus = "cancelled"
+	ReferralsStatusRejected  ReferralsStatus = "rejected"
+)
+
+func (e *ReferralsStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ReferralsStatus(s)
+	case string:
+		*e = ReferralsStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ReferralsStatus: %T", src)
+	}
+	return nil
+}
+
+type NullReferralsStatus struct {
+	ReferralsStatus ReferralsStatus `json:"referrals_status"`
+	Valid           bool            `json:"valid"` // Valid is true if ReferralsStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullReferralsStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.ReferralsStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ReferralsStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullReferralsStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ReferralsStatus), nil
+}
 
 type Attachment struct {
 	AttachmentID   int32  `json:"attachment_id"`
@@ -116,6 +255,50 @@ type Pricing struct {
 	PerHearingPrice  pgtype.Numeric `json:"per_hearing_price"`
 	ContingencyPrice *string        `json:"contingency_price"`
 	HybridPrice      *string        `json:"hybrid_price"`
+}
+
+type Project struct {
+	ProjectID      int32              `json:"project_id"`
+	ReferredUserID string             `json:"referred_user_id"`
+	ReferrerUserID string             `json:"referrer_user_id"`
+	ReferralID     int32              `json:"referral_id"`
+	Status         ProjectStatus      `json:"status"`
+	CreatedAt      time.Time          `json:"created_at"`
+	StartedAt      pgtype.Timestamptz `json:"started_at"`
+	CompletedAt    pgtype.Timestamptz `json:"completed_at"`
+}
+
+type ProjectReview struct {
+	ReviewID  int32          `json:"review_id"`
+	ProjectID int32          `json:"project_id"`
+	UserID    string         `json:"user_id"`
+	Review    string         `json:"review"`
+	Rating    pgtype.Numeric `json:"rating"`
+	CreatedAt time.Time      `json:"created_at"`
+}
+
+type Proposal struct {
+	ProposalID int32          `json:"proposal_id"`
+	ReferralID int32          `json:"referral_id"`
+	UserID     string         `json:"user_id"`
+	Title      string         `json:"title"`
+	Proposal   string         `json:"proposal"`
+	Status     ProposalStatus `json:"status"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+}
+
+type Referral struct {
+	ReferralID                int32           `json:"referral_id"`
+	ReferredUserID            string          `json:"referred_user_id"`
+	ReferrerUserID            string          `json:"referrer_user_id"`
+	Title                     string          `json:"title"`
+	PreferredPracticeArea     string          `json:"preferred_practice_area"`
+	PreferredPracticeLocation string          `json:"preferred_practice_location"`
+	CaseDescription           string          `json:"case_description"`
+	Status                    ReferralsStatus `json:"status"`
+	CreatedAt                 time.Time       `json:"created_at"`
+	UpdatedAt                 time.Time       `json:"updated_at"`
 }
 
 type Review struct {
