@@ -9,7 +9,6 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/imrishuroy/legal-referral/chat"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
-	"github.com/redis/go-redis/v9"
 	"github.com/twilio/twilio-go"
 	"google.golang.org/api/option"
 
@@ -27,11 +26,11 @@ type Server struct {
 	firebaseAuth *auth.Client
 	twilioClient *twilio.RestClient
 	awsSession   *session.Session
-	redis        *redis.Client
-	hub          *chat.Hub
+	//redis        *redis.Client
+	hub *chat.Hub
 }
 
-func NewServer(config util.Config, store db.Store, redis *redis.Client, hub *chat.Hub) (*Server, error) {
+func NewServer(config util.Config, store db.Store, hub *chat.Hub) (*Server, error) {
 
 	opt := option.WithCredentialsFile("./service-account-key.json")
 	app, err := firebase.NewApp(context.Background(), nil, opt)
@@ -67,8 +66,8 @@ func NewServer(config util.Config, store db.Store, redis *redis.Client, hub *cha
 		firebaseAuth: firebaseAuth,
 		twilioClient: twilioClient,
 		awsSession:   awsSession,
-		redis:        redis,
-		hub:          hub,
+		//redis:        redis,
+		hub: hub,
 	}
 
 	server.setupRouter()
