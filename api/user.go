@@ -283,3 +283,72 @@ func (server *Server) updateUserInfo(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, user)
 }
+
+type listConnectedUsersReq struct {
+	Limit  int32 `form:"limit"`
+	Offset int32 `form:"offset"`
+}
+
+func (server *Server) listConnectedUsers(ctx *gin.Context) {
+	userID := ctx.Param("user_id")
+
+	var req listConnectedUsersReq
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+		return
+	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID != userID {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	arg := db.ListConnectedUsersParams{
+		UserID: userID,
+		Limit:  req.Limit,
+		Offset: req.Offset,
+	}
+
+	users, err := server.store.ListConnectedUsers(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, users)
+}
+
+type listUsersReq struct {
+	Limit  int32 `form:"limit"`
+	Offset int32 `form:"offset"`
+}
+
+func (server *Server) listUsers(ctx *gin.Context) {
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	var req listUsersReq
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+		return
+	}
+
+	arg := db.ListUsersParams{
+		UserID: authPayload.UID,
+		Limit:  req.Limit,
+		Offset: req.Offset,
+	}
+
+	users, err := server.store.ListUsers(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, users)
+}

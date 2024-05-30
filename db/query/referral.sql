@@ -13,7 +13,7 @@ RETURNING *;
 
 -- name: ListActiveReferrals :many
 SELECT * FROM referrals
-WHERE referrer_user_id = @user_id::text AND status = 'active'
+WHERE referrer_user_id = @user_id::text AND (status = 'active' OR status = 'awarded')
 ORDER BY created_at DESC;
 
 -- name: ListReferredUsers :many
@@ -57,7 +57,7 @@ FROM
     ON
         r.referrer_user_id = u.user_id
 WHERE
-    r.referred_user_id = $1;
+    r.referred_user_id = $1 AND status = 'active';
 
 -- name: ChangeReferralStatus :one
 UPDATE referrals

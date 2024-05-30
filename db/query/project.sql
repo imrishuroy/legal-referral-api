@@ -2,10 +2,11 @@
 INSERT INTO projects (
     referred_user_id,
     referrer_user_id,
-    referral_id
+    referral_id,
+    status
 ) VALUES (
-    $1, $2, $3
-)
+    $1, $2, $3, 'awarded'
+    )
 RETURNING *;
 
 -- name: ListReferrerActiveProjects :many
@@ -55,7 +56,7 @@ FROM
         JOIN referrals r ON p.referral_id = r.referral_id
 WHERE
     p.referred_user_id = @user_id::text
-  AND (p.status = 'started' OR p.status = 'accepted')
+  AND (p.status = 'started' OR p.status = 'accepted' OR p.status = 'complete_initiated')
   ORDER BY p.created_at DESC;
 
 -- name: ListAwardedProjects :many

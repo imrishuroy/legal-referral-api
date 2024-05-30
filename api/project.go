@@ -27,14 +27,21 @@ func (server *Server) awardProject(ctx *gin.Context) {
 		ReferralID: req.ReferralID,
 		Status:     "awarded",
 	}
+
 	_, err := server.store.ChangeReferralStatus(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
+
 	project, err := server.store.AwardProject(ctx, req)
 
 	if err != nil {
+		log.Error().Msgf("error: %v", err)
+		if db.ErrorCode(err) == db.UniqueViolation {
+			ctx.JSON(http.StatusConflict, gin.H{"message": "Project already awarded"})
+			return
+		}
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -236,6 +243,17 @@ func (server *Server) acceptProject(ctx *gin.Context) {
 	}
 
 	project, err := server.store.AcceptProject(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	changeReferralStatusArgs := db.ChangeReferralStatusParams{
+		ReferralID: project.ReferralID,
+		Status:     "accepted",
+	}
+
+	_, err = server.store.ChangeReferralStatus(ctx, changeReferralStatusArgs)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

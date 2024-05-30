@@ -90,7 +90,7 @@ func (q *Queries) CreateReferral(ctx context.Context, arg CreateReferralParams) 
 
 const listActiveReferrals = `-- name: ListActiveReferrals :many
 SELECT referral_id, referred_user_id, referrer_user_id, title, preferred_practice_area, preferred_practice_location, case_description, status, created_at, updated_at FROM referrals
-WHERE referrer_user_id = $1::text AND status = 'active'
+WHERE referrer_user_id = $1::text AND (status = 'active' OR status = 'awarded')
 ORDER BY created_at DESC
 `
 
@@ -147,7 +147,7 @@ FROM
     ON
         r.referrer_user_id = u.user_id
 WHERE
-    r.referred_user_id = $1
+    r.referred_user_id = $1 AND status = 'active'
 `
 
 type ListProposalsRow struct {

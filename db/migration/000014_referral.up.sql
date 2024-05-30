@@ -1,5 +1,5 @@
 -- ENUM type for status
-CREATE TYPE  referrals_status AS ENUM ('active', 'awarded', 'completed', 'cancelled', 'rejected');
+CREATE TYPE  referrals_status AS ENUM ('active', 'awarded', 'accepted', 'completed', 'cancelled', 'rejected');
 
 CREATE TABLE referrals (
     referral_id SERIAL PRIMARY KEY,

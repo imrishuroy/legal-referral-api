@@ -104,6 +104,9 @@ func (server *Server) setupRouter() {
 
 	auth.POST("projects/review", server.createProjectReview)
 	auth.GET("projects/review/:project_id", server.getProjectReview)
+
+	auth.GET("/users/:user_id/connected", server.listConnectedUsers)
+	auth.GET("/users", server.listUsers)
 }
 
 func CORSMiddleware() gin.HandlerFunc {
