@@ -98,3 +98,38 @@ SET
 WHERE
     user_id = $1;
 
+-- name: ListConnectedUsers :many
+SELECT
+    u.user_id,
+    u.avatar_url,
+    u.first_name,
+    u.last_name
+FROM
+    connections c
+        JOIN
+    users u
+    ON
+        (c.recipient_id = u.user_id OR c.sender_id = u.user_id)
+WHERE
+    (c.sender_id = @user_id::text OR c.recipient_id = @user_id::text)
+  AND u.user_id != @user_id::text
+ORDER BY
+    c.created_at
+LIMIT $1
+OFFSET $2;
+
+-- name: ListUsers :many
+SELECT
+    user_id,
+    first_name,
+    last_name,
+    avatar_url,
+    join_date
+FROM
+    users
+WHERE
+    user_id != $1
+ORDER BY
+    join_date DESC
+LIMIT $2
+OFFSET $3;

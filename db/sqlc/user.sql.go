@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -155,6 +156,122 @@ func (q *Queries) GetUserWizardStep(ctx context.Context, userID string) (int32, 
 	var wizard_step int32
 	err := row.Scan(&wizard_step)
 	return wizard_step, err
+}
+
+const listConnectedUsers = `-- name: ListConnectedUsers :many
+SELECT
+    u.user_id,
+    u.avatar_url,
+    u.first_name,
+    u.last_name
+FROM
+    connections c
+        JOIN
+    users u
+    ON
+        (c.recipient_id = u.user_id OR c.sender_id = u.user_id)
+WHERE
+    (c.sender_id = $3::text OR c.recipient_id = $3::text)
+  AND u.user_id != $3::text
+ORDER BY
+    c.created_at
+LIMIT $1
+OFFSET $2
+`
+
+type ListConnectedUsersParams struct {
+	Limit  int32  `json:"limit"`
+	Offset int32  `json:"offset"`
+	UserID string `json:"user_id"`
+}
+
+type ListConnectedUsersRow struct {
+	UserID    string  `json:"user_id"`
+	AvatarUrl *string `json:"avatar_url"`
+	FirstName string  `json:"first_name"`
+	LastName  string  `json:"last_name"`
+}
+
+func (q *Queries) ListConnectedUsers(ctx context.Context, arg ListConnectedUsersParams) ([]ListConnectedUsersRow, error) {
+	rows, err := q.db.Query(ctx, listConnectedUsers, arg.Limit, arg.Offset, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListConnectedUsersRow{}
+	for rows.Next() {
+		var i ListConnectedUsersRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.AvatarUrl,
+			&i.FirstName,
+			&i.LastName,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listUsers = `-- name: ListUsers :many
+SELECT
+    user_id,
+    first_name,
+    last_name,
+    avatar_url,
+    join_date
+FROM
+    users
+WHERE
+    user_id != $1
+ORDER BY
+    join_date DESC
+LIMIT $2
+OFFSET $3
+`
+
+type ListUsersParams struct {
+	UserID string `json:"user_id"`
+	Limit  int32  `json:"limit"`
+	Offset int32  `json:"offset"`
+}
+
+type ListUsersRow struct {
+	UserID    string    `json:"user_id"`
+	FirstName string    `json:"first_name"`
+	LastName  string    `json:"last_name"`
+	AvatarUrl *string   `json:"avatar_url"`
+	JoinDate  time.Time `json:"join_date"`
+}
+
+func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error) {
+	rows, err := q.db.Query(ctx, listUsers, arg.UserID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListUsersRow{}
+	for rows.Next() {
+		var i ListUsersRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.FirstName,
+			&i.LastName,
+			&i.AvatarUrl,
+			&i.JoinDate,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const markWizardCompleted = `-- name: MarkWizardCompleted :one

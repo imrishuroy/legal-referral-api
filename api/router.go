@@ -24,7 +24,7 @@ func (server *Server) setupRouter() {
 
 	auth.GET("/check-token", server.ping)
 	auth.POST("/users", server.createUser)
-	//auth.POST("/users/:user_id/image", server.updateUserImage)
+
 	auth.GET("/users/:user_id", server.getUserById)
 	auth.POST("/license", server.saveLicense)
 	auth.POST("/license/upload", server.uploadLicense)
@@ -80,30 +80,29 @@ func (server *Server) setupRouter() {
 	auth.POST("/chat/rooms", server.createChatRoom)
 
 	// referral
-	auth.POST("/referral", server.addReferral)
+	auth.POST("/referral", server.createReferral)
 	auth.GET("/referrals/:user_id/active", server.listActiveReferrals)
-
-	auth.GET("/referrals/users/:referral_id", server.listReferredUsers)
-	auth.GET("/users/:user_id/proposals", server.listProposals)
+	auth.GET("/referrals/users/:project_id", server.listReferredUsers)
+	auth.GET("/users/:user_id/proposals", server.listActiveProposals)
 	auth.POST("/proposals", server.createProposal)
 	auth.PUT("/proposals/:proposal_id", server.updateProposal)
-	auth.GET("users/:user_id/proposals/:referral_id", server.getProposal)
-
-	// project
+	auth.GET("users/:user_id/proposals/:project_id", server.getProposal)
 	auth.POST("/projects/award", server.awardProject)
-	auth.GET("/projects/active/:user_id", server.listActiveProjects)
 	auth.GET("/projects/awarded/:user_id", server.listAwardedProjects)
-
 	auth.PUT("/projects/:project_id/accept", server.acceptProject)
 	auth.PUT("/projects/:project_id/reject", server.rejectProject)
+	auth.GET("/projects/active/:user_id", server.listActiveProjects)
 	auth.PUT("/projects/:project_id/start", server.startProject)
-	auth.PUT("/projects/:project_id/complete", server.completeProject)
 	auth.PUT("/projects/:project_id/initiate-complete", server.initiateCompleteProject)
 	auth.PUT("/projects/:project_id/cancel/initiate-complete", server.cancelInitiateCompleteProject)
+	auth.PUT("/projects/:project_id/complete", server.completeProject)
 	auth.GET("/projects/completed/:user_id", server.listCompletedProjects)
 
 	auth.POST("projects/review", server.createProjectReview)
 	auth.GET("projects/review/:project_id", server.getProjectReview)
+
+	auth.GET("/users/:user_id/connected", server.listConnectedUsers)
+	auth.GET("/users", server.listUsers)
 }
 
 func CORSMiddleware() gin.HandlerFunc {

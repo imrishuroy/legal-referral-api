@@ -26,21 +26,21 @@ func (server *Server) sendOTP(ctx *gin.Context) {
 		return
 	}
 
-	//var serviceSID string
-	//
-	//// Choose Twilio service SID based on the channel
-	//if req.Channel == "sms" {
-	//	serviceSID = server.config.VerifyMobileServiceSID
-	//} else if req.Channel == "email" {
-	//	serviceSID = server.config.VerifyEmailServiceSID
-	//}
-	//
-	//err := sendOTP(server, req.To, req.Channel, serviceSID)
-	//if err != nil {
-	//	log.Error().Err(err).Msg("Failed to send verification")
-	//	ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to send verification"})
-	//	return
-	//}
+	var serviceSID string
+
+	// Choose Twilio service SID based on the channel
+	if req.Channel == "sms" {
+		serviceSID = server.config.VerifyMobileServiceSID
+	} else if req.Channel == "email" {
+		serviceSID = server.config.VerifyEmailServiceSID
+	}
+
+	err := sendOTP(server, req.To, req.Channel, serviceSID)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to send verification")
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to send verification"})
+		return
+	}
 	ctx.JSON(http.StatusOK, gin.H{"message": "OTP sent successfully"})
 }
 
@@ -78,85 +78,89 @@ func (server *Server) verifyOTP(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid channel"})
 		return
 	}
-	var otp = "0000"
 
-	if otp != req.Otp {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid OTP"})
+	////// Hardcoded OTP for testing
+
+	//var otp = "0000"
+
+	//if otp != req.Otp {
+	//	ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid OTP"})
+	//	return
+	//} else {
+	//	if req.UserId != "" {
+	//		mobileUpdateArg := db.UpdateMobileVerificationStatusParams{
+	//			UserID:         req.UserId,
+	//			Mobile:         &req.To,
+	//			MobileVerified: true,
+	//		}
+	//		_, err := server.store.UpdateMobileVerificationStatus(ctx, mobileUpdateArg)
+	//		if err != nil {
+	//			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+	//			return
+	//		}
+	//	}
+	//	ctx.JSON(http.StatusOK, gin.H{"message": "OTP verified successfully"})
+	//	return
+	//}
+	////// Hardcoded OTP for testing
+
+	params := &verify.CreateVerificationCheckParams{}
+	params.SetTo(req.To)
+	params.SetCode(req.Otp)
+
+	var serviceSID string
+
+	// Choose Twilio service SID based on the channel
+	if req.Channel == "sms" {
+		serviceSID = server.config.VerifyMobileServiceSID
+	} else if req.Channel == "email" {
+		serviceSID = server.config.VerifyEmailServiceSID
+	}
+
+	// Verify OTP
+	resp, err := server.twilioClient.VerifyV2.CreateVerificationCheck(serviceSID, params)
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to verify OTP")
+		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to verify OTP"})
 		return
-	} else {
-		if req.UserId != "" {
-			mobileUpdateArg := db.UpdateMobileVerificationStatusParams{
-				UserID:         req.UserId,
-				Mobile:         &req.To,
-				MobileVerified: true,
+	}
+
+	// Handle verification status
+	switch *resp.Status {
+	case "approved":
+		// Update verification status based on the channel
+		switch req.Channel {
+		case "sms":
+			if req.UserId != "" {
+				mobileUpdateArg := db.UpdateMobileVerificationStatusParams{
+					UserID:         req.UserId,
+					Mobile:         &req.To,
+					MobileVerified: true,
+				}
+				_, err := server.store.UpdateMobileVerificationStatus(ctx, mobileUpdateArg)
+				if err != nil {
+					ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+					return
+				}
 			}
-			_, err := server.store.UpdateMobileVerificationStatus(ctx, mobileUpdateArg)
+			ctx.JSON(http.StatusOK, gin.H{"message": "OTP verified successfully"})
+			return
+
+		case "email":
+			emailUpdateArg := db.UpdateEmailVerificationStatusParams{
+				UserID:        req.UserId,
+				EmailVerified: true,
+			}
+			_, err := server.store.UpdateEmailVerificationStatus(ctx, emailUpdateArg)
 			if err != nil {
 				ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 				return
 			}
+			ctx.JSON(http.StatusOK, gin.H{"message": "OTP verified successfully"})
+			return
 		}
-		ctx.JSON(http.StatusOK, gin.H{"message": "OTP verified successfully"})
+	default:
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid OTP"})
 		return
 	}
-
-	//params := &verify.CreateVerificationCheckParams{}
-	//params.SetTo(req.To)
-	//params.SetCode(req.Otp)
-	//
-	//var serviceSID string
-	//
-	//// Choose Twilio service SID based on the channel
-	//if req.Channel == "sms" {
-	//	serviceSID = server.config.VerifyMobileServiceSID
-	//} else if req.Channel == "email" {
-	//	serviceSID = server.config.VerifyEmailServiceSID
-	//}
-	//
-	//// Verify OTP
-	//resp, err := server.twilioClient.VerifyV2.CreateVerificationCheck(serviceSID, params)
-	//if err != nil {
-	//	log.Error().Err(err).Msg("Failed to verify OTP")
-	//	ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to verify OTP"})
-	//	return
-	//}
-	//
-	//// Handle verification status
-	//switch *resp.Status {
-	//case "approved":
-	//	// Update verification status based on the channel
-	//	switch req.Channel {
-	//	case "sms":
-	//		if req.UserId != "" {
-	//			mobileUpdateArg := db.UpdateMobileVerificationStatusParams{
-	//				UserID:         req.UserId,
-	//				Mobile:         &req.To,
-	//				MobileVerified: true,
-	//			}
-	//			_, err := server.store.UpdateMobileVerificationStatus(ctx, mobileUpdateArg)
-	//			if err != nil {
-	//				ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	//				return
-	//			}
-	//		}
-	//		ctx.JSON(http.StatusOK, gin.H{"message": "OTP verified successfully"})
-	//		return
-	//
-	//	case "email":
-	//		ctx.JSON(http.StatusOK, gin.H{"message": "OTP verified successfully"})
-	//		return
-	//		//emailUpdateArg := db.UpdateEmailVerificationStatusParams{
-	//		//	UserID:        req.UserId,
-	//		//	EmailVerified: true,
-	//		//}
-	//		//_, err := server.store.UpdateEmailVerificationStatus(ctx, emailUpdateArg)
-	//		//if err != nil {
-	//		//	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	//		//	return
-	//		//}
-	//	}
-	//default:
-	//	ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid OTP"})
-	//	return
-	//}
 }
