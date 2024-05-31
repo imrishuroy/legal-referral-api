@@ -20,7 +20,7 @@ WHERE
     project_id = $1::int
   AND referred_user_id = $2::text
   AND status = 'awarded'
-RETURNING project_id, referred_user_id, referrer_user_id, referral_id, status, created_at, started_at, completed_at
+RETURNING project_id, title, preferred_practice_area, preferred_practice_location, case_description, referrer_user_id, referred_user_id, status, created_at, started_at, completed_at
 `
 
 type AcceptProjectParams struct {
@@ -33,9 +33,12 @@ func (q *Queries) AcceptProject(ctx context.Context, arg AcceptProjectParams) (P
 	var i Project
 	err := row.Scan(
 		&i.ProjectID,
-		&i.ReferredUserID,
+		&i.Title,
+		&i.PreferredPracticeArea,
+		&i.PreferredPracticeLocation,
+		&i.CaseDescription,
 		&i.ReferrerUserID,
-		&i.ReferralID,
+		&i.ReferredUserID,
 		&i.Status,
 		&i.CreatedAt,
 		&i.StartedAt,
@@ -44,32 +47,52 @@ func (q *Queries) AcceptProject(ctx context.Context, arg AcceptProjectParams) (P
 	return i, err
 }
 
-const awardProject = `-- name: AwardProject :one
-INSERT INTO projects (
-    referred_user_id,
-    referrer_user_id,
-    referral_id,
-    status
+const addReferredUserToProject = `-- name: AddReferredUserToProject :one
+INSERT INTO referral_users (
+    project_id,
+    referred_user_id
 ) VALUES (
-    $1, $2, $3, 'awarded'
-    )
-RETURNING project_id, referred_user_id, referrer_user_id, referral_id, status, created_at, started_at, completed_at
+    $1, $2
+) RETURNING referral_user_id, project_id, referred_user_id
+`
+
+type AddReferredUserToProjectParams struct {
+	ProjectID      int32  `json:"project_id"`
+	ReferredUserID string `json:"referred_user_id"`
+}
+
+func (q *Queries) AddReferredUserToProject(ctx context.Context, arg AddReferredUserToProjectParams) (ReferralUser, error) {
+	row := q.db.QueryRow(ctx, addReferredUserToProject, arg.ProjectID, arg.ReferredUserID)
+	var i ReferralUser
+	err := row.Scan(&i.ReferralUserID, &i.ProjectID, &i.ReferredUserID)
+	return i, err
+}
+
+const awardProject = `-- name: AwardProject :one
+UPDATE projects
+SET
+    referred_user_id = $2,
+    status = 'awarded'
+WHERE project_id = $1
+RETURNING project_id, title, preferred_practice_area, preferred_practice_location, case_description, referrer_user_id, referred_user_id, status, created_at, started_at, completed_at
 `
 
 type AwardProjectParams struct {
-	ReferredUserID string `json:"referred_user_id"`
-	ReferrerUserID string `json:"referrer_user_id"`
-	ReferralID     int32  `json:"referral_id"`
+	ProjectID      int32   `json:"project_id"`
+	ReferredUserID *string `json:"referred_user_id"`
 }
 
 func (q *Queries) AwardProject(ctx context.Context, arg AwardProjectParams) (Project, error) {
-	row := q.db.QueryRow(ctx, awardProject, arg.ReferredUserID, arg.ReferrerUserID, arg.ReferralID)
+	row := q.db.QueryRow(ctx, awardProject, arg.ProjectID, arg.ReferredUserID)
 	var i Project
 	err := row.Scan(
 		&i.ProjectID,
-		&i.ReferredUserID,
+		&i.Title,
+		&i.PreferredPracticeArea,
+		&i.PreferredPracticeLocation,
+		&i.CaseDescription,
 		&i.ReferrerUserID,
-		&i.ReferralID,
+		&i.ReferredUserID,
 		&i.Status,
 		&i.CreatedAt,
 		&i.StartedAt,
@@ -85,7 +108,7 @@ SET
 WHERE
     project_id = $1::int
   AND referrer_user_id = $2::text
-RETURNING project_id, referred_user_id, referrer_user_id, referral_id, status, created_at, started_at, completed_at
+RETURNING project_id, title, preferred_practice_area, preferred_practice_location, case_description, referrer_user_id, referred_user_id, status, created_at, started_at, completed_at
 `
 
 type CancelCompleteProjectInitiationParams struct {
@@ -98,9 +121,12 @@ func (q *Queries) CancelCompleteProjectInitiation(ctx context.Context, arg Cance
 	var i Project
 	err := row.Scan(
 		&i.ProjectID,
-		&i.ReferredUserID,
+		&i.Title,
+		&i.PreferredPracticeArea,
+		&i.PreferredPracticeLocation,
+		&i.CaseDescription,
 		&i.ReferrerUserID,
-		&i.ReferralID,
+		&i.ReferredUserID,
 		&i.Status,
 		&i.CreatedAt,
 		&i.StartedAt,
@@ -117,7 +143,7 @@ SET
 WHERE
     project_id = $1::int
   AND referrer_user_id = $2::text
-RETURNING project_id, referred_user_id, referrer_user_id, referral_id, status, created_at, started_at, completed_at
+RETURNING project_id, title, preferred_practice_area, preferred_practice_location, case_description, referrer_user_id, referred_user_id, status, created_at, started_at, completed_at
 `
 
 type CompleteProjectParams struct {
@@ -130,15 +156,75 @@ func (q *Queries) CompleteProject(ctx context.Context, arg CompleteProjectParams
 	var i Project
 	err := row.Scan(
 		&i.ProjectID,
-		&i.ReferredUserID,
+		&i.Title,
+		&i.PreferredPracticeArea,
+		&i.PreferredPracticeLocation,
+		&i.CaseDescription,
 		&i.ReferrerUserID,
-		&i.ReferralID,
+		&i.ReferredUserID,
 		&i.Status,
 		&i.CreatedAt,
 		&i.StartedAt,
 		&i.CompletedAt,
 	)
 	return i, err
+}
+
+const createReferral = `-- name: CreateReferral :one
+INSERT INTO projects (
+    referrer_user_id,
+    title,
+    preferred_practice_area,
+    preferred_practice_location,
+    case_description,
+    status
+) VALUES (
+    $1, $2, $3, $4, $5, 'active'
+) RETURNING project_id, title, preferred_practice_area, preferred_practice_location, case_description, referrer_user_id, referred_user_id, status, created_at, started_at, completed_at
+`
+
+type CreateReferralParams struct {
+	ReferrerUserID            string `json:"referrer_user_id"`
+	Title                     string `json:"title"`
+	PreferredPracticeArea     string `json:"preferred_practice_area"`
+	PreferredPracticeLocation string `json:"preferred_practice_location"`
+	CaseDescription           string `json:"case_description"`
+}
+
+func (q *Queries) CreateReferral(ctx context.Context, arg CreateReferralParams) (Project, error) {
+	row := q.db.QueryRow(ctx, createReferral,
+		arg.ReferrerUserID,
+		arg.Title,
+		arg.PreferredPracticeArea,
+		arg.PreferredPracticeLocation,
+		arg.CaseDescription,
+	)
+	var i Project
+	err := row.Scan(
+		&i.ProjectID,
+		&i.Title,
+		&i.PreferredPracticeArea,
+		&i.PreferredPracticeLocation,
+		&i.CaseDescription,
+		&i.ReferrerUserID,
+		&i.ReferredUserID,
+		&i.Status,
+		&i.CreatedAt,
+		&i.StartedAt,
+		&i.CompletedAt,
+	)
+	return i, err
+}
+
+const getProjectStatus = `-- name: GetProjectStatus :one
+SELECT status FROM projects WHERE project_id = $1
+`
+
+func (q *Queries) GetProjectStatus(ctx context.Context, projectID int32) (ProjectStatus, error) {
+	row := q.db.QueryRow(ctx, getProjectStatus, projectID)
+	var status ProjectStatus
+	err := row.Scan(&status)
+	return status, err
 }
 
 const initiateCompleteProject = `-- name: InitiateCompleteProject :one
@@ -148,7 +234,7 @@ SET
 WHERE
     project_id = $1::int
   AND referred_user_id = $2::text
-RETURNING project_id, referred_user_id, referrer_user_id, referral_id, status, created_at, started_at, completed_at
+RETURNING project_id, title, preferred_practice_area, preferred_practice_location, case_description, referrer_user_id, referred_user_id, status, created_at, started_at, completed_at
 `
 
 type InitiateCompleteProjectParams struct {
@@ -161,15 +247,134 @@ func (q *Queries) InitiateCompleteProject(ctx context.Context, arg InitiateCompl
 	var i Project
 	err := row.Scan(
 		&i.ProjectID,
-		&i.ReferredUserID,
+		&i.Title,
+		&i.PreferredPracticeArea,
+		&i.PreferredPracticeLocation,
+		&i.CaseDescription,
 		&i.ReferrerUserID,
-		&i.ReferralID,
+		&i.ReferredUserID,
 		&i.Status,
 		&i.CreatedAt,
 		&i.StartedAt,
 		&i.CompletedAt,
 	)
 	return i, err
+}
+
+const listActiveProposals = `-- name: ListActiveProposals :many
+SELECT
+    referrer.user_id AS user_id,
+    referrer.first_name AS first_name,
+    referrer.last_name AS last_name,
+    referrer.practice_area AS practice_area,
+    referrer.practice_location AS practice_location,
+    referrer.avatar_url AS avatar_url,
+    p.project_id,
+    p.title,
+    p.preferred_practice_area,
+    p.preferred_practice_location,
+    p.case_description,
+    p.status,
+    p.created_at
+
+FROM
+    projects p
+        INNER JOIN
+    referral_users ru ON p.project_id = ru.project_id
+        INNER JOIN
+    users referrer ON p.referrer_user_id = referrer.user_id
+WHERE
+    ru.referred_user_id = $1::text AND p.status = 'active'
+ORDER BY
+    p.created_at DESC
+`
+
+type ListActiveProposalsRow struct {
+	UserID                    string        `json:"user_id"`
+	FirstName                 string        `json:"first_name"`
+	LastName                  string        `json:"last_name"`
+	PracticeArea              *string       `json:"practice_area"`
+	PracticeLocation          *string       `json:"practice_location"`
+	AvatarUrl                 *string       `json:"avatar_url"`
+	ProjectID                 int32         `json:"project_id"`
+	Title                     string        `json:"title"`
+	PreferredPracticeArea     string        `json:"preferred_practice_area"`
+	PreferredPracticeLocation string        `json:"preferred_practice_location"`
+	CaseDescription           string        `json:"case_description"`
+	Status                    ProjectStatus `json:"status"`
+	CreatedAt                 time.Time     `json:"created_at"`
+}
+
+func (q *Queries) ListActiveProposals(ctx context.Context, userID string) ([]ListActiveProposalsRow, error) {
+	rows, err := q.db.Query(ctx, listActiveProposals, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListActiveProposalsRow{}
+	for rows.Next() {
+		var i ListActiveProposalsRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.FirstName,
+			&i.LastName,
+			&i.PracticeArea,
+			&i.PracticeLocation,
+			&i.AvatarUrl,
+			&i.ProjectID,
+			&i.Title,
+			&i.PreferredPracticeArea,
+			&i.PreferredPracticeLocation,
+			&i.CaseDescription,
+			&i.Status,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listActiveReferrals = `-- name: ListActiveReferrals :many
+SELECT project_id, title, preferred_practice_area, preferred_practice_location, case_description, referrer_user_id, referred_user_id, status, created_at, started_at, completed_at FROM projects
+WHERE referrer_user_id = $1::text AND (status = 'active' OR status = 'awarded')
+ORDER BY created_at DESC
+`
+
+func (q *Queries) ListActiveReferrals(ctx context.Context, userID string) ([]Project, error) {
+	rows, err := q.db.Query(ctx, listActiveReferrals, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Project{}
+	for rows.Next() {
+		var i Project
+		if err := rows.Scan(
+			&i.ProjectID,
+			&i.Title,
+			&i.PreferredPracticeArea,
+			&i.PreferredPracticeLocation,
+			&i.CaseDescription,
+			&i.ReferrerUserID,
+			&i.ReferredUserID,
+			&i.Status,
+			&i.CreatedAt,
+			&i.StartedAt,
+			&i.CompletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listAwardedProjects = `-- name: ListAwardedProjects :many
@@ -179,18 +384,16 @@ SELECT
     p.created_at,
     p.started_at,
     p.completed_at,
-    r.referral_id,
-    r.title,
-    r.case_description,
-    referrer_user.user_id,
-    referrer_user.first_name,
-    referrer_user.last_name,
+    p.title,
+    p.case_description,
+    referrer_user.user_id AS user_id,
+    referrer_user.first_name AS first_name,
+    referrer_user.last_name AS last_name,
     referrer_user.avatar_url AS avatar_url,
     referrer_user.practice_area AS practice_area
 FROM
     projects p
         JOIN users referrer_user ON p.referrer_user_id = referrer_user.user_id
-        JOIN referrals r ON p.referral_id = r.referral_id
 WHERE
     p.referred_user_id = $1::text
   AND p.status = 'awarded'
@@ -203,7 +406,6 @@ type ListAwardedProjectsRow struct {
 	CreatedAt       time.Time          `json:"created_at"`
 	StartedAt       pgtype.Timestamptz `json:"started_at"`
 	CompletedAt     pgtype.Timestamptz `json:"completed_at"`
-	ReferralID      int32              `json:"referral_id"`
 	Title           string             `json:"title"`
 	CaseDescription string             `json:"case_description"`
 	UserID          string             `json:"user_id"`
@@ -228,7 +430,6 @@ func (q *Queries) ListAwardedProjects(ctx context.Context, userID string) ([]Lis
 			&i.CreatedAt,
 			&i.StartedAt,
 			&i.CompletedAt,
-			&i.ReferralID,
 			&i.Title,
 			&i.CaseDescription,
 			&i.UserID,
@@ -254,9 +455,8 @@ SELECT
     p.created_at,
     p.started_at,
     p.completed_at,
-    r.referral_id,
-    r.title,
-    r.case_description,
+    p.title,
+    p.case_description,
     referrer_user.user_id AS user_id,
     referrer_user.first_name AS first_name,
     referrer_user.last_name AS last_name,
@@ -265,8 +465,6 @@ SELECT
 FROM
     projects p
         JOIN users referrer_user ON p.referrer_user_id = referrer_user.user_id
-        JOIN users referred_user ON p.referred_user_id = referred_user.user_id
-        JOIN referrals r ON p.referral_id = r.referral_id
 WHERE
     p.referred_user_id = $1::text
   AND (p.status = 'started' OR p.status = 'accepted' OR p.status = 'complete_initiated')
@@ -279,7 +477,6 @@ type ListReferredActiveProjectsRow struct {
 	CreatedAt       time.Time          `json:"created_at"`
 	StartedAt       pgtype.Timestamptz `json:"started_at"`
 	CompletedAt     pgtype.Timestamptz `json:"completed_at"`
-	ReferralID      int32              `json:"referral_id"`
 	Title           string             `json:"title"`
 	CaseDescription string             `json:"case_description"`
 	UserID          string             `json:"user_id"`
@@ -304,7 +501,6 @@ func (q *Queries) ListReferredActiveProjects(ctx context.Context, userID string)
 			&i.CreatedAt,
 			&i.StartedAt,
 			&i.CompletedAt,
-			&i.ReferralID,
 			&i.Title,
 			&i.CaseDescription,
 			&i.UserID,
@@ -330,11 +526,10 @@ SELECT
     p.created_at,
     p.started_at,
     p.completed_at,
-    r.referral_id,
-    r.title,
-    r.case_description,
-    r.preferred_practice_area,
-    r.preferred_practice_location,
+    p.title,
+    p.case_description,
+    p.preferred_practice_area,
+    p.preferred_practice_location,
     referrer_user.user_id AS user_id,
     referrer_user.first_name AS first_name,
     referrer_user.last_name AS last_name,
@@ -343,8 +538,6 @@ SELECT
 FROM
     projects p
         JOIN users referrer_user ON p.referrer_user_id = referrer_user.user_id
-        JOIN users referred_user ON p.referred_user_id = referred_user.user_id
-        JOIN referrals r ON p.referral_id = r.referral_id
 WHERE
     p.referred_user_id = $1::text
   AND (p.status = 'completed')
@@ -357,7 +550,6 @@ type ListReferredCompletedProjectsRow struct {
 	CreatedAt                 time.Time          `json:"created_at"`
 	StartedAt                 pgtype.Timestamptz `json:"started_at"`
 	CompletedAt               pgtype.Timestamptz `json:"completed_at"`
-	ReferralID                int32              `json:"referral_id"`
 	Title                     string             `json:"title"`
 	CaseDescription           string             `json:"case_description"`
 	PreferredPracticeArea     string             `json:"preferred_practice_area"`
@@ -384,7 +576,6 @@ func (q *Queries) ListReferredCompletedProjects(ctx context.Context, userID stri
 			&i.CreatedAt,
 			&i.StartedAt,
 			&i.CompletedAt,
-			&i.ReferralID,
 			&i.Title,
 			&i.CaseDescription,
 			&i.PreferredPracticeArea,
@@ -405,6 +596,58 @@ func (q *Queries) ListReferredCompletedProjects(ctx context.Context, userID stri
 	return items, nil
 }
 
+const listReferredUsers = `-- name: ListReferredUsers :many
+SELECT
+    u.user_id,
+    u.first_name,
+    u.last_name,
+    u.avatar_url,
+    u.practice_area,
+    u.practice_location,
+    u.average_billing_per_client
+FROM referral_users ru
+    JOIN users u ON ru.referred_user_id = u.user_id
+WHERE ru.project_id = $1
+`
+
+type ListReferredUsersRow struct {
+	UserID                  string  `json:"user_id"`
+	FirstName               string  `json:"first_name"`
+	LastName                string  `json:"last_name"`
+	AvatarUrl               *string `json:"avatar_url"`
+	PracticeArea            *string `json:"practice_area"`
+	PracticeLocation        *string `json:"practice_location"`
+	AverageBillingPerClient *int32  `json:"average_billing_per_client"`
+}
+
+func (q *Queries) ListReferredUsers(ctx context.Context, projectID int32) ([]ListReferredUsersRow, error) {
+	rows, err := q.db.Query(ctx, listReferredUsers, projectID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListReferredUsersRow{}
+	for rows.Next() {
+		var i ListReferredUsersRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.FirstName,
+			&i.LastName,
+			&i.AvatarUrl,
+			&i.PracticeArea,
+			&i.PracticeLocation,
+			&i.AverageBillingPerClient,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listReferrerActiveProjects = `-- name: ListReferrerActiveProjects :many
 SELECT
     p.project_id,
@@ -412,9 +655,8 @@ SELECT
     p.created_at,
     p.started_at,
     p.completed_at,
-    r.referral_id,
-    r.title,
-    r.case_description,
+    p.title,
+    p.case_description,
     referred_user.user_id AS user_id,
     referred_user.first_name AS first_name,
     referred_user.last_name AS last_name,
@@ -422,9 +664,7 @@ SELECT
     referred_user.practice_area AS practice_area
 FROM
     projects p
-        JOIN users referrer_user ON p.referrer_user_id = referrer_user.user_id
         JOIN users referred_user ON p.referred_user_id = referred_user.user_id
-        JOIN referrals r ON p.referral_id = r.referral_id
 WHERE
     p.referrer_user_id = $1::text
   AND (p.status = 'started' OR p.status = 'accepted' OR p.status = 'complete_initiated')
@@ -437,7 +677,6 @@ type ListReferrerActiveProjectsRow struct {
 	CreatedAt       time.Time          `json:"created_at"`
 	StartedAt       pgtype.Timestamptz `json:"started_at"`
 	CompletedAt     pgtype.Timestamptz `json:"completed_at"`
-	ReferralID      int32              `json:"referral_id"`
 	Title           string             `json:"title"`
 	CaseDescription string             `json:"case_description"`
 	UserID          string             `json:"user_id"`
@@ -462,7 +701,6 @@ func (q *Queries) ListReferrerActiveProjects(ctx context.Context, userID string)
 			&i.CreatedAt,
 			&i.StartedAt,
 			&i.CompletedAt,
-			&i.ReferralID,
 			&i.Title,
 			&i.CaseDescription,
 			&i.UserID,
@@ -488,11 +726,10 @@ SELECT
     p.created_at,
     p.started_at,
     p.completed_at,
-    r.referral_id,
-    r.title,
-    r.case_description,
-    r.preferred_practice_area,
-    r.preferred_practice_location,
+    p.title,
+    p.case_description,
+    p.preferred_practice_area,
+    p.preferred_practice_location,
     referred_user.user_id AS user_id,
     referred_user.first_name AS first_name,
     referred_user.last_name AS last_name,
@@ -500,9 +737,7 @@ SELECT
     referred_user.practice_area AS practice_area
 FROM
     projects p
-        JOIN users referrer_user ON p.referrer_user_id = referrer_user.user_id
         JOIN users referred_user ON p.referred_user_id = referred_user.user_id
-        JOIN referrals r ON p.referral_id = r.referral_id
 WHERE
     p.referrer_user_id = $1::text
   AND (p.status = 'completed')
@@ -515,7 +750,6 @@ type ListReferrerCompletedProjectsRow struct {
 	CreatedAt                 time.Time          `json:"created_at"`
 	StartedAt                 pgtype.Timestamptz `json:"started_at"`
 	CompletedAt               pgtype.Timestamptz `json:"completed_at"`
-	ReferralID                int32              `json:"referral_id"`
 	Title                     string             `json:"title"`
 	CaseDescription           string             `json:"case_description"`
 	PreferredPracticeArea     string             `json:"preferred_practice_area"`
@@ -542,7 +776,6 @@ func (q *Queries) ListReferrerCompletedProjects(ctx context.Context, userID stri
 			&i.CreatedAt,
 			&i.StartedAt,
 			&i.CompletedAt,
-			&i.ReferralID,
 			&i.Title,
 			&i.CaseDescription,
 			&i.PreferredPracticeArea,
@@ -570,7 +803,7 @@ SET
 WHERE
     project_id = $1::int
   AND referred_user_id = $2::text
-RETURNING project_id, referred_user_id, referrer_user_id, referral_id, status, created_at, started_at, completed_at
+RETURNING project_id, title, preferred_practice_area, preferred_practice_location, case_description, referrer_user_id, referred_user_id, status, created_at, started_at, completed_at
 `
 
 type RejectProjectParams struct {
@@ -583,9 +816,12 @@ func (q *Queries) RejectProject(ctx context.Context, arg RejectProjectParams) (P
 	var i Project
 	err := row.Scan(
 		&i.ProjectID,
-		&i.ReferredUserID,
+		&i.Title,
+		&i.PreferredPracticeArea,
+		&i.PreferredPracticeLocation,
+		&i.CaseDescription,
 		&i.ReferrerUserID,
-		&i.ReferralID,
+		&i.ReferredUserID,
 		&i.Status,
 		&i.CreatedAt,
 		&i.StartedAt,
@@ -602,7 +838,7 @@ SET
 WHERE
     project_id = $1::int
   AND referred_user_id = $2::text
-RETURNING project_id, referred_user_id, referrer_user_id, referral_id, status, created_at, started_at, completed_at
+RETURNING project_id, title, preferred_practice_area, preferred_practice_location, case_description, referrer_user_id, referred_user_id, status, created_at, started_at, completed_at
 `
 
 type StartProjectParams struct {
@@ -615,9 +851,12 @@ func (q *Queries) StartProject(ctx context.Context, arg StartProjectParams) (Pro
 	var i Project
 	err := row.Scan(
 		&i.ProjectID,
-		&i.ReferredUserID,
+		&i.Title,
+		&i.PreferredPracticeArea,
+		&i.PreferredPracticeLocation,
+		&i.CaseDescription,
 		&i.ReferrerUserID,
-		&i.ReferralID,
+		&i.ReferredUserID,
 		&i.Status,
 		&i.CreatedAt,
 		&i.StartedAt,

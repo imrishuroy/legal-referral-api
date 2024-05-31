@@ -104,51 +104,6 @@ func (ns NullProposalStatus) Value() (driver.Value, error) {
 	return string(ns.ProposalStatus), nil
 }
 
-type ReferralsStatus string
-
-const (
-	ReferralsStatusActive    ReferralsStatus = "active"
-	ReferralsStatusAwarded   ReferralsStatus = "awarded"
-	ReferralsStatusCompleted ReferralsStatus = "completed"
-	ReferralsStatusCancelled ReferralsStatus = "cancelled"
-	ReferralsStatusRejected  ReferralsStatus = "rejected"
-)
-
-func (e *ReferralsStatus) Scan(src interface{}) error {
-	switch s := src.(type) {
-	case []byte:
-		*e = ReferralsStatus(s)
-	case string:
-		*e = ReferralsStatus(s)
-	default:
-		return fmt.Errorf("unsupported scan type for ReferralsStatus: %T", src)
-	}
-	return nil
-}
-
-type NullReferralsStatus struct {
-	ReferralsStatus ReferralsStatus `json:"referrals_status"`
-	Valid           bool            `json:"valid"` // Valid is true if ReferralsStatus is not NULL
-}
-
-// Scan implements the Scanner interface.
-func (ns *NullReferralsStatus) Scan(value interface{}) error {
-	if value == nil {
-		ns.ReferralsStatus, ns.Valid = "", false
-		return nil
-	}
-	ns.Valid = true
-	return ns.ReferralsStatus.Scan(value)
-}
-
-// Value implements the driver Valuer interface.
-func (ns NullReferralsStatus) Value() (driver.Value, error) {
-	if !ns.Valid {
-		return nil, nil
-	}
-	return string(ns.ReferralsStatus), nil
-}
-
 type Attachment struct {
 	AttachmentID   int32  `json:"attachment_id"`
 	MessageID      int32  `json:"message_id"`
@@ -258,14 +213,17 @@ type Pricing struct {
 }
 
 type Project struct {
-	ProjectID      int32              `json:"project_id"`
-	ReferredUserID string             `json:"referred_user_id"`
-	ReferrerUserID string             `json:"referrer_user_id"`
-	ReferralID     int32              `json:"referral_id"`
-	Status         ProjectStatus      `json:"status"`
-	CreatedAt      time.Time          `json:"created_at"`
-	StartedAt      pgtype.Timestamptz `json:"started_at"`
-	CompletedAt    pgtype.Timestamptz `json:"completed_at"`
+	ProjectID                 int32              `json:"project_id"`
+	Title                     string             `json:"title"`
+	PreferredPracticeArea     string             `json:"preferred_practice_area"`
+	PreferredPracticeLocation string             `json:"preferred_practice_location"`
+	CaseDescription           string             `json:"case_description"`
+	ReferrerUserID            string             `json:"referrer_user_id"`
+	ReferredUserID            *string            `json:"referred_user_id"`
+	Status                    ProjectStatus      `json:"status"`
+	CreatedAt                 time.Time          `json:"created_at"`
+	StartedAt                 pgtype.Timestamptz `json:"started_at"`
+	CompletedAt               pgtype.Timestamptz `json:"completed_at"`
 }
 
 type ProjectReview struct {
@@ -279,7 +237,7 @@ type ProjectReview struct {
 
 type Proposal struct {
 	ProposalID int32          `json:"proposal_id"`
-	ReferralID int32          `json:"referral_id"`
+	ProjectID  int32          `json:"project_id"`
 	UserID     string         `json:"user_id"`
 	Title      string         `json:"title"`
 	Proposal   string         `json:"proposal"`
@@ -288,17 +246,10 @@ type Proposal struct {
 	UpdatedAt  time.Time      `json:"updated_at"`
 }
 
-type Referral struct {
-	ReferralID                int32           `json:"referral_id"`
-	ReferredUserID            string          `json:"referred_user_id"`
-	ReferrerUserID            string          `json:"referrer_user_id"`
-	Title                     string          `json:"title"`
-	PreferredPracticeArea     string          `json:"preferred_practice_area"`
-	PreferredPracticeLocation string          `json:"preferred_practice_location"`
-	CaseDescription           string          `json:"case_description"`
-	Status                    ReferralsStatus `json:"status"`
-	CreatedAt                 time.Time       `json:"created_at"`
-	UpdatedAt                 time.Time       `json:"updated_at"`
+type ReferralUser struct {
+	ReferralUserID int32  `json:"referral_user_id"`
+	ProjectID      int32  `json:"project_id"`
+	ReferredUserID string `json:"referred_user_id"`
 }
 
 type Review struct {

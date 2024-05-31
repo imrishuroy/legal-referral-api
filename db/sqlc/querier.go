@@ -16,18 +16,18 @@ type Querier interface {
 	AddExperience(ctx context.Context, arg AddExperienceParams) (Experience, error)
 	AddFirm(ctx context.Context, arg AddFirmParams) (Firm, error)
 	AddPrice(ctx context.Context, arg AddPriceParams) (Pricing, error)
+	AddReferredUserToProject(ctx context.Context, arg AddReferredUserToProjectParams) (ReferralUser, error)
 	AddReview(ctx context.Context, arg AddReviewParams) (Review, error)
 	AddSocial(ctx context.Context, arg AddSocialParams) (Social, error)
 	AwardProject(ctx context.Context, arg AwardProjectParams) (Project, error)
 	CancelCompleteProjectInitiation(ctx context.Context, arg CancelCompleteProjectInitiationParams) (Project, error)
 	CancelRecommendation(ctx context.Context, arg CancelRecommendationParams) error
-	ChangeReferralStatus(ctx context.Context, arg ChangeReferralStatusParams) (Referral, error)
 	CompleteProject(ctx context.Context, arg CompleteProjectParams) (Project, error)
 	CreateChatRoom(ctx context.Context, arg CreateChatRoomParams) (CreateChatRoomRow, error)
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
 	CreateProjectReview(ctx context.Context, arg CreateProjectReviewParams) (ProjectReview, error)
 	CreateProposal(ctx context.Context, arg CreateProposalParams) (Proposal, error)
-	CreateReferral(ctx context.Context, arg CreateReferralParams) (Referral, error)
+	CreateReferral(ctx context.Context, arg CreateReferralParams) (Project, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteEducation(ctx context.Context, educationID int64) error
 	DeleteExperience(ctx context.Context, experienceID int64) error
@@ -36,38 +36,37 @@ type Querier interface {
 	GetChatRoom(ctx context.Context, arg GetChatRoomParams) (GetChatRoomRow, error)
 	GetFirm(ctx context.Context, firmID int64) (Firm, error)
 	GetProjectReview(ctx context.Context, arg GetProjectReviewParams) (ProjectReview, error)
+	GetProjectStatus(ctx context.Context, projectID int32) (ProjectStatus, error)
+	//
 	GetProposal(ctx context.Context, arg GetProposalParams) (Proposal, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, userID string) (User, error)
 	GetUserWizardStep(ctx context.Context, userID string) (int32, error)
 	InitiateCompleteProject(ctx context.Context, arg InitiateCompleteProjectParams) (Project, error)
-	ListActiveReferrals(ctx context.Context, userID string) ([]Referral, error)
+	ListActiveProposals(ctx context.Context, userID string) ([]ListActiveProposalsRow, error)
+	ListActiveReferrals(ctx context.Context, userID string) ([]Project, error)
 	ListAwardedProjects(ctx context.Context, userID string) ([]ListAwardedProjectsRow, error)
 	ListChatRooms(ctx context.Context, user1ID string) ([]ListChatRoomsRow, error)
 	ListConnectedUsers(ctx context.Context, arg ListConnectedUsersParams) ([]ListConnectedUsersRow, error)
 	ListConnectionInvitations(ctx context.Context, arg ListConnectionInvitationsParams) ([]ListConnectionInvitationsRow, error)
 	ListConnections(ctx context.Context, arg ListConnectionsParams) ([]ListConnectionsRow, error)
 	ListEducations(ctx context.Context, userID string) ([]Education, error)
-	// -- name: ListExperiences :many
-	// SELECT sqlc.embed(experiences), sqlc.embed(firms)
-	// FROM experiences
-	// JOIN firms ON experiences.firm_id = firms.firm_id
-	// WHERE user_id = $1;
 	ListExperiences(ctx context.Context, userID string) ([]ListExperiencesRow, error)
 	ListFirms(ctx context.Context, arg ListFirmsParams) ([]Firm, error)
 	ListMessages(ctx context.Context, arg ListMessagesParams) ([]ListMessagesRow, error)
-	ListProposals(ctx context.Context, referredUserID string) ([]ListProposalsRow, error)
 	ListRecommendations(ctx context.Context, arg ListRecommendationsParams) ([]ListRecommendationsRow, error)
 	ListRecommendations2(ctx context.Context, arg ListRecommendations2Params) ([]ListRecommendations2Row, error)
+	//
 	ListReferredActiveProjects(ctx context.Context, userID string) ([]ListReferredActiveProjectsRow, error)
 	ListReferredCompletedProjects(ctx context.Context, userID string) ([]ListReferredCompletedProjectsRow, error)
-	ListReferredUsers(ctx context.Context, referralID int32) ([]ListReferredUsersRow, error)
+	ListReferredUsers(ctx context.Context, projectID int32) ([]ListReferredUsersRow, error)
 	ListReferrerActiveProjects(ctx context.Context, userID string) ([]ListReferrerActiveProjectsRow, error)
 	ListReferrerCompletedProjects(ctx context.Context, userID string) ([]ListReferrerCompletedProjectsRow, error)
 	ListSocials(ctx context.Context, arg ListSocialsParams) ([]Social, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
 	MarkWizardCompleted(ctx context.Context, arg MarkWizardCompletedParams) (User, error)
 	RejectConnection(ctx context.Context, arg RejectConnectionParams) error
+	//
 	RejectProject(ctx context.Context, arg RejectProjectParams) (Project, error)
 	SaveAboutYou(ctx context.Context, arg SaveAboutYouParams) (User, error)
 	SaveLicense(ctx context.Context, arg SaveLicenseParams) (License, error)
@@ -81,31 +80,10 @@ type Querier interface {
 	ToggleOpenToRefferal(ctx context.Context, arg ToggleOpenToRefferalParams) error
 	UpdateEducation(ctx context.Context, arg UpdateEducationParams) (Education, error)
 	UpdateEmailVerificationStatus(ctx context.Context, arg UpdateEmailVerificationStatusParams) (User, error)
-	//- name: ListExperiences3 :many
-	// SELECT
-	//     experiences.experience_id,
-	//     experiences.user_id,
-	//     experiences.title,
-	//     experiences.practice_area,
-	//     experiences.firm_id,
-	//     experiences.practice_location,
-	//     experiences.start_date,
-	//     experiences.end_date,
-	//     experiences.current,
-	//     experiences.description,
-	//     experiences.skills,
-	//     firms.firm_id,
-	//     firms.name,
-	//     firms.logo_url,
-	//     firms.org_type,
-	//     firms.website,
-	//     firms.location
-	// FROM experiences
-	// JOIN firms ON experiences.firm_id = firms.firm_id
-	// WHERE user_id = $1;
 	UpdateExperience(ctx context.Context, arg UpdateExperienceParams) (Experience, error)
 	UpdateMobileVerificationStatus(ctx context.Context, arg UpdateMobileVerificationStatusParams) (User, error)
 	UpdatePrice(ctx context.Context, arg UpdatePriceParams) (Pricing, error)
+	//
 	UpdateProposal(ctx context.Context, arg UpdateProposalParams) (Proposal, error)
 	UpdateSocial(ctx context.Context, arg UpdateSocialParams) (Social, error)
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error

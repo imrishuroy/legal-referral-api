@@ -53,8 +53,8 @@ func (server *Server) updateProposal(ctx *gin.Context) {
 
 func (server *Server) getProposal(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
-	referralID := ctx.Param("referral_id")
-	proposalID, err := strconv.Atoi(referralID)
+	projectIDStr := ctx.Param("project_id")
+	projectID, err := strconv.Atoi(projectIDStr)
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
@@ -63,8 +63,8 @@ func (server *Server) getProposal(ctx *gin.Context) {
 	}
 
 	arg := db.GetProposalParams{
-		ReferralID: int32(proposalID),
-		UserID:     userID,
+		ProjectID: int32(projectID),
+		UserID:    userID,
 	}
 
 	proposal, err := server.store.GetProposal(ctx, arg)
