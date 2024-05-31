@@ -11,25 +11,26 @@ import (
 
 const createProposal = `-- name: CreateProposal :one
 INSERT INTO proposals (
-    referral_id,
+    project_id,
     user_id,
     title,
-    proposal
+    proposal,
+    status
 ) VALUES (
-    $1, $2, $3, $4
-) RETURNING proposal_id, referral_id, user_id, title, proposal, status, created_at, updated_at
+    $1, $2, $3, $4, 'active'
+) RETURNING proposal_id, project_id, user_id, title, proposal, status, created_at, updated_at
 `
 
 type CreateProposalParams struct {
-	ReferralID int32  `json:"referral_id"`
-	UserID     string `json:"user_id"`
-	Title      string `json:"title"`
-	Proposal   string `json:"proposal"`
+	ProjectID int32  `json:"project_id"`
+	UserID    string `json:"user_id"`
+	Title     string `json:"title"`
+	Proposal  string `json:"proposal"`
 }
 
 func (q *Queries) CreateProposal(ctx context.Context, arg CreateProposalParams) (Proposal, error) {
 	row := q.db.QueryRow(ctx, createProposal,
-		arg.ReferralID,
+		arg.ProjectID,
 		arg.UserID,
 		arg.Title,
 		arg.Proposal,
@@ -37,7 +38,7 @@ func (q *Queries) CreateProposal(ctx context.Context, arg CreateProposalParams) 
 	var i Proposal
 	err := row.Scan(
 		&i.ProposalID,
-		&i.ReferralID,
+		&i.ProjectID,
 		&i.UserID,
 		&i.Title,
 		&i.Proposal,
@@ -49,22 +50,22 @@ func (q *Queries) CreateProposal(ctx context.Context, arg CreateProposalParams) 
 }
 
 const getProposal = `-- name: GetProposal :one
-SELECT proposal_id, referral_id, user_id, title, proposal, status, created_at, updated_at
+SELECT proposal_id, project_id, user_id, title, proposal, status, created_at, updated_at
 FROM proposals
-WHERE referral_id = $1 AND user_id = $2
+WHERE project_id = $1 AND user_id = $2
 `
 
 type GetProposalParams struct {
-	ReferralID int32  `json:"referral_id"`
-	UserID     string `json:"user_id"`
+	ProjectID int32  `json:"project_id"`
+	UserID    string `json:"user_id"`
 }
 
 func (q *Queries) GetProposal(ctx context.Context, arg GetProposalParams) (Proposal, error) {
-	row := q.db.QueryRow(ctx, getProposal, arg.ReferralID, arg.UserID)
+	row := q.db.QueryRow(ctx, getProposal, arg.ProjectID, arg.UserID)
 	var i Proposal
 	err := row.Scan(
 		&i.ProposalID,
-		&i.ReferralID,
+		&i.ProjectID,
 		&i.UserID,
 		&i.Title,
 		&i.Proposal,
@@ -81,7 +82,7 @@ SET
     title = $3,
     proposal = $4
 WHERE proposal_id = $1 AND user_id = $2
-RETURNING proposal_id, referral_id, user_id, title, proposal, status, created_at, updated_at
+RETURNING proposal_id, project_id, user_id, title, proposal, status, created_at, updated_at
 `
 
 type UpdateProposalParams struct {
@@ -101,7 +102,7 @@ func (q *Queries) UpdateProposal(ctx context.Context, arg UpdateProposalParams) 
 	var i Proposal
 	err := row.Scan(
 		&i.ProposalID,
-		&i.ReferralID,
+		&i.ProjectID,
 		&i.UserID,
 		&i.Title,
 		&i.Proposal,
