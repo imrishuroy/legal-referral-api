@@ -60,12 +60,13 @@ type Querier interface {
 	ListReferredActiveProjects(ctx context.Context, userID string) ([]ListReferredActiveProjectsRow, error)
 	ListReferredCompletedProjects(ctx context.Context, userID string) ([]ListReferredCompletedProjectsRow, error)
 	ListReferredUsers(ctx context.Context, projectID int32) ([]ListReferredUsersRow, error)
+	ListReferredUsers2(ctx context.Context, projectID int32) ([]ListReferredUsers2Row, error)
 	ListReferrerActiveProjects(ctx context.Context, userID string) ([]ListReferrerActiveProjectsRow, error)
 	ListReferrerCompletedProjects(ctx context.Context, userID string) ([]ListReferrerCompletedProjectsRow, error)
 	ListSocials(ctx context.Context, arg ListSocialsParams) ([]Social, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
 	MarkWizardCompleted(ctx context.Context, arg MarkWizardCompletedParams) (User, error)
-	RejectConnection(ctx context.Context, arg RejectConnectionParams) error
+	RejectConnection(ctx context.Context, id int32) error
 	//
 	RejectProject(ctx context.Context, arg RejectProjectParams) (Project, error)
 	SaveAboutYou(ctx context.Context, arg SaveAboutYouParams) (User, error)

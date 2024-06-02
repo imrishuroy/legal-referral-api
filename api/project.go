@@ -90,7 +90,7 @@ func (server *Server) listReferredUsers(ctx *gin.Context) {
 		return
 	}
 
-	users, err := server.store.ListReferredUsers(ctx, int32(projectID))
+	users, err := server.store.ListReferredUsers2(ctx, int32(projectID))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
