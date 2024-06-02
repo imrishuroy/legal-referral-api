@@ -96,24 +96,22 @@ func (server *Server) acceptConnection(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, conn)
 }
 
-type rejectConnectionReq struct {
-	SenderID    string `json:"sender_id" binding:"required"`
-	RecipientID string `json:"recipient_id" binding:"required"`
-}
-
 func (server *Server) rejectConnection(ctx *gin.Context) {
-	var req rejectConnectionReq
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+
+	idStr := ctx.Param("id")
+	id, err := strconv.ParseInt(idStr, 10, 32)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid connection ID"})
 		return
 	}
 
-	arg := db.RejectConnectionParams{
-		SenderID:    req.SenderID,
-		RecipientID: req.RecipientID,
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
 	}
 
-	err := server.store.RejectConnection(ctx, arg)
+	err = server.store.RejectConnection(ctx, int32(id))
 	if err != nil {
 		errorCode := db.ErrorCode(err)
 		if errorCode == db.UniqueViolation {
