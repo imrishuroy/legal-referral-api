@@ -114,7 +114,7 @@ func (server *Server) fetchUserProfile(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
-	if authPayload.UID != userID {
+	if authPayload.UID == "" {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 		return
 	}
@@ -130,29 +130,6 @@ func (server *Server) fetchUserProfile(ctx *gin.Context) {
 		return
 	}
 
-	//var res fetchUserProfileRes
-	//res.User = db.User{
-	//	UserID:                  profile.UserID,
-	//	FirstName:               profile.FirstName,
-	//	LastName:                profile.LastName,
-	//	OpenToReferral:          profile.OpenToReferral,
-	//	CaseResolutionRate:      profile.CaseResolutionRate,
-	//	AverageBillingPerClient: profile.AverageBillingPerClient,
-	//	About:                   profile.About,
-	//}
-	//if profile.PriceID != nil {
-	//	res.Price = db.Pricing{
-	//		PriceID:          *profile.PriceID,
-	//		UserID:           profile.UserID,
-	//		ServiceType:      *profile.ServiceType,
-	//		PerHourPrice:     profile.PerHourPrice,
-	//		PerHearingPrice:  profile.PerHearingPrice,
-	//		ContingencyPrice: profile.ContingencyPrice,
-	//		HybridPrice:      profile.HybridPrice,
-	//	}
-	//}
-	//
-	//ctx.JSON(http.StatusOK, res)
 	ctx.JSON(http.StatusOK, profile)
 }
 

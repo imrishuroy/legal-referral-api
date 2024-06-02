@@ -36,6 +36,27 @@ FROM referral_users ru
     JOIN users u ON ru.referred_user_id = u.user_id
 WHERE ru.project_id = $1;
 
+-- name: ListReferredUsers2 :many
+SELECT
+    u.user_id,
+    u.first_name,
+    u.last_name,
+    u.avatar_url,
+    u.practice_area,
+    u.practice_location,
+    p.price_id,
+    p.service_type,
+    p.per_hour_price,
+    p.per_hearing_price,
+    p.contingency_price,
+    p.hybrid_price
+FROM referral_users ru
+    JOIN users u ON ru.referred_user_id = u.user_id
+    LEFT JOIN pricing p ON u.user_id = p.user_id
+WHERE ru.project_id = $1;
+
+
+
 -- name: ListActiveProposals :many
 SELECT
     referrer.user_id AS user_id,

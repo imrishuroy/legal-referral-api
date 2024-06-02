@@ -11,14 +11,15 @@ SET status = 1
 WHERE id = $1 AND status = 0
 RETURNING *;
 
+-- name: RejectConnection :exec
+UPDATE connection_invitations
+SET status = 3
+WHERE id = $1 AND status = 0
+RETURNING *;
+
 -- name: AddConnection :exec
 INSERT INTO connections (sender_id, recipient_id)
     VALUES ($1, $2);
-
--- name: RejectConnection :exec
-UPDATE connection_invitations
-    SET status = 3
-    WHERE sender_id = $1 AND recipient_id = $2 AND status = 'pending';
 
 -- name: ListConnectionInvitations :many
 SELECT ci.*,

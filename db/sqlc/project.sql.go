@@ -648,6 +648,74 @@ func (q *Queries) ListReferredUsers(ctx context.Context, projectID int32) ([]Lis
 	return items, nil
 }
 
+const listReferredUsers2 = `-- name: ListReferredUsers2 :many
+SELECT
+    u.user_id,
+    u.first_name,
+    u.last_name,
+    u.avatar_url,
+    u.practice_area,
+    u.practice_location,
+    p.price_id,
+    p.service_type,
+    p.per_hour_price,
+    p.per_hearing_price,
+    p.contingency_price,
+    p.hybrid_price
+FROM referral_users ru
+    JOIN users u ON ru.referred_user_id = u.user_id
+    LEFT JOIN pricing p ON u.user_id = p.user_id
+WHERE ru.project_id = $1
+`
+
+type ListReferredUsers2Row struct {
+	UserID           string         `json:"user_id"`
+	FirstName        string         `json:"first_name"`
+	LastName         string         `json:"last_name"`
+	AvatarUrl        *string        `json:"avatar_url"`
+	PracticeArea     *string        `json:"practice_area"`
+	PracticeLocation *string        `json:"practice_location"`
+	PriceID          *int64         `json:"price_id"`
+	ServiceType      *string        `json:"service_type"`
+	PerHourPrice     pgtype.Numeric `json:"per_hour_price"`
+	PerHearingPrice  pgtype.Numeric `json:"per_hearing_price"`
+	ContingencyPrice *string        `json:"contingency_price"`
+	HybridPrice      *string        `json:"hybrid_price"`
+}
+
+func (q *Queries) ListReferredUsers2(ctx context.Context, projectID int32) ([]ListReferredUsers2Row, error) {
+	rows, err := q.db.Query(ctx, listReferredUsers2, projectID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListReferredUsers2Row{}
+	for rows.Next() {
+		var i ListReferredUsers2Row
+		if err := rows.Scan(
+			&i.UserID,
+			&i.FirstName,
+			&i.LastName,
+			&i.AvatarUrl,
+			&i.PracticeArea,
+			&i.PracticeLocation,
+			&i.PriceID,
+			&i.ServiceType,
+			&i.PerHourPrice,
+			&i.PerHearingPrice,
+			&i.ContingencyPrice,
+			&i.HybridPrice,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listReferrerActiveProjects = `-- name: ListReferrerActiveProjects :many
 SELECT
     p.project_id,

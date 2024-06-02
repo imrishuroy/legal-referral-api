@@ -183,17 +183,13 @@ func (q *Queries) ListConnections(ctx context.Context, arg ListConnectionsParams
 
 const rejectConnection = `-- name: RejectConnection :exec
 UPDATE connection_invitations
-    SET status = 3
-    WHERE sender_id = $1 AND recipient_id = $2 AND status = 'pending'
+SET status = 3
+WHERE id = $1 AND status = 0
+RETURNING id, sender_id, recipient_id, status, created_at
 `
 
-type RejectConnectionParams struct {
-	SenderID    string `json:"sender_id"`
-	RecipientID string `json:"recipient_id"`
-}
-
-func (q *Queries) RejectConnection(ctx context.Context, arg RejectConnectionParams) error {
-	_, err := q.db.Exec(ctx, rejectConnection, arg.SenderID, arg.RecipientID)
+func (q *Queries) RejectConnection(ctx context.Context, id int32) error {
+	_, err := q.db.Exec(ctx, rejectConnection, id)
 	return err
 }
 
