@@ -103,6 +103,12 @@ func (server *Server) setupRouter() {
 
 	auth.GET("/users/:user_id/connected", server.listConnectedUsers)
 	auth.GET("/users", server.listUsers)
+
+	// posts
+	auth.POST("/posts", server.createPost)
+
+	// news feed
+	auth.GET("/feeds/:user_id", server.listNewsFeed)
 }
 
 func CORSMiddleware() gin.HandlerFunc {

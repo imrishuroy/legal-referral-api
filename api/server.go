@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/imrishuroy/legal-referral/chat"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
 	"github.com/twilio/twilio-go"
@@ -27,10 +28,13 @@ type Server struct {
 	twilioClient *twilio.RestClient
 	awsSession   *session.Session
 	//redis        *redis.Client
-	hub *chat.Hub
+	hub      *chat.Hub
+	producer *kafka.Producer
 }
 
-func NewServer(config util.Config, store db.Store, hub *chat.Hub) (*Server, error) {
+func NewServer(config util.Config, store db.Store, hub *chat.Hub, producer *kafka.Producer) (*Server, error) {
+
+	//func NewServer(config util.Config, store db.Store, hub *chat.Hub) (*Server, error) {
 
 	opt := option.WithCredentialsFile("./service-account-key.json")
 	app, err := firebase.NewApp(context.Background(), nil, opt)
@@ -67,7 +71,8 @@ func NewServer(config util.Config, store db.Store, hub *chat.Hub) (*Server, erro
 		twilioClient: twilioClient,
 		awsSession:   awsSession,
 		//redis:        redis,
-		hub: hub,
+		hub:      hub,
+		producer: producer,
 	}
 
 	server.setupRouter()

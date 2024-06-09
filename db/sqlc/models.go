@@ -12,6 +12,54 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type PostType string
+
+const (
+	PostTypeText     PostType = "text"
+	PostTypeImage    PostType = "image"
+	PostTypeVideo    PostType = "video"
+	PostTypeAudio    PostType = "audio"
+	PostTypeLink     PostType = "link"
+	PostTypeDocument PostType = "document"
+	PostTypePoll     PostType = "poll"
+	PostTypeOther    PostType = "other"
+)
+
+func (e *PostType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PostType(s)
+	case string:
+		*e = PostType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PostType: %T", src)
+	}
+	return nil
+}
+
+type NullPostType struct {
+	PostType PostType `json:"post_type"`
+	Valid    bool     `json:"valid"` // Valid is true if PostType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPostType) Scan(value interface{}) error {
+	if value == nil {
+		ns.PostType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PostType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPostType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PostType), nil
+}
+
 type ProjectStatus string
 
 const (
@@ -200,6 +248,41 @@ type Message struct {
 	IsRead          bool      `json:"is_read"`
 	RoomID          string    `json:"room_id"`
 	SentAt          time.Time `json:"sent_at"`
+}
+
+type NewsFeed struct {
+	FeedID    int32     `json:"feed_id"`
+	UserID    string    `json:"user_id"`
+	PostID    int32     `json:"post_id"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type Poll struct {
+	PollID    int32              `json:"poll_id"`
+	OwnerID   string             `json:"owner_id"`
+	Title     string             `json:"title"`
+	Options   []string           `json:"options"`
+	CreatedAt time.Time          `json:"created_at"`
+	EndTime   pgtype.Timestamptz `json:"end_time"`
+}
+
+type PollResult struct {
+	PollResultID int32     `json:"poll_result_id"`
+	PollID       int32     `json:"poll_id"`
+	OptionIndex  int32     `json:"option_index"`
+	UserID       string    `json:"user_id"`
+	CreatedAt    time.Time `json:"created_at"`
+}
+
+type Post struct {
+	PostID    int32     `json:"post_id"`
+	OwnerID   string    `json:"owner_id"`
+	Title     string    `json:"title"`
+	Content   string    `json:"content"`
+	Media     []string  `json:"media"`
+	PostType  PostType  `json:"post_type"`
+	PollID    *int32    `json:"poll_id"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type Pricing struct {
