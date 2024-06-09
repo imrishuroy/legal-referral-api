@@ -45,6 +45,36 @@ func (q *Queries) AddConnection(ctx context.Context, arg AddConnectionParams) er
 	return err
 }
 
+const listConnectedUserIDs = `-- name: ListConnectedUserIDs :many
+SELECT
+    CASE
+        WHEN sender_id = $1::text THEN recipient_id
+        ELSE sender_id
+        END AS user_id
+FROM connections
+WHERE sender_id = $1::text OR recipient_id = $1::text
+`
+
+func (q *Queries) ListConnectedUserIDs(ctx context.Context, userID string) ([]interface{}, error) {
+	rows, err := q.db.Query(ctx, listConnectedUserIDs, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []interface{}{}
+	for rows.Next() {
+		var user_id interface{}
+		if err := rows.Scan(&user_id); err != nil {
+			return nil, err
+		}
+		items = append(items, user_id)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listConnectionInvitations = `-- name: ListConnectionInvitations :many
 SELECT ci.id, ci.sender_id, ci.recipient_id, ci.status, ci.created_at,
        u.first_name,

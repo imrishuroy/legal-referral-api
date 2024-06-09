@@ -25,6 +25,8 @@ type Querier interface {
 	CompleteProject(ctx context.Context, arg CompleteProjectParams) (Project, error)
 	CreateChatRoom(ctx context.Context, arg CreateChatRoomParams) (CreateChatRoomRow, error)
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
+	CreatePoll(ctx context.Context, arg CreatePollParams) (Poll, error)
+	CreatePost(ctx context.Context, arg CreatePostParams) (Post, error)
 	CreateProjectReview(ctx context.Context, arg CreateProjectReviewParams) (ProjectReview, error)
 	CreateProposal(ctx context.Context, arg CreateProposalParams) (Proposal, error)
 	CreateReferral(ctx context.Context, arg CreateReferralParams) (Project, error)
@@ -47,6 +49,7 @@ type Querier interface {
 	ListActiveReferrals(ctx context.Context, userID string) ([]Project, error)
 	ListAwardedProjects(ctx context.Context, userID string) ([]ListAwardedProjectsRow, error)
 	ListChatRooms(ctx context.Context, user1ID string) ([]ListChatRoomsRow, error)
+	ListConnectedUserIDs(ctx context.Context, userID string) ([]interface{}, error)
 	ListConnectedUsers(ctx context.Context, arg ListConnectedUsersParams) ([]ListConnectedUsersRow, error)
 	ListConnectionInvitations(ctx context.Context, arg ListConnectionInvitationsParams) ([]ListConnectionInvitationsRow, error)
 	ListConnections(ctx context.Context, arg ListConnectionsParams) ([]ListConnectionsRow, error)
@@ -54,6 +57,8 @@ type Querier interface {
 	ListExperiences(ctx context.Context, userID string) ([]ListExperiencesRow, error)
 	ListFirms(ctx context.Context, arg ListFirmsParams) ([]Firm, error)
 	ListMessages(ctx context.Context, arg ListMessagesParams) ([]ListMessagesRow, error)
+	ListNewsFeed(ctx context.Context, userID string) ([]ListNewsFeedRow, error)
+	ListNewsFeed2(ctx context.Context, userID string) ([]ListNewsFeed2Row, error)
 	ListRecommendations(ctx context.Context, arg ListRecommendationsParams) ([]ListRecommendationsRow, error)
 	ListRecommendations2(ctx context.Context, arg ListRecommendations2Params) ([]ListRecommendations2Row, error)
 	//
@@ -66,6 +71,7 @@ type Querier interface {
 	ListSocials(ctx context.Context, arg ListSocialsParams) ([]Social, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
 	MarkWizardCompleted(ctx context.Context, arg MarkWizardCompletedParams) (User, error)
+	PostToNewsFeed(ctx context.Context, arg PostToNewsFeedParams) error
 	RejectConnection(ctx context.Context, id int32) error
 	//
 	RejectProject(ctx context.Context, arg RejectProjectParams) (Project, error)

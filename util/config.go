@@ -22,6 +22,12 @@ type Config struct {
 	AWSBucketPrefix        string `mapstructure:"AWS_BUCKET_PREFIX"`
 	LinkedinClientID       string `mapstructure:"LINKEDIN_CLIENT_ID"`
 	LinkedinClientSecret   string `mapstructure:"LINKEDIN_CLIENT_SECRET"`
+	BootStrapServers       string `mapstructure:"BOOTSTRAP_SERVERS"`
+	SecurityProtocol       string `mapstructure:"SECURITY_PROTOCOL"`
+	SASLMechanism          string `mapstructure:"SASL_MECHANISM"`
+	SASLUsername           string `mapstructure:"SASL_USERNAME"`
+	SASLPassword           string `mapstructure:"SASL_PASSWORD"`
+	Topic                  string `mapstructure:"TOPIC"`
 }
 
 // LoadConfig reads configuration from file or environment variables
