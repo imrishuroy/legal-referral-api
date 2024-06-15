@@ -174,6 +174,15 @@ type ChatRoom struct {
 	CreatedAt     time.Time          `json:"created_at"`
 }
 
+type Comment struct {
+	CommentID       int32     `json:"comment_id"`
+	UserID          string    `json:"user_id"`
+	PostID          int32     `json:"post_id"`
+	Content         string    `json:"content"`
+	CreatedAt       time.Time `json:"created_at"`
+	ParentCommentID *int32    `json:"parent_comment_id"`
+}
+
 type Connection struct {
 	ID          int32     `json:"id"`
 	SenderID    string    `json:"sender_id"`
@@ -235,6 +244,15 @@ type License struct {
 	IssueDate     pgtype.Date `json:"issue_date"`
 	IssueState    string      `json:"issue_state"`
 	LicensePdf    *string     `json:"license_pdf"`
+}
+
+type Like struct {
+	LikeID    int32     `json:"like_id"`
+	UserID    string    `json:"user_id"`
+	PostID    *int32    `json:"post_id"`
+	CommentID *int32    `json:"comment_id"`
+	Type      string    `json:"type"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 type Message struct {
