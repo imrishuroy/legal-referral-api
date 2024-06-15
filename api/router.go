@@ -109,6 +109,19 @@ func (server *Server) setupRouter() {
 
 	// news feed
 	auth.GET("/feeds/:user_id", server.listNewsFeed)
+
+	// like post
+	auth.POST("/posts/:post_id/like", server.likePost)
+	auth.DELETE("/posts/:post_id/like", server.unlikePost)
+
+	auth.GET("/posts/:post_id/liked-users", server.listPostLikedUsers)
+
+	// comments
+	auth.POST("/posts/:post_id/comments", server.commentPost)
+	auth.GET("/posts/:post_id/comments", server.listComments)
+	auth.POST("/comments/:comment_id/like", server.likeComment)
+	auth.DELETE("/comments/:comment_id/like", server.unlikeComment)
+
 }
 
 func CORSMiddleware() gin.HandlerFunc {

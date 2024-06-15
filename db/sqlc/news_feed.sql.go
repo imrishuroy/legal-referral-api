@@ -12,38 +12,62 @@ import (
 
 const listNewsFeed = `-- name: ListNewsFeed :many
 SELECT
-    u.user_id,
-    u.first_name,
-    u.last_name,
-    u.avatar_url,
-    p.post_id,
-    p.title,
-    p.content,
-    p.media,
-    p.post_type,
-    p.created_at
-FROM news_feed nf
-    JOIN users u ON nf.user_id = u.user_id
-    JOIN posts p ON nf.post_id = p.post_id
+    nf.feed_id,
+    users.user_id, users.email, users.first_name, users.last_name, users.about, users.mobile, users.address, users.avatar_url, users.banner_url, users.email_verified, users.mobile_verified, users.wizard_step, users.wizard_completed, users.signup_method, users.practice_area, users.practice_location, users.experience, users.average_billing_per_client, users.case_resolution_rate, users.open_to_referral, users.join_date,
+    posts.post_id, posts.owner_id, posts.title, posts.content, posts.media, posts.post_type, posts.poll_id, posts.created_at,
+    nf.created_at,
+    COALESCE(likes_counts.likes_count, 0) AS likes_count,
+    COALESCE(comments_counts.comments_count, 0) AS comments_count,
+    CASE WHEN user_likes.like_id IS NOT NULL THEN true ELSE false END AS is_liked
+FROM users
+         JOIN news_feed nf ON nf.user_id = users.user_id
+         JOIN posts ON nf.post_id = posts.post_id
+         LEFT JOIN (
+    SELECT
+        post_id,
+        COUNT(*) AS likes_count
+    FROM likes
+    WHERE type = 'post'
+    GROUP BY post_id
+) likes_counts ON nf.post_id = likes_counts.post_id
+         LEFT JOIN (
+    SELECT
+        post_id,
+        COUNT(*) AS comments_count
+    FROM comments
+    GROUP BY post_id
+) comments_counts ON nf.post_id = comments_counts.post_id
+LEFT JOIN (
+    SELECT
+        like_id,
+        post_id
+    FROM likes
+    WHERE likes.user_id = $1 AND type = 'post'
+) user_likes ON nf.post_id = user_likes.post_id
 WHERE nf.user_id = $1
 ORDER BY nf.created_at DESC
+LIMIT $2
+OFFSET $3
 `
 
-type ListNewsFeedRow struct {
-	UserID    string    `json:"user_id"`
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	AvatarUrl *string   `json:"avatar_url"`
-	PostID    int32     `json:"post_id"`
-	Title     string    `json:"title"`
-	Content   string    `json:"content"`
-	Media     []string  `json:"media"`
-	PostType  PostType  `json:"post_type"`
-	CreatedAt time.Time `json:"created_at"`
+type ListNewsFeedParams struct {
+	UserID string `json:"user_id"`
+	Limit  int32  `json:"limit"`
+	Offset int32  `json:"offset"`
 }
 
-func (q *Queries) ListNewsFeed(ctx context.Context, userID string) ([]ListNewsFeedRow, error) {
-	rows, err := q.db.Query(ctx, listNewsFeed, userID)
+type ListNewsFeedRow struct {
+	FeedID        int32     `json:"feed_id"`
+	User          User      `json:"user"`
+	Post          Post      `json:"post"`
+	CreatedAt     time.Time `json:"created_at"`
+	LikesCount    int64     `json:"likes_count"`
+	CommentsCount int64     `json:"comments_count"`
+	IsLiked       bool      `json:"is_liked"`
+}
+
+func (q *Queries) ListNewsFeed(ctx context.Context, arg ListNewsFeedParams) ([]ListNewsFeedRow, error) {
+	rows, err := q.db.Query(ctx, listNewsFeed, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -51,53 +75,6 @@ func (q *Queries) ListNewsFeed(ctx context.Context, userID string) ([]ListNewsFe
 	items := []ListNewsFeedRow{}
 	for rows.Next() {
 		var i ListNewsFeedRow
-		if err := rows.Scan(
-			&i.UserID,
-			&i.FirstName,
-			&i.LastName,
-			&i.AvatarUrl,
-			&i.PostID,
-			&i.Title,
-			&i.Content,
-			&i.Media,
-			&i.PostType,
-			&i.CreatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listNewsFeed2 = `-- name: ListNewsFeed2 :many
-SELECT nf.feed_id, users.user_id, users.email, users.first_name, users.last_name, users.about, users.mobile, users.address, users.avatar_url, users.banner_url, users.email_verified, users.mobile_verified, users.wizard_step, users.wizard_completed, users.signup_method, users.practice_area, users.practice_location, users.experience, users.average_billing_per_client, users.case_resolution_rate, users.open_to_referral, users.join_date, posts.post_id, posts.owner_id, posts.title, posts.content, posts.media, posts.post_type, posts.poll_id, posts.created_at, nf.created_at
-FROM users
-         JOIN news_feed nf ON nf.user_id = users.user_id
-         JOIN posts ON nf.post_id = posts.post_id
-WHERE nf.user_id = $1
-ORDER BY nf.created_at DESC
-`
-
-type ListNewsFeed2Row struct {
-	FeedID    int32     `json:"feed_id"`
-	User      User      `json:"user"`
-	Post      Post      `json:"post"`
-	CreatedAt time.Time `json:"created_at"`
-}
-
-func (q *Queries) ListNewsFeed2(ctx context.Context, userID string) ([]ListNewsFeed2Row, error) {
-	rows, err := q.db.Query(ctx, listNewsFeed2, userID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListNewsFeed2Row{}
-	for rows.Next() {
-		var i ListNewsFeed2Row
 		if err := rows.Scan(
 			&i.FeedID,
 			&i.User.UserID,
@@ -130,6 +107,9 @@ func (q *Queries) ListNewsFeed2(ctx context.Context, userID string) ([]ListNewsF
 			&i.Post.PollID,
 			&i.Post.CreatedAt,
 			&i.CreatedAt,
+			&i.LikesCount,
+			&i.CommentsCount,
+			&i.IsLiked,
 		); err != nil {
 			return nil, err
 		}
