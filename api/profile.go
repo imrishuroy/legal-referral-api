@@ -45,7 +45,7 @@ func (server *Server) updateUserAvatar(ctx *gin.Context) {
 	}
 
 	fileName := generateUniqueFilename() + getFileExtension(files[0])
-	url, err := server.uploadfile(file, fileName, files[0].Header.Get("Content-Type"), "user-images")
+	url, err := server.uploadFile(file, fileName, files[0].Header.Get("Content-Type"), "user-images")
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error uploading file"})
 		return
@@ -169,7 +169,7 @@ func (server *Server) updateUserBannerImage(ctx *gin.Context) {
 
 	fileName := generateUniqueFilename() + getFileExtension(files[0])
 
-	url, err := server.uploadfile(file, fileName, files[0].Header.Get("Content-Type"), "banners")
+	url, err := server.uploadFile(file, fileName, files[0].Header.Get("Content-Type"), "banners")
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error uploading file"})
 		return

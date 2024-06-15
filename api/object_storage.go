@@ -13,7 +13,7 @@ import (
 	"time"
 )
 
-func (server *Server) uploadfile(file multipart.File, fileName string, contentType string, folderName string) (string, error) {
+func (server *Server) uploadFile(file multipart.File, fileName string, contentType string, folderName string) (string, error) {
 	// Create a session with S3
 	svc := s3.New(server.awsSession)
 
@@ -84,4 +84,12 @@ func generateUniqueFilename() string {
 	// Combine timestamp and random component to form the filename
 	filename := fmt.Sprintf("%s_%s", timestamp, randomComponent)
 	return filename
+}
+
+func openFile(fileHeader *multipart.FileHeader) (multipart.File, error) {
+	file, err := fileHeader.Open()
+	if err != nil {
+		return nil, err
+	}
+	return file, nil
 }
