@@ -12,6 +12,51 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type InvitationStatus string
+
+const (
+	InvitationStatusPending   InvitationStatus = "pending"
+	InvitationStatusAccepted  InvitationStatus = "accepted"
+	InvitationStatusRejected  InvitationStatus = "rejected"
+	InvitationStatusCancelled InvitationStatus = "cancelled"
+	InvitationStatusNone      InvitationStatus = "none"
+)
+
+func (e *InvitationStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = InvitationStatus(s)
+	case string:
+		*e = InvitationStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for InvitationStatus: %T", src)
+	}
+	return nil
+}
+
+type NullInvitationStatus struct {
+	InvitationStatus InvitationStatus `json:"invitation_status"`
+	Valid            bool             `json:"valid"` // Valid is true if InvitationStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullInvitationStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.InvitationStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.InvitationStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullInvitationStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.InvitationStatus), nil
+}
+
 type PostType string
 
 const (
@@ -191,11 +236,11 @@ type Connection struct {
 }
 
 type ConnectionInvitation struct {
-	ID          int32     `json:"id"`
-	SenderID    string    `json:"sender_id"`
-	RecipientID string    `json:"recipient_id"`
-	Status      int32     `json:"status"`
-	CreatedAt   time.Time `json:"created_at"`
+	ID          int32            `json:"id"`
+	SenderID    string           `json:"sender_id"`
+	RecipientID string           `json:"recipient_id"`
+	Status      InvitationStatus `json:"status"`
+	CreatedAt   time.Time        `json:"created_at"`
 }
 
 type Education struct {
@@ -295,8 +340,7 @@ type PollResult struct {
 type Post struct {
 	PostID    int32     `json:"post_id"`
 	OwnerID   string    `json:"owner_id"`
-	Title     string    `json:"title"`
-	Content   string    `json:"content"`
+	Content   *string   `json:"content"`
 	Media     []string  `json:"media"`
 	PostType  PostType  `json:"post_type"`
 	PollID    *int32    `json:"poll_id"`

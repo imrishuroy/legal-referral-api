@@ -97,8 +97,7 @@ func (server *Server) createPost(ctx *gin.Context) {
 
 	arg := db.CreatePostParams{
 		OwnerID:  req.OwnerID,
-		Title:    req.Title,
-		Content:  req.Content,
+		Content:  &req.Content,
 		Media:    imageUrls,
 		PostType: db.PostType(req.PostType),
 		PollID:   pollID,

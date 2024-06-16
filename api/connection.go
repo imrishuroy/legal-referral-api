@@ -2,6 +2,7 @@ package api
 
 import (
 	"firebase.google.com/go/v4/auth"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
 	"net/http"
@@ -202,4 +203,44 @@ func (server *Server) listConnections(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, connections)
+}
+
+func (server *Server) checkConnection(ctx *gin.Context) {
+	userID := ctx.Param("user_id")
+	otherUserId := ctx.Param("other_user_id")
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID != userID {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	arg := db.CheckConnectionStatusParams{
+		UserID:      userID,
+		OtherUserID: otherUserId,
+	}
+
+	conn, err := server.store.CheckConnectionStatus(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	status, _ := ConvertInterfaceToString(conn)
+
+	ctx.JSON(http.StatusOK, gin.H{"status": status})
+}
+
+// ConvertInterfaceToString attempts to convert an interface{} to a string
+func ConvertInterfaceToString(value interface{}) (string, error) {
+	switch v := value.(type) {
+	case string:
+		return v, nil
+	case fmt.Stringer:
+		return v.String(), nil
+	case []byte:
+		return string(v), nil
+	default:
+		return "", fmt.Errorf("unable to convert type %T to string", v)
+	}
 }

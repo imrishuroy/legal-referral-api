@@ -48,23 +48,35 @@ func (q *Queries) AcceptProject(ctx context.Context, arg AcceptProjectParams) (P
 }
 
 const addReferredUserToProject = `-- name: AddReferredUserToProject :one
-INSERT INTO referral_users (
-    project_id,
-    referred_user_id
-) VALUES (
-    $1, $2
-) RETURNING referral_user_id, project_id, referred_user_id
+UPDATE projects
+SET
+    referred_user_id = $2
+WHERE
+    project_id = $1
+RETURNING project_id, title, preferred_practice_area, preferred_practice_location, case_description, referrer_user_id, referred_user_id, status, created_at, started_at, completed_at
 `
 
 type AddReferredUserToProjectParams struct {
-	ProjectID      int32  `json:"project_id"`
-	ReferredUserID string `json:"referred_user_id"`
+	ProjectID      int32   `json:"project_id"`
+	ReferredUserID *string `json:"referred_user_id"`
 }
 
-func (q *Queries) AddReferredUserToProject(ctx context.Context, arg AddReferredUserToProjectParams) (ReferralUser, error) {
+func (q *Queries) AddReferredUserToProject(ctx context.Context, arg AddReferredUserToProjectParams) (Project, error) {
 	row := q.db.QueryRow(ctx, addReferredUserToProject, arg.ProjectID, arg.ReferredUserID)
-	var i ReferralUser
-	err := row.Scan(&i.ReferralUserID, &i.ProjectID, &i.ReferredUserID)
+	var i Project
+	err := row.Scan(
+		&i.ProjectID,
+		&i.Title,
+		&i.PreferredPracticeArea,
+		&i.PreferredPracticeLocation,
+		&i.CaseDescription,
+		&i.ReferrerUserID,
+		&i.ReferredUserID,
+		&i.Status,
+		&i.CreatedAt,
+		&i.StartedAt,
+		&i.CompletedAt,
+	)
 	return i, err
 }
 

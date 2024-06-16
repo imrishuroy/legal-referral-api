@@ -4,8 +4,7 @@ CREATE TYPE post_type AS ENUM ('text', 'image', 'video', 'audio', 'link', 'docum
 CREATE TABLE posts (
     post_id SERIAL PRIMARY KEY,
     owner_id VARCHAR NOT NULL,
-    title TEXT NOT NULL,
-    content TEXT NOT NULL,
+    content TEXT,
     media TEXT[] NOT NULL DEFAULT '{}',
     post_type post_type NOT NULL DEFAULT 'text',
     poll_id INT,
