@@ -1,20 +1,21 @@
 -- name: SendConnection :one
 INSERT INTO connection_invitations (
     sender_id,
-    recipient_id
-) VALUES ($1, $2)
+    recipient_id,
+    status
+) VALUES ($1, $2, 'pending')
 RETURNING (id);
 
 -- name: AcceptConnection :one
 UPDATE connection_invitations
-SET status = 1
-WHERE id = $1 AND status = 0
+SET status = 'accepted'
+WHERE id = $1 AND status = 'pending'
 RETURNING *;
 
 -- name: RejectConnection :exec
 UPDATE connection_invitations
-SET status = 3
-WHERE id = $1 AND status = 0
+SET status = 'rejected'
+WHERE id = $1 AND status = 'pending'
 RETURNING *;
 
 -- name: AddConnection :exec
@@ -29,7 +30,7 @@ SELECT ci.*,
        u.avatar_url
 FROM connection_invitations ci
 JOIN users u ON ci.sender_id = u.user_id
-WHERE ci.recipient_id = $1 AND ci.status = 0
+WHERE ci.recipient_id = $1 AND ci.status = 'pending'
 ORDER BY ci.created_at DESC
 OFFSET $2
 LIMIT $3;
@@ -70,5 +71,33 @@ SELECT
 FROM connections
 WHERE sender_id = @user_id::text OR recipient_id = @user_id::text;
 
+-- name: CheckConnection :one
+SELECT CASE
+    WHEN EXISTS (
+        SELECT 1
+        FROM connections
+        WHERE (sender_id = @user_id::text AND recipient_id = @other_user_id::text)
+            OR (sender_id = @other_user_id::text AND recipient_id = @user_id::text)
+        )
+        THEN true
+        ELSE false
+        END AS connection_exists;
 
 
+-- name: CheckConnectionStatus :one
+SELECT
+    CASE
+        WHEN EXISTS (
+            SELECT 1
+            FROM connections
+            WHERE (sender_id = @user_id::text AND recipient_id = @other_user_id::text)
+               OR (sender_id = @other_user_id::text AND recipient_id = @user_id::text)
+        ) THEN 'accepted'
+        ELSE COALESCE(
+                (SELECT status::text
+                 FROM connection_invitations
+                 WHERE (sender_id = @user_id::text AND recipient_id = @other_user_id)
+                    OR (sender_id = @other_user_id::text AND recipient_id = @user_id::text)
+                 LIMIT 1
+                ), 'none'::text)
+        END AS connection_status;

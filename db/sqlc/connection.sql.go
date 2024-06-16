@@ -12,8 +12,8 @@ import (
 
 const acceptConnection = `-- name: AcceptConnection :one
 UPDATE connection_invitations
-SET status = 1
-WHERE id = $1 AND status = 0
+SET status = 'accepted'
+WHERE id = $1 AND status = 'pending'
 RETURNING id, sender_id, recipient_id, status, created_at
 `
 
@@ -43,6 +43,62 @@ type AddConnectionParams struct {
 func (q *Queries) AddConnection(ctx context.Context, arg AddConnectionParams) error {
 	_, err := q.db.Exec(ctx, addConnection, arg.SenderID, arg.RecipientID)
 	return err
+}
+
+const checkConnection = `-- name: CheckConnection :one
+SELECT CASE
+    WHEN EXISTS (
+        SELECT 1
+        FROM connections
+        WHERE (sender_id = $1::text AND recipient_id = $2::text)
+            OR (sender_id = $2::text AND recipient_id = $1::text)
+        )
+        THEN true
+        ELSE false
+        END AS connection_exists
+`
+
+type CheckConnectionParams struct {
+	UserID      string `json:"user_id"`
+	OtherUserID string `json:"other_user_id"`
+}
+
+func (q *Queries) CheckConnection(ctx context.Context, arg CheckConnectionParams) (bool, error) {
+	row := q.db.QueryRow(ctx, checkConnection, arg.UserID, arg.OtherUserID)
+	var connection_exists bool
+	err := row.Scan(&connection_exists)
+	return connection_exists, err
+}
+
+const checkConnectionStatus = `-- name: CheckConnectionStatus :one
+SELECT
+    CASE
+        WHEN EXISTS (
+            SELECT 1
+            FROM connections
+            WHERE (sender_id = $1::text AND recipient_id = $2::text)
+               OR (sender_id = $2::text AND recipient_id = $1::text)
+        ) THEN 'accepted'
+        ELSE COALESCE(
+                (SELECT status::text
+                 FROM connection_invitations
+                 WHERE (sender_id = $1::text AND recipient_id = $2)
+                    OR (sender_id = $2::text AND recipient_id = $1::text)
+                 LIMIT 1
+                ), 'none'::text)
+        END AS connection_status
+`
+
+type CheckConnectionStatusParams struct {
+	UserID      string `json:"user_id"`
+	OtherUserID string `json:"other_user_id"`
+}
+
+func (q *Queries) CheckConnectionStatus(ctx context.Context, arg CheckConnectionStatusParams) (interface{}, error) {
+	row := q.db.QueryRow(ctx, checkConnectionStatus, arg.UserID, arg.OtherUserID)
+	var connection_status interface{}
+	err := row.Scan(&connection_status)
+	return connection_status, err
 }
 
 const listConnectedUserIDs = `-- name: ListConnectedUserIDs :many
@@ -83,7 +139,7 @@ SELECT ci.id, ci.sender_id, ci.recipient_id, ci.status, ci.created_at,
        u.avatar_url
 FROM connection_invitations ci
 JOIN users u ON ci.sender_id = u.user_id
-WHERE ci.recipient_id = $1 AND ci.status = 0
+WHERE ci.recipient_id = $1 AND ci.status = 'pending'
 ORDER BY ci.created_at DESC
 OFFSET $2
 LIMIT $3
@@ -96,15 +152,15 @@ type ListConnectionInvitationsParams struct {
 }
 
 type ListConnectionInvitationsRow struct {
-	ID          int32     `json:"id"`
-	SenderID    string    `json:"sender_id"`
-	RecipientID string    `json:"recipient_id"`
-	Status      int32     `json:"status"`
-	CreatedAt   time.Time `json:"created_at"`
-	FirstName   string    `json:"first_name"`
-	LastName    string    `json:"last_name"`
-	About       *string   `json:"about"`
-	AvatarUrl   *string   `json:"avatar_url"`
+	ID          int32            `json:"id"`
+	SenderID    string           `json:"sender_id"`
+	RecipientID string           `json:"recipient_id"`
+	Status      InvitationStatus `json:"status"`
+	CreatedAt   time.Time        `json:"created_at"`
+	FirstName   string           `json:"first_name"`
+	LastName    string           `json:"last_name"`
+	About       *string          `json:"about"`
+	AvatarUrl   *string          `json:"avatar_url"`
 }
 
 func (q *Queries) ListConnectionInvitations(ctx context.Context, arg ListConnectionInvitationsParams) ([]ListConnectionInvitationsRow, error) {
@@ -213,8 +269,8 @@ func (q *Queries) ListConnections(ctx context.Context, arg ListConnectionsParams
 
 const rejectConnection = `-- name: RejectConnection :exec
 UPDATE connection_invitations
-SET status = 3
-WHERE id = $1 AND status = 0
+SET status = 'rejected'
+WHERE id = $1 AND status = 'pending'
 RETURNING id, sender_id, recipient_id, status, created_at
 `
 
@@ -226,8 +282,9 @@ func (q *Queries) RejectConnection(ctx context.Context, id int32) error {
 const sendConnection = `-- name: SendConnection :one
 INSERT INTO connection_invitations (
     sender_id,
-    recipient_id
-) VALUES ($1, $2)
+    recipient_id,
+    status
+) VALUES ($1, $2, 'pending')
 RETURNING (id)
 `
 

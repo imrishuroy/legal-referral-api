@@ -11,12 +11,12 @@ INSERT INTO projects (
 ) RETURNING *;
 
 -- name: AddReferredUserToProject :one
-INSERT INTO referral_users (
-    project_id,
-    referred_user_id
-) VALUES (
-    $1, $2
-) RETURNING *;
+UPDATE projects
+SET
+    referred_user_id = $2
+WHERE
+    project_id = $1
+RETURNING *;
 
 -- name: ListActiveReferrals :many
 SELECT * FROM projects
