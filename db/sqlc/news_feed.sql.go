@@ -14,7 +14,7 @@ const listNewsFeed = `-- name: ListNewsFeed :many
 SELECT
     nf.feed_id,
     users.user_id, users.email, users.first_name, users.last_name, users.about, users.mobile, users.address, users.avatar_url, users.banner_url, users.email_verified, users.mobile_verified, users.wizard_step, users.wizard_completed, users.signup_method, users.practice_area, users.practice_location, users.experience, users.average_billing_per_client, users.case_resolution_rate, users.open_to_referral, users.join_date,
-    posts.post_id, posts.owner_id, posts.title, posts.content, posts.media, posts.post_type, posts.poll_id, posts.created_at,
+    posts.post_id, posts.owner_id, posts.content, posts.media, posts.post_type, posts.poll_id, posts.created_at,
     nf.created_at,
     COALESCE(likes_counts.likes_count, 0) AS likes_count,
     COALESCE(comments_counts.comments_count, 0) AS comments_count,
@@ -100,7 +100,6 @@ func (q *Queries) ListNewsFeed(ctx context.Context, arg ListNewsFeedParams) ([]L
 			&i.User.JoinDate,
 			&i.Post.PostID,
 			&i.Post.OwnerID,
-			&i.Post.Title,
 			&i.Post.Content,
 			&i.Post.Media,
 			&i.Post.PostType,

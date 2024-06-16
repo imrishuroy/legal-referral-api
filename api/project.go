@@ -4,6 +4,7 @@ import (
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"strconv"
 	"time"
@@ -24,6 +25,9 @@ func (server *Server) createReferral(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
 	}
+
+	log.Info().Msgf("Referred: %s", req.ReferredUserIDs)
+
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID != req.ReferrerUserID {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
@@ -45,11 +49,14 @@ func (server *Server) createReferral(ctx *gin.Context) {
 		return
 	}
 
+	log.Info().Msgf("Project: %v", project.ProjectID)
+
 	// add referral to referral table
 	for _, referredUserID := range req.ReferredUserIDs {
+		log.Info().Msgf("Referred -----: %s", referredUserID)
 		arg := db.AddReferredUserToProjectParams{
 			ProjectID:      project.ProjectID,
-			ReferredUserID: referredUserID,
+			ReferredUserID: &referredUserID,
 		}
 		_, err := server.store.AddReferredUserToProject(ctx, arg)
 		if err != nil {

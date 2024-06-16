@@ -69,6 +69,8 @@ func (server *Server) setupRouter() {
 	auth.GET("/recommendations/:user_id", server.listRecommendations)
 	auth.POST("/recommendations/cancel", server.cancelRecommendation)
 	auth.GET("/search/users", server.searchUsers)
+	// check if user is connected to another user
+	auth.GET("/connections/:user_id/:other_user_id", server.checkConnection)
 
 	// chat
 	auth.GET("/chat/:room_id", func(ctx *gin.Context) {

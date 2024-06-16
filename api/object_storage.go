@@ -15,6 +15,8 @@ import (
 
 func (server *Server) uploadFile(file multipart.File, fileName string, contentType string, folderName string) (string, error) {
 	// Create a session with S3
+
+	// TODO: lets initialize the session in the main.go file and pass svc as a parameter to the uploadFile function
 	svc := s3.New(server.awsSession)
 
 	bucketName := server.config.AWSBucketPrefix + "-" + folderName
