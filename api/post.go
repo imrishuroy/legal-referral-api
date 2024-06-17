@@ -35,7 +35,6 @@ type createPollReq struct {
 
 type createPostReq struct {
 	OwnerID   string                  `form:"owner_id" binding:"required"`
-	Title     string                  `form:"title" binding:"required"`
 	Content   string                  `form:"content" binding:"required"`
 	Files     []*multipart.FileHeader `form:"files"`
 	PostType  PostType                `form:"post_type" binding:"required"`
