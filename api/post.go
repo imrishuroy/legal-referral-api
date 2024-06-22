@@ -35,7 +35,7 @@ type createPollReq struct {
 
 type createPostReq struct {
 	OwnerID   string                  `form:"owner_id" binding:"required"`
-	Content   string                  `form:"content" binding:"required"`
+	Content   string                  `form:"content"`
 	Files     []*multipart.FileHeader `form:"files"`
 	PostType  PostType                `form:"post_type" binding:"required"`
 	PollTitle string                  `form:"poll_title"`
@@ -66,14 +66,15 @@ func (server *Server) createPost(ctx *gin.Context) {
 
 	imageUrls := make([]string, 0)
 
-	if req.PostType == PostTypeImage {
-		urls, err := server.handleFileUpload(ctx, req.Files)
+	if req.PostType == PostTypeImage || req.PostType == PostTypeVideo || req.PostType == PostTypeDocument {
+		urls, err := server.handleFileUpload(ctx, req.Files, s3BucketName(req.PostType))
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
 		}
 		log.Info().Msgf("URLs: %+v", urls)
 		imageUrls = append(imageUrls, urls...)
+
 	}
 
 	var pollID *int32
@@ -108,7 +109,7 @@ func (server *Server) createPost(ctx *gin.Context) {
 		return
 	}
 
-	// this should aslo throw an error
+	// this should also throw an error
 	server.createProducer(req.OwnerID, string(post.PostID))
 	//server.publishToKafka(req.OwnerID, string(post.PostID))
 
@@ -120,14 +121,14 @@ func (server *Server) createPost(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, "Post created successfully")
 }
 
-func (server *Server) handleFileUpload(ctx *gin.Context, files []*multipart.FileHeader) ([]string, error) {
+func (server *Server) handleFileUpload(ctx *gin.Context, files []*multipart.FileHeader, bucket string) ([]string, error) {
 	if len(files) == 0 {
 		return nil, errors.New("no file uploaded")
 	}
 
 	urls := make([]string, 0, len(files))
 	for _, file := range files {
-		url, err := server.uploadFileHandler(file)
+		url, err := server.uploadFileHandler(file, bucket)
 		if err != nil {
 			return nil, err
 		}
@@ -136,7 +137,7 @@ func (server *Server) handleFileUpload(ctx *gin.Context, files []*multipart.File
 	return urls, nil
 }
 
-func (server *Server) uploadFileHandler(file *multipart.FileHeader) (string, error) {
+func (server *Server) uploadFileHandler(file *multipart.FileHeader, bucket string) (string, error) {
 	fileName := generateUniqueFilename() + getFileExtension(file)
 	multiPartFile, err := file.Open()
 	if err != nil {
@@ -144,7 +145,7 @@ func (server *Server) uploadFileHandler(file *multipart.FileHeader) (string, err
 	}
 	defer multiPartFile.Close()
 
-	return server.uploadFile(multiPartFile, fileName, file.Header.Get("Content-Type"), "post-images")
+	return server.uploadFile(multiPartFile, fileName, file.Header.Get("Content-Type"), bucket)
 }
 
 func (server *Server) createPoll(ctx *gin.Context, req *createPollReq) (*db.Poll, error) {
@@ -185,4 +186,19 @@ func (server *Server) postToNewsFeed(ctx *gin.Context, userID string, postID int
 		//}
 	}
 	return nil
+}
+
+func s3BucketName(postType PostType) string {
+	switch postType {
+	case PostTypeImage:
+		return "post-images"
+	case PostTypeVideo:
+		return "post-videos"
+	case PostTypeAudio:
+		return "post-audios"
+	case PostTypeDocument:
+		return "post-documents"
+	default:
+		return "post-others"
+	}
 }
