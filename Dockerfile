@@ -1,4 +1,4 @@
-FROM golang:1.22
+FROM golang:1.22.4-alpine3.20
 
 WORKDIR /app
 
@@ -12,7 +12,7 @@ COPY . .
 RUN go mod download
 
 # Builds your app with optional configuration
-RUN go build -o /main
+RUN go build -tags musl -o /main
 
 # Tells Docker which network port your container listens on
 EXPOSE 8080
