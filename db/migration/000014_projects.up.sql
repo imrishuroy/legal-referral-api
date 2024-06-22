@@ -15,8 +15,7 @@ CREATE TABLE projects (
     completed_at TIMESTAMPTZ,
     FOREIGN KEY (referrer_user_id) REFERENCES users(user_id),
     CHECK (completed_at IS NULL OR started_at IS NOT NULL),
-    CHECK (completed_at IS NULL OR completed_at > started_at),
-    CONSTRAINT referrer_user_id_referral_id_unique UNIQUE (referrer_user_id, referral_id)
+    CHECK (completed_at IS NULL OR completed_at > started_at)
 );
 
 -- Optionally, add indexes if you expect frequent queries on these columns:
