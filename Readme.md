@@ -10,7 +10,7 @@ https://github.com/sqlc-dev/sqlc/issues/1062
 
 ## Docker Image
 
-    docker build -t legal-referral-api .
+    docker build -t legal-referral-service:latest .
 
     docker run -p 8080:8080 legal-referral-api
 
@@ -21,4 +21,9 @@ AWS
     sudo yum install -y docker
     sudo service docker start
     sudo usermod -a -G docker ec2-user
+    sudo df -h ( check disk space )
+
+
+https://www.youtube.com/watch?v=C_QzIpPsexs&t=372s
+
 
