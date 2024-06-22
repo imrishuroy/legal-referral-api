@@ -6,6 +6,10 @@ import (
 )
 
 func (server *Server) setupRouter() {
+	// Set Gin to release mode
+	//gin.SetMode(gin.ReleaseMode)
+	gin.SetMode(gin.ReleaseMode)
+
 	server.router = gin.Default()
 	server.router.GET("/", server.ping).Use(CORSMiddleware())
 

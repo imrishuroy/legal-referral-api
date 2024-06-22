@@ -8,3 +8,8 @@ create a new db migration
 
 https://github.com/sqlc-dev/sqlc/issues/1062
 
+## Docker Image
+
+    docker build -t legal-referral-api .
+
+    docker run -p 8080:8080 legal-referral-api
