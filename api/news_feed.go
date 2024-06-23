@@ -28,13 +28,13 @@ func (server *Server) listNewsFeed(ctx *gin.Context) {
 		return
 	}
 
-	arg := db.ListNewsFeedParams{
+	arg := db.ListNewsFeed2Params{
 		UserID: userID,
 		Limit:  req.Limit,
 		Offset: (req.Offset - 1) * req.Limit,
 	}
 
-	feed, err := server.store.ListNewsFeed(ctx, arg)
+	feed, err := server.store.ListNewsFeed2(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

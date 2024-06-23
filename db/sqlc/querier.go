@@ -66,6 +66,7 @@ type Querier interface {
 	ListFirms(ctx context.Context, arg ListFirmsParams) ([]Firm, error)
 	ListMessages(ctx context.Context, arg ListMessagesParams) ([]ListMessagesRow, error)
 	ListNewsFeed(ctx context.Context, arg ListNewsFeedParams) ([]ListNewsFeedRow, error)
+	ListNewsFeed2(ctx context.Context, arg ListNewsFeed2Params) ([]ListNewsFeed2Row, error)
 	ListPostLikedUsers(ctx context.Context, postID *int32) ([]ListPostLikedUsersRow, error)
 	ListPostLikedUsers2(ctx context.Context, arg ListPostLikedUsers2Params) ([]ListPostLikedUsers2Row, error)
 	ListPostLikes(ctx context.Context, postID *int32) ([]string, error)
