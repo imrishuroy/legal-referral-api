@@ -28,6 +28,7 @@ type Querier interface {
 	CommentPost(ctx context.Context, arg CommentPostParams) (CommentPostRow, error)
 	CompleteProject(ctx context.Context, arg CompleteProjectParams) (Project, error)
 	CreateChatRoom(ctx context.Context, arg CreateChatRoomParams) (CreateChatRoomRow, error)
+	CreateDiscussion(ctx context.Context, arg CreateDiscussionParams) (Discussion, error)
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
 	CreatePoll(ctx context.Context, arg CreatePollParams) (Poll, error)
 	CreatePost(ctx context.Context, arg CreatePostParams) (Post, error)
@@ -49,8 +50,12 @@ type Querier interface {
 	GetUserById(ctx context.Context, userID string) (User, error)
 	GetUserWizardStep(ctx context.Context, userID string) (int32, error)
 	InitiateCompleteProject(ctx context.Context, arg InitiateCompleteProjectParams) (Project, error)
+	InviteUserToDiscussion(ctx context.Context, arg InviteUserToDiscussionParams) error
+	JoinDiscussion(ctx context.Context, arg JoinDiscussionParams) error
 	LikeComment(ctx context.Context, arg LikeCommentParams) error
 	LikePost(ctx context.Context, arg LikePostParams) error
+	ListActiveDiscussions(ctx context.Context, inviteeUserID string) ([]ListActiveDiscussionsRow, error)
+	ListActiveDiscussions2(ctx context.Context, authorID string) ([]ListActiveDiscussions2Row, error)
 	ListActiveProposals(ctx context.Context, userID string) ([]ListActiveProposalsRow, error)
 	ListActiveReferrals(ctx context.Context, userID string) ([]Project, error)
 	ListAwardedProjects(ctx context.Context, userID string) ([]ListAwardedProjectsRow, error)
@@ -61,11 +66,17 @@ type Querier interface {
 	ListConnectedUsers(ctx context.Context, arg ListConnectedUsersParams) ([]ListConnectedUsersRow, error)
 	ListConnectionInvitations(ctx context.Context, arg ListConnectionInvitationsParams) ([]ListConnectionInvitationsRow, error)
 	ListConnections(ctx context.Context, arg ListConnectionsParams) ([]ListConnectionsRow, error)
+	ListDiscussionInvites(ctx context.Context, invitedUserID string) ([]ListDiscussionInvitesRow, error)
+	ListDiscussionMessages(ctx context.Context, arg ListDiscussionMessagesParams) ([]ListDiscussionMessagesRow, error)
+	ListDiscussionMessages2(ctx context.Context, arg ListDiscussionMessages2Params) ([]ListDiscussionMessages2Row, error)
+	ListDiscussionMessages3(ctx context.Context, arg ListDiscussionMessages3Params) ([]ListDiscussionMessages3Row, error)
+	ListDiscussionParticipants(ctx context.Context, discussionID int32) ([]ListDiscussionParticipantsRow, error)
 	ListEducations(ctx context.Context, userID string) ([]Education, error)
 	ListExperiences(ctx context.Context, userID string) ([]ListExperiencesRow, error)
 	ListFirms(ctx context.Context, arg ListFirmsParams) ([]Firm, error)
 	ListMessages(ctx context.Context, arg ListMessagesParams) ([]ListMessagesRow, error)
 	ListNewsFeed(ctx context.Context, arg ListNewsFeedParams) ([]ListNewsFeedRow, error)
+	ListNewsFeed2(ctx context.Context, arg ListNewsFeed2Params) ([]ListNewsFeed2Row, error)
 	ListPostLikedUsers(ctx context.Context, postID *int32) ([]ListPostLikedUsersRow, error)
 	ListPostLikedUsers2(ctx context.Context, arg ListPostLikedUsers2Params) ([]ListPostLikedUsers2Row, error)
 	ListPostLikes(ctx context.Context, postID *int32) ([]string, error)
@@ -83,6 +94,7 @@ type Querier interface {
 	MarkWizardCompleted(ctx context.Context, arg MarkWizardCompletedParams) (User, error)
 	PostToNewsFeed(ctx context.Context, arg PostToNewsFeedParams) error
 	RejectConnection(ctx context.Context, id int32) error
+	RejectDiscussion(ctx context.Context, arg RejectDiscussionParams) error
 	//
 	RejectProject(ctx context.Context, arg RejectProjectParams) (Project, error)
 	SaveAboutYou(ctx context.Context, arg SaveAboutYouParams) (User, error)
@@ -93,6 +105,7 @@ type Querier interface {
 	Search2ndDegreeConnections(ctx context.Context, arg Search2ndDegreeConnectionsParams) ([]Search2ndDegreeConnectionsRow, error)
 	SearchAllUsers(ctx context.Context, query string) ([]SearchAllUsersRow, error)
 	SendConnection(ctx context.Context, arg SendConnectionParams) (int32, error)
+	SendMessageToDiscussion(ctx context.Context, arg SendMessageToDiscussionParams) (DiscussionMessage, error)
 	StartProject(ctx context.Context, arg StartProjectParams) (Project, error)
 	ToggleOpenToRefferal(ctx context.Context, arg ToggleOpenToRefferalParams) error
 	UnlikeComment(ctx context.Context, arg UnlikeCommentParams) error

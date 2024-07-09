@@ -128,6 +128,19 @@ func (server *Server) setupRouter() {
 	auth.POST("/comments/:comment_id/like", server.likeComment)
 	auth.DELETE("/comments/:comment_id/like", server.unlikeComment)
 
+	// discussion
+	auth.POST("/discussions", server.createDiscussion)
+	auth.POST("/discussions/:discussion_id/invite", server.inviteUserToDiscussion)
+	auth.POST("/discussions/:discussion_id/join", server.joinDiscussion)
+	auth.POST("/discussions/:discussion_id/reject", server.rejectDiscussion)
+	auth.GET("/discussions/invites/:user_id", server.listDiscussionInvites)
+	auth.GET("/discussions/active/:user_id", server.listActiveDiscussions)
+	auth.GET("/discussions/:discussion_id/participants", server.listDiscussionParticipants)
+
+	// discussion messages
+	auth.POST("/discussions/:discussion_id/messages", server.sendMessageToDiscussion)
+	auth.GET("/discussions/:discussion_id/messages", server.listDiscussionMessages)
+
 }
 
 func CORSMiddleware() gin.HandlerFunc {
