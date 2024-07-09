@@ -25,4 +25,4 @@ WHERE
 ORDER BY
     m1.sent_at DESC
 OFFSET $2
-    LIMIT $3;
+LIMIT $3;

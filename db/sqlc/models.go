@@ -12,6 +12,49 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type DiscussionInviteStatus string
+
+const (
+	DiscussionInviteStatusPending  DiscussionInviteStatus = "pending"
+	DiscussionInviteStatusAccepted DiscussionInviteStatus = "accepted"
+	DiscussionInviteStatusRejected DiscussionInviteStatus = "rejected"
+)
+
+func (e *DiscussionInviteStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = DiscussionInviteStatus(s)
+	case string:
+		*e = DiscussionInviteStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for DiscussionInviteStatus: %T", src)
+	}
+	return nil
+}
+
+type NullDiscussionInviteStatus struct {
+	DiscussionInviteStatus DiscussionInviteStatus `json:"discussion_invite_status"`
+	Valid                  bool                   `json:"valid"` // Valid is true if DiscussionInviteStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullDiscussionInviteStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.DiscussionInviteStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.DiscussionInviteStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullDiscussionInviteStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.DiscussionInviteStatus), nil
+}
+
 type InvitationStatus string
 
 const (
@@ -241,6 +284,31 @@ type ConnectionInvitation struct {
 	RecipientID string           `json:"recipient_id"`
 	Status      InvitationStatus `json:"status"`
 	CreatedAt   time.Time        `json:"created_at"`
+}
+
+type Discussion struct {
+	DiscussionID int32     `json:"discussion_id"`
+	AuthorID     string    `json:"author_id"`
+	Topic        string    `json:"topic"`
+	CreatedAt    time.Time `json:"created_at"`
+}
+
+type DiscussionInvite struct {
+	DiscussionInviteID int32                  `json:"discussion_invite_id"`
+	DiscussionID       int32                  `json:"discussion_id"`
+	InviteeUserID      string                 `json:"invitee_user_id"`
+	InvitedUserID      string                 `json:"invited_user_id"`
+	Status             DiscussionInviteStatus `json:"status"`
+	CreatedAt          time.Time              `json:"created_at"`
+}
+
+type DiscussionMessage struct {
+	MessageID       int32     `json:"message_id"`
+	ParentMessageID *int32    `json:"parent_message_id"`
+	DiscussionID    int32     `json:"discussion_id"`
+	SenderID        string    `json:"sender_id"`
+	Message         string    `json:"message"`
+	SentAt          time.Time `json:"sent_at"`
 }
 
 type Education struct {

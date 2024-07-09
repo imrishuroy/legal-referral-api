@@ -1,4 +1,5 @@
-DB_URL=postgres://root:IWSIWDF2024@localhost:5432/legal_referral_db?sslmode=disable
+#DB_URL=postgres://root:IWSIWDF2024@localhost:5432/legal_referral_db?sslmode=disable
+DB_URL=postgres://postgres:qohfUt-gekqy2-jokfac@legal-referral-db.cdie2uoycrk0.ap-south-1.rds.amazonaws.com/legal-referral
 
 postgres:
 	docker run --name legal-referral-db -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=IWSIWDF2024 -d postgres:16.2-alpine3.19
