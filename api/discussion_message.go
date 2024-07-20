@@ -70,13 +70,13 @@ func (server *Server) listDiscussionMessages(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Unauthorized"})
 		return
 	}
-	arg := db.ListDiscussionMessages3Params{
+	arg := db.ListDiscussionMessagesParams{
 		DiscussionID: int32(discussionID),
 		Offset:       (req.Offset - 1) * req.Limit,
 		Limit:        req.Limit,
 	}
 
-	messages, err := server.store.ListDiscussionMessages3(ctx, arg)
+	messages, err := server.store.ListDiscussionMessages(ctx, arg)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -84,41 +84,5 @@ func (server *Server) listDiscussionMessages(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, messages)
-
-	//var messagesResponse []discussionMessage
-	//for _, m := range messages {
-	//	var repliedMessage *discussionMessage
-	//	if m.ReplyMessageID != nil { // Check if replied message data exists
-	//		repliedMessage = &discussionMessage{
-	//			MessageID:       *m.ReplyMessageID,
-	//			ParentMessageID: m.ReplyParentMessageID,
-	//			SenderID:        *m.ReplySenderID,
-	//			SenderFirstName: *m.ReplySenderFirstName,
-	//			SenderLastName:  *m.ReplySenderLastName,
-	//			SenderAvatarUrl: *m.ReplySenderAvatarImage,
-	//			Message:         *m.ReplyMessage,
-	//			DiscussionID:    *m.ReplyDiscussionID,
-	//			SentAt:          m.ReplySentAt.Time,
-	//		}
-	//	}
-	//
-	//	messagesResponse = append(messagesResponse, discussionMessage{
-	//		MessageID:       m.MessageID,
-	//		ParentMessageID: m.ParentMessageID,
-	//		SenderID:        m.SenderID,
-	//		SenderFirstName: *m.SenderFirstName,
-	//		SenderLastName:  *m.SenderLastName,
-	//		SenderAvatarUrl: *m.SenderAvatarImage,
-	//		Message:         m.Message,
-	//		DiscussionID:    m.DiscussionID,
-	//		SentAt:          m.SentAt,
-	//		RepliedMessage:  repliedMessage,
-	//	})
-	//}
-	//
-	//if messagesResponse == nil {
-	//	messagesResponse = []discussionMessage{}
-	//}
-	//ctx.JSON(http.StatusOK, messagesResponse)
 
 }

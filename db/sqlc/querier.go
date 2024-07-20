@@ -27,6 +27,7 @@ type Querier interface {
 	CheckPostLike(ctx context.Context, arg CheckPostLikeParams) (bool, error)
 	CommentPost(ctx context.Context, arg CommentPostParams) (CommentPostRow, error)
 	CompleteProject(ctx context.Context, arg CompleteProjectParams) (Project, error)
+	CreateAd(ctx context.Context, arg CreateAdParams) (Ad, error)
 	CreateChatRoom(ctx context.Context, arg CreateChatRoomParams) (CreateChatRoomRow, error)
 	CreateDiscussion(ctx context.Context, arg CreateDiscussionParams) (Discussion, error)
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
@@ -39,6 +40,7 @@ type Querier interface {
 	DeleteEducation(ctx context.Context, educationID int64) error
 	DeleteExperience(ctx context.Context, experienceID int64) error
 	DeleteSocial(ctx context.Context, socialID int64) error
+	ExtendAdPeriod(ctx context.Context, arg ExtendAdPeriodParams) (Ad, error)
 	FetchUserProfile(ctx context.Context, userID string) (FetchUserProfileRow, error)
 	GetChatRoom(ctx context.Context, arg GetChatRoomParams) (GetChatRoomRow, error)
 	GetFirm(ctx context.Context, firmID int64) (Firm, error)
@@ -46,6 +48,7 @@ type Querier interface {
 	GetProjectStatus(ctx context.Context, projectID int32) (ProjectStatus, error)
 	//
 	GetProposal(ctx context.Context, arg GetProposalParams) (Proposal, error)
+	GetRandomAd(ctx context.Context) (Ad, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, userID string) (User, error)
 	GetUserWizardStep(ctx context.Context, userID string) (int32, error)
@@ -54,8 +57,7 @@ type Querier interface {
 	JoinDiscussion(ctx context.Context, arg JoinDiscussionParams) error
 	LikeComment(ctx context.Context, arg LikeCommentParams) error
 	LikePost(ctx context.Context, arg LikePostParams) error
-	ListActiveDiscussions(ctx context.Context, inviteeUserID string) ([]ListActiveDiscussionsRow, error)
-	ListActiveDiscussions2(ctx context.Context, authorID string) ([]ListActiveDiscussions2Row, error)
+	ListActiveDiscussions(ctx context.Context, authorID string) ([]ListActiveDiscussionsRow, error)
 	ListActiveProposals(ctx context.Context, userID string) ([]ListActiveProposalsRow, error)
 	ListActiveReferrals(ctx context.Context, userID string) ([]Project, error)
 	ListAwardedProjects(ctx context.Context, userID string) ([]ListAwardedProjectsRow, error)
@@ -68,18 +70,18 @@ type Querier interface {
 	ListConnections(ctx context.Context, arg ListConnectionsParams) ([]ListConnectionsRow, error)
 	ListDiscussionInvites(ctx context.Context, invitedUserID string) ([]ListDiscussionInvitesRow, error)
 	ListDiscussionMessages(ctx context.Context, arg ListDiscussionMessagesParams) ([]ListDiscussionMessagesRow, error)
-	ListDiscussionMessages2(ctx context.Context, arg ListDiscussionMessages2Params) ([]ListDiscussionMessages2Row, error)
-	ListDiscussionMessages3(ctx context.Context, arg ListDiscussionMessages3Params) ([]ListDiscussionMessages3Row, error)
 	ListDiscussionParticipants(ctx context.Context, discussionID int32) ([]ListDiscussionParticipantsRow, error)
 	ListEducations(ctx context.Context, userID string) ([]Education, error)
 	ListExperiences(ctx context.Context, userID string) ([]ListExperiencesRow, error)
+	ListExpiredAds(ctx context.Context) ([]Ad, error)
 	ListFirms(ctx context.Context, arg ListFirmsParams) ([]Firm, error)
 	ListMessages(ctx context.Context, arg ListMessagesParams) ([]ListMessagesRow, error)
 	ListNewsFeed(ctx context.Context, arg ListNewsFeedParams) ([]ListNewsFeedRow, error)
-	ListNewsFeed2(ctx context.Context, arg ListNewsFeed2Params) ([]ListNewsFeed2Row, error)
+	ListPlayingAds(ctx context.Context) ([]Ad, error)
 	ListPostLikedUsers(ctx context.Context, postID *int32) ([]ListPostLikedUsersRow, error)
 	ListPostLikedUsers2(ctx context.Context, arg ListPostLikedUsers2Params) ([]ListPostLikedUsers2Row, error)
 	ListPostLikes(ctx context.Context, postID *int32) ([]string, error)
+	ListRandomAds(ctx context.Context, limit int32) ([]Ad, error)
 	ListRecommendations(ctx context.Context, arg ListRecommendationsParams) ([]ListRecommendationsRow, error)
 	ListRecommendations2(ctx context.Context, arg ListRecommendations2Params) ([]ListRecommendations2Row, error)
 	//
@@ -90,6 +92,7 @@ type Querier interface {
 	ListReferrerActiveProjects(ctx context.Context, userID string) ([]ListReferrerActiveProjectsRow, error)
 	ListReferrerCompletedProjects(ctx context.Context, userID string) ([]ListReferrerCompletedProjectsRow, error)
 	ListSocials(ctx context.Context, arg ListSocialsParams) ([]Social, error)
+	ListUninvitedParticipants(ctx context.Context, discussionID int32) ([]ListUninvitedParticipantsRow, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
 	MarkWizardCompleted(ctx context.Context, arg MarkWizardCompletedParams) (User, error)
 	PostToNewsFeed(ctx context.Context, arg PostToNewsFeedParams) error
@@ -110,6 +113,7 @@ type Querier interface {
 	ToggleOpenToRefferal(ctx context.Context, arg ToggleOpenToRefferalParams) error
 	UnlikeComment(ctx context.Context, arg UnlikeCommentParams) error
 	UnlikePost(ctx context.Context, arg UnlikePostParams) error
+	UpdateDiscussionTopic(ctx context.Context, arg UpdateDiscussionTopicParams) error
 	UpdateEducation(ctx context.Context, arg UpdateEducationParams) (Education, error)
 	UpdateEmailVerificationStatus(ctx context.Context, arg UpdateEmailVerificationStatusParams) (User, error)
 	UpdateExperience(ctx context.Context, arg UpdateExperienceParams) (Experience, error)

@@ -12,6 +12,49 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type AdType string
+
+const (
+	AdTypeImage AdType = "image"
+	AdTypeVideo AdType = "video"
+	AdTypeOther AdType = "other"
+)
+
+func (e *AdType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AdType(s)
+	case string:
+		*e = AdType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AdType: %T", src)
+	}
+	return nil
+}
+
+type NullAdType struct {
+	AdType AdType `json:"ad_type"`
+	Valid  bool   `json:"valid"` // Valid is true if AdType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAdType) Scan(value interface{}) error {
+	if value == nil {
+		ns.AdType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AdType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAdType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AdType), nil
+}
+
 type DiscussionInviteStatus string
 
 const (
@@ -98,6 +141,49 @@ func (ns NullInvitationStatus) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return string(ns.InvitationStatus), nil
+}
+
+type PaymentCycle string
+
+const (
+	PaymentCycleWeekly  PaymentCycle = "weekly"
+	PaymentCycleMonthly PaymentCycle = "monthly"
+	PaymentCycleYearly  PaymentCycle = "yearly"
+)
+
+func (e *PaymentCycle) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PaymentCycle(s)
+	case string:
+		*e = PaymentCycle(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PaymentCycle: %T", src)
+	}
+	return nil
+}
+
+type NullPaymentCycle struct {
+	PaymentCycle PaymentCycle `json:"payment_cycle"`
+	Valid        bool         `json:"valid"` // Valid is true if PaymentCycle is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPaymentCycle) Scan(value interface{}) error {
+	if value == nil {
+		ns.PaymentCycle, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PaymentCycle.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPaymentCycle) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PaymentCycle), nil
 }
 
 type PostType string
@@ -238,6 +324,20 @@ func (ns NullProposalStatus) Value() (driver.Value, error) {
 		return nil, nil
 	}
 	return string(ns.ProposalStatus), nil
+}
+
+type Ad struct {
+	AdID         int32        `json:"ad_id"`
+	AdType       AdType       `json:"ad_type"`
+	Title        string       `json:"title"`
+	Description  string       `json:"description"`
+	Link         string       `json:"link"`
+	Media        []string     `json:"media"`
+	PaymentCycle PaymentCycle `json:"payment_cycle"`
+	AuthorID     string       `json:"author_id"`
+	StartDate    time.Time    `json:"start_date"`
+	EndDate      time.Time    `json:"end_date"`
+	CreatedAt    time.Time    `json:"created_at"`
 }
 
 type Attachment struct {
