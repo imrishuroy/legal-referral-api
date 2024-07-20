@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS ads;
+DROP TYPE IF EXISTS ad_type;
+DROP TYPE IF EXISTS payment_cycle;

@@ -157,7 +157,7 @@ func (server *Server) createPoll(ctx *gin.Context, req *createPollReq) (*db.Poll
 		OwnerID: req.OwnerID,
 		Title:   req.PollTitle,
 		Options: req.Options,
-		//EndTime: pgtype.Timestamptz{Time: *req.EndTime, Valid: req.EndTime != nil},
+		//EndDate: pgtype.Timestamptz{Time: *req.EndDate, Valid: req.EndDate != nil},
 	}
 
 	poll, err := server.store.CreatePoll(ctx, arg)

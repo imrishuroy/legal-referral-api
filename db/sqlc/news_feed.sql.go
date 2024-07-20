@@ -13,15 +13,15 @@ import (
 const listNewsFeed = `-- name: ListNewsFeed :many
 SELECT
     nf.feed_id,
-    users.user_id, users.email, users.first_name, users.last_name, users.about, users.mobile, users.address, users.avatar_url, users.banner_url, users.email_verified, users.mobile_verified, users.wizard_step, users.wizard_completed, users.signup_method, users.practice_area, users.practice_location, users.experience, users.average_billing_per_client, users.case_resolution_rate, users.open_to_referral, users.join_date,
+    post_owner.user_id, post_owner.email, post_owner.first_name, post_owner.last_name, post_owner.about, post_owner.mobile, post_owner.address, post_owner.avatar_url, post_owner.banner_url, post_owner.email_verified, post_owner.mobile_verified, post_owner.wizard_step, post_owner.wizard_completed, post_owner.signup_method, post_owner.practice_area, post_owner.practice_location, post_owner.experience, post_owner.average_billing_per_client, post_owner.case_resolution_rate, post_owner.open_to_referral, post_owner.join_date,
     posts.post_id, posts.owner_id, posts.content, posts.media, posts.post_type, posts.poll_id, posts.created_at,
     nf.created_at,
     COALESCE(likes_counts.likes_count, 0) AS likes_count,
     COALESCE(comments_counts.comments_count, 0) AS comments_count,
     CASE WHEN user_likes.like_id IS NOT NULL THEN true ELSE false END AS is_liked
-FROM users
-         JOIN news_feed nf ON nf.user_id = users.user_id
+FROM news_feed nf
          JOIN posts ON nf.post_id = posts.post_id
+         JOIN users post_owner ON posts.owner_id = post_owner.user_id -- Join with post owner
          LEFT JOIN (
     SELECT
         post_id,
@@ -37,7 +37,7 @@ FROM users
     FROM comments
     GROUP BY post_id
 ) comments_counts ON nf.post_id = comments_counts.post_id
-LEFT JOIN (
+         LEFT JOIN (
     SELECT
         like_id,
         post_id
@@ -75,116 +75,6 @@ func (q *Queries) ListNewsFeed(ctx context.Context, arg ListNewsFeedParams) ([]L
 	items := []ListNewsFeedRow{}
 	for rows.Next() {
 		var i ListNewsFeedRow
-		if err := rows.Scan(
-			&i.FeedID,
-			&i.User.UserID,
-			&i.User.Email,
-			&i.User.FirstName,
-			&i.User.LastName,
-			&i.User.About,
-			&i.User.Mobile,
-			&i.User.Address,
-			&i.User.AvatarUrl,
-			&i.User.BannerUrl,
-			&i.User.EmailVerified,
-			&i.User.MobileVerified,
-			&i.User.WizardStep,
-			&i.User.WizardCompleted,
-			&i.User.SignupMethod,
-			&i.User.PracticeArea,
-			&i.User.PracticeLocation,
-			&i.User.Experience,
-			&i.User.AverageBillingPerClient,
-			&i.User.CaseResolutionRate,
-			&i.User.OpenToReferral,
-			&i.User.JoinDate,
-			&i.Post.PostID,
-			&i.Post.OwnerID,
-			&i.Post.Content,
-			&i.Post.Media,
-			&i.Post.PostType,
-			&i.Post.PollID,
-			&i.Post.CreatedAt,
-			&i.CreatedAt,
-			&i.LikesCount,
-			&i.CommentsCount,
-			&i.IsLiked,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
-const listNewsFeed2 = `-- name: ListNewsFeed2 :many
-SELECT
-    nf.feed_id,
-    post_owner.user_id, post_owner.email, post_owner.first_name, post_owner.last_name, post_owner.about, post_owner.mobile, post_owner.address, post_owner.avatar_url, post_owner.banner_url, post_owner.email_verified, post_owner.mobile_verified, post_owner.wizard_step, post_owner.wizard_completed, post_owner.signup_method, post_owner.practice_area, post_owner.practice_location, post_owner.experience, post_owner.average_billing_per_client, post_owner.case_resolution_rate, post_owner.open_to_referral, post_owner.join_date, -- Embed the post owner data
-    posts.post_id, posts.owner_id, posts.content, posts.media, posts.post_type, posts.poll_id, posts.created_at,
-    nf.created_at,
-    COALESCE(likes_counts.likes_count, 0) AS likes_count,
-    COALESCE(comments_counts.comments_count, 0) AS comments_count,
-    CASE WHEN user_likes.like_id IS NOT NULL THEN true ELSE false END AS is_liked
-FROM news_feed nf
-         JOIN posts ON nf.post_id = posts.post_id
-         JOIN users post_owner ON posts.owner_id = post_owner.user_id -- Join with post owner
-         LEFT JOIN (
-    SELECT
-        post_id,
-        COUNT(*) AS likes_count
-    FROM likes
-    WHERE type = 'post'
-    GROUP BY post_id
-) likes_counts ON nf.post_id = likes_counts.post_id
-         LEFT JOIN (
-    SELECT
-        post_id,
-        COUNT(*) AS comments_count
-    FROM comments
-    GROUP BY post_id
-) comments_counts ON nf.post_id = comments_counts.post_id
-         LEFT JOIN (
-    SELECT
-        like_id,
-        post_id
-    FROM likes
-    WHERE likes.user_id = $1 AND type = 'post'
-) user_likes ON nf.post_id = user_likes.post_id
-WHERE nf.user_id = $1
-ORDER BY nf.created_at DESC
-LIMIT $2
-OFFSET $3
-`
-
-type ListNewsFeed2Params struct {
-	UserID string `json:"user_id"`
-	Limit  int32  `json:"limit"`
-	Offset int32  `json:"offset"`
-}
-
-type ListNewsFeed2Row struct {
-	FeedID        int32     `json:"feed_id"`
-	User          User      `json:"user"`
-	Post          Post      `json:"post"`
-	CreatedAt     time.Time `json:"created_at"`
-	LikesCount    int64     `json:"likes_count"`
-	CommentsCount int64     `json:"comments_count"`
-	IsLiked       bool      `json:"is_liked"`
-}
-
-func (q *Queries) ListNewsFeed2(ctx context.Context, arg ListNewsFeed2Params) ([]ListNewsFeed2Row, error) {
-	rows, err := q.db.Query(ctx, listNewsFeed2, arg.UserID, arg.Limit, arg.Offset)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListNewsFeed2Row{}
-	for rows.Next() {
-		var i ListNewsFeed2Row
 		if err := rows.Scan(
 			&i.FeedID,
 			&i.User.UserID,

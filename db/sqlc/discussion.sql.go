@@ -78,17 +78,14 @@ SELECT
     d.author_id,
     d.topic,
     d.created_at,
-    COUNT(DISTINCT CASE
-            WHEN di.status = 'accepted' THEN di.invited_user_id
-            WHEN di.invitee_user_id = $1 THEN di.invitee_user_id
-        END) AS active_member_count
+    COUNT(DISTINCT di.invited_user_id) AS active_member_count
 FROM
     discussions d
-        JOIN
-    discussion_invites di ON d.discussion_id = di.discussion_id
+        LEFT JOIN discussion_invites di ON d.discussion_id = di.discussion_id
 WHERE
-    (di.invited_user_id = $1 AND di.status = 'accepted')
-   OR di.invitee_user_id = $1
+    d.author_id = $1
+   OR (di.invited_user_id = $1 AND di.status = 'accepted')
+   OR (di.invitee_user_id = $1 AND di.status = 'accepted')
 GROUP BY
     d.discussion_id,
     d.author_id,
@@ -105,8 +102,8 @@ type ListActiveDiscussionsRow struct {
 	ActiveMemberCount int64     `json:"active_member_count"`
 }
 
-func (q *Queries) ListActiveDiscussions(ctx context.Context, inviteeUserID string) ([]ListActiveDiscussionsRow, error) {
-	rows, err := q.db.Query(ctx, listActiveDiscussions, inviteeUserID)
+func (q *Queries) ListActiveDiscussions(ctx context.Context, authorID string) ([]ListActiveDiscussionsRow, error) {
+	rows, err := q.db.Query(ctx, listActiveDiscussions, authorID)
 	if err != nil {
 		return nil, err
 	}
@@ -131,69 +128,13 @@ func (q *Queries) ListActiveDiscussions(ctx context.Context, inviteeUserID strin
 	return items, nil
 }
 
-const listActiveDiscussions2 = `-- name: ListActiveDiscussions2 :many
-SELECT
-    d.discussion_id,
-    d.author_id,
-    d.topic,
-    d.created_at,
-    COUNT(DISTINCT di.invited_user_id) AS active_member_count
-FROM
-    discussions d
-        LEFT JOIN
-    discussion_invites di ON d.discussion_id = di.discussion_id
-WHERE
-    d.author_id = $1
-   OR (di.invited_user_id = $1 AND di.status = 'accepted')
-   OR (di.invitee_user_id = $1 AND di.status = 'accepted')
-GROUP BY
-    d.discussion_id,
-    d.author_id,
-    d.topic,
-    d.created_at
-ORDER BY d.created_at DESC
-`
-
-type ListActiveDiscussions2Row struct {
-	DiscussionID      int32     `json:"discussion_id"`
-	AuthorID          string    `json:"author_id"`
-	Topic             string    `json:"topic"`
-	CreatedAt         time.Time `json:"created_at"`
-	ActiveMemberCount int64     `json:"active_member_count"`
-}
-
-func (q *Queries) ListActiveDiscussions2(ctx context.Context, authorID string) ([]ListActiveDiscussions2Row, error) {
-	rows, err := q.db.Query(ctx, listActiveDiscussions2, authorID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	items := []ListActiveDiscussions2Row{}
-	for rows.Next() {
-		var i ListActiveDiscussions2Row
-		if err := rows.Scan(
-			&i.DiscussionID,
-			&i.AuthorID,
-			&i.Topic,
-			&i.CreatedAt,
-			&i.ActiveMemberCount,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const listDiscussionInvites = `-- name: ListDiscussionInvites :many
 SELECT discussion_invites.discussion_invite_id, discussion_invites.discussion_id, discussion_invites.invitee_user_id, discussion_invites.invited_user_id, discussion_invites.status, discussion_invites.created_at, discussions.discussion_id, discussions.author_id, discussions.topic, discussions.created_at, users.user_id, users.email, users.first_name, users.last_name, users.about, users.mobile, users.address, users.avatar_url, users.banner_url, users.email_verified, users.mobile_verified, users.wizard_step, users.wizard_completed, users.signup_method, users.practice_area, users.practice_location, users.experience, users.average_billing_per_client, users.case_resolution_rate, users.open_to_referral, users.join_date
 FROM discussion_invites
 JOIN discussions ON discussion_invites.discussion_id = discussions.discussion_id
 JOIN users ON discussion_invites.invitee_user_id = users.user_id
 WHERE discussion_invites.invited_user_id = $1
+    AND discussion_invites.status = 'pending'
 `
 
 type ListDiscussionInvitesRow struct {
@@ -308,6 +249,65 @@ func (q *Queries) ListDiscussionParticipants(ctx context.Context, discussionID i
 	return items, nil
 }
 
+const listUninvitedParticipants = `-- name: ListUninvitedParticipants :many
+WITH invited_users AS (
+    SELECT di.invitee_user_id AS user_id
+    FROM discussion_invites di
+    WHERE di.discussion_id = $1
+
+    UNION
+
+    SELECT di.invited_user_id AS user_id
+    FROM discussion_invites di
+    WHERE di.discussion_id = $1
+)
+SELECT
+    u.user_id,
+    u.first_name,
+    u.last_name,
+    u.avatar_url,
+    u.practice_area
+FROM users u
+WHERE u.user_id NOT IN (
+    SELECT iu.user_id
+    FROM invited_users iu
+)
+`
+
+type ListUninvitedParticipantsRow struct {
+	UserID       string  `json:"user_id"`
+	FirstName    string  `json:"first_name"`
+	LastName     string  `json:"last_name"`
+	AvatarUrl    *string `json:"avatar_url"`
+	PracticeArea *string `json:"practice_area"`
+}
+
+func (q *Queries) ListUninvitedParticipants(ctx context.Context, discussionID int32) ([]ListUninvitedParticipantsRow, error) {
+	rows, err := q.db.Query(ctx, listUninvitedParticipants, discussionID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListUninvitedParticipantsRow{}
+	for rows.Next() {
+		var i ListUninvitedParticipantsRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.FirstName,
+			&i.LastName,
+			&i.AvatarUrl,
+			&i.PracticeArea,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const rejectDiscussion = `-- name: RejectDiscussion :exec
 UPDATE discussion_invites SET status = 'rejected'
 WHERE discussion_id = $1 AND invited_user_id = $2
@@ -320,5 +320,21 @@ type RejectDiscussionParams struct {
 
 func (q *Queries) RejectDiscussion(ctx context.Context, arg RejectDiscussionParams) error {
 	_, err := q.db.Exec(ctx, rejectDiscussion, arg.DiscussionID, arg.InvitedUserID)
+	return err
+}
+
+const updateDiscussionTopic = `-- name: UpdateDiscussionTopic :exec
+UPDATE discussions
+SET topic = $2
+WHERE discussion_id = $1
+`
+
+type UpdateDiscussionTopicParams struct {
+	DiscussionID int32  `json:"discussion_id"`
+	Topic        string `json:"topic"`
+}
+
+func (q *Queries) UpdateDiscussionTopic(ctx context.Context, arg UpdateDiscussionTopicParams) error {
+	_, err := q.db.Exec(ctx, updateDiscussionTopic, arg.DiscussionID, arg.Topic)
 	return err
 }

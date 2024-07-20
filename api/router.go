@@ -130,16 +130,28 @@ func (server *Server) setupRouter() {
 
 	// discussion
 	auth.POST("/discussions", server.createDiscussion)
+
+	// update discussion topic
+	auth.PUT("/discussions/:discussion_id/topic", server.updateDiscussionTopic)
 	auth.POST("/discussions/:discussion_id/invite", server.inviteUserToDiscussion)
 	auth.POST("/discussions/:discussion_id/join", server.joinDiscussion)
 	auth.POST("/discussions/:discussion_id/reject", server.rejectDiscussion)
 	auth.GET("/discussions/invites/:user_id", server.listDiscussionInvites)
 	auth.GET("/discussions/active/:user_id", server.listActiveDiscussions)
 	auth.GET("/discussions/:discussion_id/participants", server.listDiscussionParticipants)
+	auth.GET("/discussions/:discussion_id/uninvited", server.listUninvitedParticipants)
 
 	// discussion messages
 	auth.POST("/discussions/:discussion_id/messages", server.sendMessageToDiscussion)
 	auth.GET("/discussions/:discussion_id/messages", server.listDiscussionMessages)
+
+	// ads
+	auth.POST("/ads", server.createAd)
+	//playing ads
+	auth.GET("/ads/playing", server.listPlayingAds)
+	auth.GET("/ads/expired", server.listExpiredAds)
+	// extend ad period
+	auth.PUT("/ads/:ad_id/extend", server.extendAdPeriod)
 
 }
 
