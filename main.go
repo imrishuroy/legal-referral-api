@@ -19,11 +19,14 @@ func main() {
 
 	config, err := util.LoadConfig(".")
 	if err != nil {
-		log.Fatal().Msg("cannot connect to db:")
+		// print the error message
+		log.Fatal().Err(err).Msg("cannot load config : " + err.Error())
 	}
 
 	// db connection
 	connPool, err := pgxpool.New(context.Background(), config.DBSource)
+
+	log.Info().Msg("DB Source : " + config.DBSource)
 
 	if err != nil {
 		fmt.Println("cannot connect to db:", err)

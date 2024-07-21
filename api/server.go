@@ -92,6 +92,6 @@ func errorResponse(err error) gin.H {
 	return gin.H{"message": err.Error()}
 }
 
-func (server *Server) ping(c *gin.Context) {
-	c.JSON(200, "pong")
+func (server *Server) ping(ctx *gin.Context) {
+	ctx.JSON(200, "UP")
 }

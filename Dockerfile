@@ -20,7 +20,7 @@ RUN go mod download
 RUN go build -tags musl -ldflags '-extldflags "-static"' -o /main
 
 # Tells Docker which network port your container listens on
-EXPOSE 8080
+EXPOSE 5000
 
 # Specifies the executable command that runs when the container starts
 CMD ["/main"]
