@@ -23,7 +23,11 @@ AWS
     sudo usermod -a -G docker ec2-user
     sudo df -h ( check disk space )
 
+    zip files.zip *
+
 
 https://www.youtube.com/watch?v=C_QzIpPsexs&t=372s
 
+
+![img.png](img.png)
 
