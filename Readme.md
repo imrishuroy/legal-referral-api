@@ -31,3 +31,8 @@ https://www.youtube.com/watch?v=C_QzIpPsexs&t=372s
 
 ![img.png](img.png)
 
+Deploy latest changes to elasticbeanstalk ( even if you have not committed the changes )
+
+    eb deploy
+eb deploy --staged
+
