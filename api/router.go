@@ -12,6 +12,8 @@ func (server *Server) setupRouter() {
 
 	server.router = gin.Default()
 	server.router.GET("/", server.ping).Use(CORSMiddleware())
+	server.router.GET("/health", server.ping).Use(CORSMiddleware())
+	server.router.GET("/check", server.ping).Use(CORSMiddleware())
 
 	server.router.POST("/api/otp/send", server.sendOTP)
 	server.router.POST("/api/otp/verify", server.verifyOTP)
