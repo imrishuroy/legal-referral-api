@@ -35,6 +35,16 @@ Remove all docker images
 Run Docker compose 
     docker compose up
 
+AWS
+
+Get Secret from AWS Secrets Manager
+    aws secretsmanager get-secret-value --secret-id legalreferral --query SecretString --output text
+
+Get Secret from AWS Secrets Manager and transform into app.env format
+aws secretsmanager get-secret-value --secret-id legalreferral --query SecretString --output text | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' > app.env
+
+Get Secret from AWS Secrets Manager and transform into json format
+aws secretsmanager get-secret-value --secret-id legalreferral-service-account-key --query SecretString --output text> service-account-key.json
 
 AWS
  
