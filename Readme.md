@@ -111,7 +111,12 @@ nslookup
 
     nslookup a05b7f12387364b1ab93c06f36486f89-204541799.ap-south-1.elb.amazonaws.com
 
+Scale Down
+aws autoscaling update-auto-scaling-group --auto-scaling-group-name <your-auto-scaling-group-name> --desired-capacity 0
+
+
 https://repost.aws/knowledge-center/amazon-eks-cluster-access
+
 
 
 Deploy to EC2 AWS
