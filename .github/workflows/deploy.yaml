@@ -28,7 +28,7 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v2
 
       - name: Load secrets and save to env file
-        run: aws secretsmanager get-secret-value --secret-id legalreferral --query SecretString --output text | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' > app.env
+        run: aws secretsmanager get-secret-value --secret-id legalreferral-env --query SecretString --output text | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' > app.env
 
       - name: Load secrets and save to service-account-key.json
         run: aws secretsmanager get-secret-value --secret-id legalreferral-service-account-key --query SecretString --output text > service-account-key.json
