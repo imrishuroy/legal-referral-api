@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: legal-referral-api-deployment
+  labels:
+    app: legal-referral-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: legal-referral-api
+  template:
+    metadata:
+      labels:
+        app: legal-referral-api
+    spec:
+      containers:
+        - name: legal-referral-api
+          image: 010928181431.dkr.ecr.ap-south-1.amazonaws.com/legalreferral:f2f977b4148ed61b0c53a0442bdc3bc7e1967e08
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+              name: http-server

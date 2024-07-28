@@ -26,8 +26,6 @@ func main() {
 	// db connection
 	connPool, err := pgxpool.New(context.Background(), config.DBSource)
 
-	log.Info().Msg("DB Source : " + config.DBSource)
-
 	if err != nil {
 		fmt.Println("cannot connect to db:", err)
 	}
