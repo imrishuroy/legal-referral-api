@@ -134,3 +134,39 @@ ORDER BY
     join_date DESC
 LIMIT $2
 OFFSET $3;
+
+-- name: ListVerifiedUsers :many
+SELECT
+    user_id,
+    first_name,
+    last_name,
+    avatar_url,
+    practice_location,
+    join_date
+FROM
+    users
+WHERE
+    user_id != $1
+  AND is_verified = true
+ORDER BY
+    join_date DESC
+LIMIT $2
+OFFSET $3;
+
+-- name: ListUnVerifiedUsers :many
+SELECT
+    user_id,
+    first_name,
+    last_name,
+    avatar_url,
+    practice_location,
+    join_date
+FROM
+    users
+WHERE
+    user_id != $1
+  AND is_verified = false
+ORDER BY
+    join_date DESC
+LIMIT $2
+OFFSET $3;

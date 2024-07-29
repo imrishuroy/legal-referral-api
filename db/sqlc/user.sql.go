@@ -23,7 +23,7 @@ INSERT INTO users (
     avatar_url
 ) VALUES (
     $1, $2, $3, $4, $5, $6, $7, $8, $9
-) RETURNING user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, join_date
+) RETURNING user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, is_verified, join_date
 `
 
 type CreateUserParams struct {
@@ -72,13 +72,14 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.AverageBillingPerClient,
 		&i.CaseResolutionRate,
 		&i.OpenToReferral,
+		&i.IsVerified,
 		&i.JoinDate,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, join_date FROM users
+SELECT user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, is_verified, join_date FROM users
 WHERE email = $1 LIMIT 1
 `
 
@@ -106,13 +107,14 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.AverageBillingPerClient,
 		&i.CaseResolutionRate,
 		&i.OpenToReferral,
+		&i.IsVerified,
 		&i.JoinDate,
 	)
 	return i, err
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, join_date FROM users
+SELECT user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, is_verified, join_date FROM users
 WHERE user_id = $1 LIMIT 1
 `
 
@@ -140,6 +142,7 @@ func (q *Queries) GetUserById(ctx context.Context, userID string) (User, error) 
 		&i.AverageBillingPerClient,
 		&i.CaseResolutionRate,
 		&i.OpenToReferral,
+		&i.IsVerified,
 		&i.JoinDate,
 	)
 	return i, err
@@ -217,6 +220,67 @@ func (q *Queries) ListConnectedUsers(ctx context.Context, arg ListConnectedUsers
 	return items, nil
 }
 
+const listUnVerifiedUsers = `-- name: ListUnVerifiedUsers :many
+SELECT
+    user_id,
+    first_name,
+    last_name,
+    avatar_url,
+    practice_location,
+    join_date
+FROM
+    users
+WHERE
+    user_id != $1
+  AND is_verified = false
+ORDER BY
+    join_date DESC
+LIMIT $2
+OFFSET $3
+`
+
+type ListUnVerifiedUsersParams struct {
+	UserID string `json:"user_id"`
+	Limit  int32  `json:"limit"`
+	Offset int32  `json:"offset"`
+}
+
+type ListUnVerifiedUsersRow struct {
+	UserID           string    `json:"user_id"`
+	FirstName        string    `json:"first_name"`
+	LastName         string    `json:"last_name"`
+	AvatarUrl        *string   `json:"avatar_url"`
+	PracticeLocation *string   `json:"practice_location"`
+	JoinDate         time.Time `json:"join_date"`
+}
+
+func (q *Queries) ListUnVerifiedUsers(ctx context.Context, arg ListUnVerifiedUsersParams) ([]ListUnVerifiedUsersRow, error) {
+	rows, err := q.db.Query(ctx, listUnVerifiedUsers, arg.UserID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListUnVerifiedUsersRow{}
+	for rows.Next() {
+		var i ListUnVerifiedUsersRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.FirstName,
+			&i.LastName,
+			&i.AvatarUrl,
+			&i.PracticeLocation,
+			&i.JoinDate,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUsers = `-- name: ListUsers :many
 SELECT
     user_id,
@@ -277,13 +341,74 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUse
 	return items, nil
 }
 
+const listVerifiedUsers = `-- name: ListVerifiedUsers :many
+SELECT
+    user_id,
+    first_name,
+    last_name,
+    avatar_url,
+    practice_location,
+    join_date
+FROM
+    users
+WHERE
+    user_id != $1
+  AND is_verified = true
+ORDER BY
+    join_date DESC
+LIMIT $2
+OFFSET $3
+`
+
+type ListVerifiedUsersParams struct {
+	UserID string `json:"user_id"`
+	Limit  int32  `json:"limit"`
+	Offset int32  `json:"offset"`
+}
+
+type ListVerifiedUsersRow struct {
+	UserID           string    `json:"user_id"`
+	FirstName        string    `json:"first_name"`
+	LastName         string    `json:"last_name"`
+	AvatarUrl        *string   `json:"avatar_url"`
+	PracticeLocation *string   `json:"practice_location"`
+	JoinDate         time.Time `json:"join_date"`
+}
+
+func (q *Queries) ListVerifiedUsers(ctx context.Context, arg ListVerifiedUsersParams) ([]ListVerifiedUsersRow, error) {
+	rows, err := q.db.Query(ctx, listVerifiedUsers, arg.UserID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListVerifiedUsersRow{}
+	for rows.Next() {
+		var i ListVerifiedUsersRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.FirstName,
+			&i.LastName,
+			&i.AvatarUrl,
+			&i.PracticeLocation,
+			&i.JoinDate,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const markWizardCompleted = `-- name: MarkWizardCompleted :one
 UPDATE users
 SET
     wizard_completed = $2
 WHERE
     user_id = $1
-RETURNING user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, join_date
+RETURNING user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, is_verified, join_date
 `
 
 type MarkWizardCompletedParams struct {
@@ -315,6 +440,7 @@ func (q *Queries) MarkWizardCompleted(ctx context.Context, arg MarkWizardComplet
 		&i.AverageBillingPerClient,
 		&i.CaseResolutionRate,
 		&i.OpenToReferral,
+		&i.IsVerified,
 		&i.JoinDate,
 	)
 	return i, err
@@ -330,7 +456,7 @@ SET
     wizard_completed = $6
 WHERE
     user_id = $1
-RETURNING user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, join_date
+RETURNING user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, is_verified, join_date
 `
 
 type SaveAboutYouParams struct {
@@ -373,6 +499,7 @@ func (q *Queries) SaveAboutYou(ctx context.Context, arg SaveAboutYouParams) (Use
 		&i.AverageBillingPerClient,
 		&i.CaseResolutionRate,
 		&i.OpenToReferral,
+		&i.IsVerified,
 		&i.JoinDate,
 	)
 	return i, err
@@ -384,7 +511,7 @@ SET
     email_verified = $2
 WHERE
     user_id = $1
-RETURNING user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, join_date
+RETURNING user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, is_verified, join_date
 `
 
 type UpdateEmailVerificationStatusParams struct {
@@ -416,6 +543,7 @@ func (q *Queries) UpdateEmailVerificationStatus(ctx context.Context, arg UpdateE
 		&i.AverageBillingPerClient,
 		&i.CaseResolutionRate,
 		&i.OpenToReferral,
+		&i.IsVerified,
 		&i.JoinDate,
 	)
 	return i, err
@@ -428,7 +556,7 @@ SET
     mobile_verified = $3
 WHERE
     user_id = $1
-RETURNING user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, join_date
+RETURNING user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, is_verified, join_date
 `
 
 type UpdateMobileVerificationStatusParams struct {
@@ -461,6 +589,7 @@ func (q *Queries) UpdateMobileVerificationStatus(ctx context.Context, arg Update
 		&i.AverageBillingPerClient,
 		&i.CaseResolutionRate,
 		&i.OpenToReferral,
+		&i.IsVerified,
 		&i.JoinDate,
 	)
 	return i, err
@@ -472,7 +601,7 @@ SET
     avatar_url = $2
 WHERE
     user_id = $1
-RETURNING user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, join_date
+RETURNING user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, is_verified, join_date
 `
 
 type UpdateUserAvatarUrlParams struct {
@@ -504,6 +633,7 @@ func (q *Queries) UpdateUserAvatarUrl(ctx context.Context, arg UpdateUserAvatarU
 		&i.AverageBillingPerClient,
 		&i.CaseResolutionRate,
 		&i.OpenToReferral,
+		&i.IsVerified,
 		&i.JoinDate,
 	)
 	return i, err
@@ -537,7 +667,7 @@ SET
     about = $6
 WHERE
     user_id = $1
-RETURNING user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, join_date
+RETURNING user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, is_verified, join_date
 `
 
 type UpdateUserInfoParams struct {
@@ -580,6 +710,7 @@ func (q *Queries) UpdateUserInfo(ctx context.Context, arg UpdateUserInfoParams) 
 		&i.AverageBillingPerClient,
 		&i.CaseResolutionRate,
 		&i.OpenToReferral,
+		&i.IsVerified,
 		&i.JoinDate,
 	)
 	return i, err
@@ -591,7 +722,7 @@ SET
     wizard_step = $2
 WHERE
     user_id = $1
-RETURNING user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, join_date
+RETURNING user_id, email, first_name, last_name, about, mobile, address, avatar_url, banner_url, email_verified, mobile_verified, wizard_step, wizard_completed, signup_method, practice_area, practice_location, experience, average_billing_per_client, case_resolution_rate, open_to_referral, is_verified, join_date
 `
 
 type UpdateUserWizardStepParams struct {
@@ -623,6 +754,7 @@ func (q *Queries) UpdateUserWizardStep(ctx context.Context, arg UpdateUserWizard
 		&i.AverageBillingPerClient,
 		&i.CaseResolutionRate,
 		&i.OpenToReferral,
+		&i.IsVerified,
 		&i.JoinDate,
 	)
 	return i, err

@@ -52,7 +52,7 @@ Get Secret from AWS Secrets Manager
 
 Get Secret from AWS Secrets Manager and transform into app.env format
 
-    aws secretsmanager get-secret-value --secret-id legalreferral --query SecretString --output text | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' > app.env
+    aws secretsmanager get-secret-value --secret-id legalreferral-env --query SecretString --output text | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' > app.env
 
 Get Secret from AWS Secrets Manager and transform into json format
 

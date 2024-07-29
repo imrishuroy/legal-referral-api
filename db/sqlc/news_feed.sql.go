@@ -13,7 +13,7 @@ import (
 const listNewsFeed = `-- name: ListNewsFeed :many
 SELECT
     nf.feed_id,
-    post_owner.user_id, post_owner.email, post_owner.first_name, post_owner.last_name, post_owner.about, post_owner.mobile, post_owner.address, post_owner.avatar_url, post_owner.banner_url, post_owner.email_verified, post_owner.mobile_verified, post_owner.wizard_step, post_owner.wizard_completed, post_owner.signup_method, post_owner.practice_area, post_owner.practice_location, post_owner.experience, post_owner.average_billing_per_client, post_owner.case_resolution_rate, post_owner.open_to_referral, post_owner.join_date,
+    post_owner.user_id, post_owner.email, post_owner.first_name, post_owner.last_name, post_owner.about, post_owner.mobile, post_owner.address, post_owner.avatar_url, post_owner.banner_url, post_owner.email_verified, post_owner.mobile_verified, post_owner.wizard_step, post_owner.wizard_completed, post_owner.signup_method, post_owner.practice_area, post_owner.practice_location, post_owner.experience, post_owner.average_billing_per_client, post_owner.case_resolution_rate, post_owner.open_to_referral, post_owner.is_verified, post_owner.join_date,
     posts.post_id, posts.owner_id, posts.content, posts.media, posts.post_type, posts.poll_id, posts.created_at,
     nf.created_at,
     COALESCE(likes_counts.likes_count, 0) AS likes_count,
@@ -97,6 +97,7 @@ func (q *Queries) ListNewsFeed(ctx context.Context, arg ListNewsFeedParams) ([]L
 			&i.User.AverageBillingPerClient,
 			&i.User.CaseResolutionRate,
 			&i.User.OpenToReferral,
+			&i.User.IsVerified,
 			&i.User.JoinDate,
 			&i.Post.PostID,
 			&i.Post.OwnerID,
