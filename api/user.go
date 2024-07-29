@@ -327,6 +327,7 @@ type listUsersReq struct {
 func (server *Server) listUsers(ctx *gin.Context) {
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	log.Info().Msgf("auth payload listUsers %v", authPayload)
 	if authPayload.UID == "" {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 		return
@@ -355,6 +356,7 @@ func (server *Server) listUsers(ctx *gin.Context) {
 
 func (server *Server) listVerifiedUsers(ctx *gin.Context) {
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	log.Info().Msgf("auth payload listVerifiedUsers %v", authPayload)
 	if authPayload.UID == "" {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 		return
@@ -383,6 +385,7 @@ func (server *Server) listVerifiedUsers(ctx *gin.Context) {
 
 func (server *Server) listUnverifiedUsers(ctx *gin.Context) {
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	log.Info().Msgf("auth payload listUnverifiedUsers %v", authPayload)
 	if authPayload.UID == "" {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 		return
