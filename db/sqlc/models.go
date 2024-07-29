@@ -603,5 +603,6 @@ type User struct {
 	AverageBillingPerClient *int32    `json:"average_billing_per_client"`
 	CaseResolutionRate      *int32    `json:"case_resolution_rate"`
 	OpenToReferral          bool      `json:"open_to_referral"`
+	IsVerified              bool      `json:"is_verified"`
 	JoinDate                time.Time `json:"join_date"`
 }

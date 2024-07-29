@@ -352,3 +352,59 @@ func (server *Server) listUsers(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, users)
 }
+
+func (server *Server) listVerifiedUsers(ctx *gin.Context) {
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	var req listUsersReq
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+		return
+	}
+
+	arg := db.ListVerifiedUsersParams{
+		UserID: authPayload.UID,
+		Limit:  req.Limit,
+		Offset: req.Offset,
+	}
+
+	users, err := server.store.ListVerifiedUsers(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, users)
+}
+
+func (server *Server) listUnverifiedUsers(ctx *gin.Context) {
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	var req listUsersReq
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+		return
+	}
+
+	arg := db.ListUnVerifiedUsersParams{
+		UserID: authPayload.UID,
+		Limit:  req.Limit,
+		Offset: req.Offset,
+	}
+
+	users, err := server.store.ListUnVerifiedUsers(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, users)
+}

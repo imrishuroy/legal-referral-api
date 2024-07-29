@@ -92,8 +92,10 @@ type Querier interface {
 	ListReferrerActiveProjects(ctx context.Context, userID string) ([]ListReferrerActiveProjectsRow, error)
 	ListReferrerCompletedProjects(ctx context.Context, userID string) ([]ListReferrerCompletedProjectsRow, error)
 	ListSocials(ctx context.Context, arg ListSocialsParams) ([]Social, error)
+	ListUnVerifiedUsers(ctx context.Context, arg ListUnVerifiedUsersParams) ([]ListUnVerifiedUsersRow, error)
 	ListUninvitedParticipants(ctx context.Context, discussionID int32) ([]ListUninvitedParticipantsRow, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
+	ListVerifiedUsers(ctx context.Context, arg ListVerifiedUsersParams) ([]ListVerifiedUsersRow, error)
 	MarkWizardCompleted(ctx context.Context, arg MarkWizardCompletedParams) (User, error)
 	PostToNewsFeed(ctx context.Context, arg PostToNewsFeedParams) error
 	RejectConnection(ctx context.Context, id int32) error

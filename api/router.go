@@ -111,6 +111,8 @@ func (server *Server) setupRouter() {
 
 	auth.GET("/users/:user_id/connected", server.listConnectedUsers)
 	auth.GET("/users", server.listUsers)
+	auth.GET("/users/verified", server.listVerifiedUsers)
+	auth.GET("/users/unverified", server.listUnverifiedUsers)
 
 	// posts
 	auth.POST("/posts", server.createPost)
