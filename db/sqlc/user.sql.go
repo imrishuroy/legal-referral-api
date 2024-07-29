@@ -223,6 +223,7 @@ SELECT
     first_name,
     last_name,
     avatar_url,
+    practice_location,
     join_date
 FROM
     users
@@ -241,11 +242,12 @@ type ListUsersParams struct {
 }
 
 type ListUsersRow struct {
-	UserID    string    `json:"user_id"`
-	FirstName string    `json:"first_name"`
-	LastName  string    `json:"last_name"`
-	AvatarUrl *string   `json:"avatar_url"`
-	JoinDate  time.Time `json:"join_date"`
+	UserID           string    `json:"user_id"`
+	FirstName        string    `json:"first_name"`
+	LastName         string    `json:"last_name"`
+	AvatarUrl        *string   `json:"avatar_url"`
+	PracticeLocation *string   `json:"practice_location"`
+	JoinDate         time.Time `json:"join_date"`
 }
 
 func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error) {
@@ -262,6 +264,7 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUse
 			&i.FirstName,
 			&i.LastName,
 			&i.AvatarUrl,
+			&i.PracticeLocation,
 			&i.JoinDate,
 		); err != nil {
 			return nil, err

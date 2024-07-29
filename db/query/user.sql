@@ -124,6 +124,7 @@ SELECT
     first_name,
     last_name,
     avatar_url,
+    practice_location,
     join_date
 FROM
     users
