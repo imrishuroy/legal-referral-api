@@ -137,36 +137,49 @@ OFFSET $3;
 
 -- name: ListVerifiedUsers :many
 SELECT
-    user_id,
-    first_name,
-    last_name,
-    avatar_url,
-    practice_location,
-    join_date
+    u.user_id,
+    u.first_name,
+    u.last_name,
+    u.avatar_url,
+    u.practice_location,
+    u.join_date,
+    l.license_number,
+    l.name AS license_name,
+    l.issue_date,
+    l.issue_state
 FROM
-    users
+    users u
+        LEFT JOIN
+    licenses l ON u.user_id = l.user_id
 WHERE
-    user_id != $1
-  AND is_verified = true
+    u.user_id != $1
+  AND u.is_verified = true
 ORDER BY
-    join_date DESC
+    u.join_date DESC
 LIMIT $2
 OFFSET $3;
 
+
 -- name: ListUnVerifiedUsers :many
 SELECT
-    user_id,
-    first_name,
-    last_name,
-    avatar_url,
-    practice_location,
-    join_date
+    u.user_id,
+    u.first_name,
+    u.last_name,
+    u.avatar_url,
+    u.practice_location,
+    u.join_date,
+    l.license_number,
+    l.name AS license_name,
+    l.issue_date,
+    l.issue_state
 FROM
-    users
+    users u
+        LEFT JOIN
+    licenses l ON u.user_id = l.user_id
 WHERE
-    user_id != $1
-  AND is_verified = false
+    u.user_id != $1
+  AND u.is_verified = false
 ORDER BY
-    join_date DESC
+    u.join_date DESC
 LIMIT $2
 OFFSET $3;

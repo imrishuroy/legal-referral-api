@@ -8,6 +8,8 @@ package db
 import (
 	"context"
 	"time"
+
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -222,19 +224,25 @@ func (q *Queries) ListConnectedUsers(ctx context.Context, arg ListConnectedUsers
 
 const listUnVerifiedUsers = `-- name: ListUnVerifiedUsers :many
 SELECT
-    user_id,
-    first_name,
-    last_name,
-    avatar_url,
-    practice_location,
-    join_date
+    u.user_id,
+    u.first_name,
+    u.last_name,
+    u.avatar_url,
+    u.practice_location,
+    u.join_date,
+    l.license_number,
+    l.name AS license_name,
+    l.issue_date,
+    l.issue_state
 FROM
-    users
+    users u
+        LEFT JOIN
+    licenses l ON u.user_id = l.user_id
 WHERE
-    user_id != $1
-  AND is_verified = false
+    u.user_id != $1
+  AND u.is_verified = false
 ORDER BY
-    join_date DESC
+    u.join_date DESC
 LIMIT $2
 OFFSET $3
 `
@@ -246,12 +254,16 @@ type ListUnVerifiedUsersParams struct {
 }
 
 type ListUnVerifiedUsersRow struct {
-	UserID           string    `json:"user_id"`
-	FirstName        string    `json:"first_name"`
-	LastName         string    `json:"last_name"`
-	AvatarUrl        *string   `json:"avatar_url"`
-	PracticeLocation *string   `json:"practice_location"`
-	JoinDate         time.Time `json:"join_date"`
+	UserID           string      `json:"user_id"`
+	FirstName        string      `json:"first_name"`
+	LastName         string      `json:"last_name"`
+	AvatarUrl        *string     `json:"avatar_url"`
+	PracticeLocation *string     `json:"practice_location"`
+	JoinDate         time.Time   `json:"join_date"`
+	LicenseNumber    *string     `json:"license_number"`
+	LicenseName      *string     `json:"license_name"`
+	IssueDate        pgtype.Date `json:"issue_date"`
+	IssueState       *string     `json:"issue_state"`
 }
 
 func (q *Queries) ListUnVerifiedUsers(ctx context.Context, arg ListUnVerifiedUsersParams) ([]ListUnVerifiedUsersRow, error) {
@@ -270,6 +282,10 @@ func (q *Queries) ListUnVerifiedUsers(ctx context.Context, arg ListUnVerifiedUse
 			&i.AvatarUrl,
 			&i.PracticeLocation,
 			&i.JoinDate,
+			&i.LicenseNumber,
+			&i.LicenseName,
+			&i.IssueDate,
+			&i.IssueState,
 		); err != nil {
 			return nil, err
 		}
@@ -343,19 +359,25 @@ func (q *Queries) ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUse
 
 const listVerifiedUsers = `-- name: ListVerifiedUsers :many
 SELECT
-    user_id,
-    first_name,
-    last_name,
-    avatar_url,
-    practice_location,
-    join_date
+    u.user_id,
+    u.first_name,
+    u.last_name,
+    u.avatar_url,
+    u.practice_location,
+    u.join_date,
+    l.license_number,
+    l.name AS license_name,
+    l.issue_date,
+    l.issue_state
 FROM
-    users
+    users u
+        LEFT JOIN
+    licenses l ON u.user_id = l.user_id
 WHERE
-    user_id != $1
-  AND is_verified = true
+    u.user_id != $1
+  AND u.is_verified = true
 ORDER BY
-    join_date DESC
+    u.join_date DESC
 LIMIT $2
 OFFSET $3
 `
@@ -367,12 +389,16 @@ type ListVerifiedUsersParams struct {
 }
 
 type ListVerifiedUsersRow struct {
-	UserID           string    `json:"user_id"`
-	FirstName        string    `json:"first_name"`
-	LastName         string    `json:"last_name"`
-	AvatarUrl        *string   `json:"avatar_url"`
-	PracticeLocation *string   `json:"practice_location"`
-	JoinDate         time.Time `json:"join_date"`
+	UserID           string      `json:"user_id"`
+	FirstName        string      `json:"first_name"`
+	LastName         string      `json:"last_name"`
+	AvatarUrl        *string     `json:"avatar_url"`
+	PracticeLocation *string     `json:"practice_location"`
+	JoinDate         time.Time   `json:"join_date"`
+	LicenseNumber    *string     `json:"license_number"`
+	LicenseName      *string     `json:"license_name"`
+	IssueDate        pgtype.Date `json:"issue_date"`
+	IssueState       *string     `json:"issue_state"`
 }
 
 func (q *Queries) ListVerifiedUsers(ctx context.Context, arg ListVerifiedUsersParams) ([]ListVerifiedUsersRow, error) {
@@ -391,6 +417,10 @@ func (q *Queries) ListVerifiedUsers(ctx context.Context, arg ListVerifiedUsersPa
 			&i.AvatarUrl,
 			&i.PracticeLocation,
 			&i.JoinDate,
+			&i.LicenseNumber,
+			&i.LicenseName,
+			&i.IssueDate,
+			&i.IssueState,
 		); err != nil {
 			return nil, err
 		}
