@@ -3,13 +3,11 @@ name: Deploy to production
 on:
   push:
     branches: [ main ]
-  # pull_request:
-  #   branches: [ main ]
 
 jobs:
 
   deploy:
-    name: Build image
+    name: Build image and deploy to Amazon EKS
     runs-on: ubuntu-latest
 
     steps:
