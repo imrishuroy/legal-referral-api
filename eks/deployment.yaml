@@ -5,7 +5,7 @@ metadata:
   labels:
     app: legal-referral-api
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: legal-referral-api
