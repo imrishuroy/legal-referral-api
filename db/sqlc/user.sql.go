@@ -230,6 +230,7 @@ SELECT
     u.avatar_url,
     u.practice_location,
     u.join_date,
+    l.license_id,
     l.license_number,
     l.name AS license_name,
     l.issue_date,
@@ -260,6 +261,7 @@ type ListUnVerifiedUsersRow struct {
 	AvatarUrl        *string     `json:"avatar_url"`
 	PracticeLocation *string     `json:"practice_location"`
 	JoinDate         time.Time   `json:"join_date"`
+	LicenseID        *int64      `json:"license_id"`
 	LicenseNumber    *string     `json:"license_number"`
 	LicenseName      *string     `json:"license_name"`
 	IssueDate        pgtype.Date `json:"issue_date"`
@@ -282,6 +284,7 @@ func (q *Queries) ListUnVerifiedUsers(ctx context.Context, arg ListUnVerifiedUse
 			&i.AvatarUrl,
 			&i.PracticeLocation,
 			&i.JoinDate,
+			&i.LicenseID,
 			&i.LicenseNumber,
 			&i.LicenseName,
 			&i.IssueDate,
@@ -365,6 +368,7 @@ SELECT
     u.avatar_url,
     u.practice_location,
     u.join_date,
+    l.license_id,
     l.license_number,
     l.name AS license_name,
     l.issue_date,
@@ -395,6 +399,7 @@ type ListVerifiedUsersRow struct {
 	AvatarUrl        *string     `json:"avatar_url"`
 	PracticeLocation *string     `json:"practice_location"`
 	JoinDate         time.Time   `json:"join_date"`
+	LicenseID        *int64      `json:"license_id"`
 	LicenseNumber    *string     `json:"license_number"`
 	LicenseName      *string     `json:"license_name"`
 	IssueDate        pgtype.Date `json:"issue_date"`
@@ -417,6 +422,7 @@ func (q *Queries) ListVerifiedUsers(ctx context.Context, arg ListVerifiedUsersPa
 			&i.AvatarUrl,
 			&i.PracticeLocation,
 			&i.JoinDate,
+			&i.LicenseID,
 			&i.LicenseNumber,
 			&i.LicenseName,
 			&i.IssueDate,
