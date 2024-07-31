@@ -1,6 +1,0 @@
-resources:
-  - deployment.yaml
-
-images:
-  - name: 010928181431.dkr.ecr.ap-south-1.amazonaws.com/legalreferral
-    newTag: ${IMAGE_TAG}

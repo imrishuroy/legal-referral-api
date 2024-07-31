@@ -45,13 +45,10 @@ jobs:
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: legalreferral
-          IMAGE_TAG: ${{ github.sha }}
+          IMAGE_TAG: "latest"
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-      - name: Set image tag
-        run: echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_ENV
 
       - name: Update kube config
         run: aws eks update-kubeconfig --name legalreferral --region ap-south-1
@@ -60,6 +57,11 @@ jobs:
         env:
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
         run: |
-          kustomize build eks | kubectl apply -f -
+          kubectl apply -f eks/aws-auth.yaml
+          kubectl apply -f eks/deployment.yaml
+          kubectl apply -f eks/service.yaml
+          kubectl apply -f eks/issuer.yaml
+          kubectl apply -f eks/ingress.yaml
+          
          
           
