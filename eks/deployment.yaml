@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: legal-referral-api
-          image: 010928181431.dkr.ecr.ap-south-1.amazonaws.com/legalreferral:PLACEHOLDER
+          image: 010928181431.dkr.ecr.ap-south-1.amazonaws.com/legalreferral:${IMAGE_TAG}
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
