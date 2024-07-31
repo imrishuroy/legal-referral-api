@@ -93,5 +93,5 @@ func errorResponse(err error) gin.H {
 }
 
 func (server *Server) ping(ctx *gin.Context) {
-	ctx.JSON(200, "UP")
+	ctx.JSON(200, "OK")
 }
