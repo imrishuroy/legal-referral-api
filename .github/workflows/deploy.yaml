@@ -48,7 +48,7 @@ jobs:
           IMAGE_TAG: "latest"
           GITHUB_SHA: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:GITHUB_SHA -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
 
       - name: Update kube config
