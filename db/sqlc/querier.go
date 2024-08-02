@@ -19,6 +19,7 @@ type Querier interface {
 	AddReferredUserToProject(ctx context.Context, arg AddReferredUserToProjectParams) (Project, error)
 	AddReview(ctx context.Context, arg AddReviewParams) (Review, error)
 	AddSocial(ctx context.Context, arg AddSocialParams) (Social, error)
+	ApproveLicense(ctx context.Context, userID string) error
 	AwardProject(ctx context.Context, arg AwardProjectParams) (Project, error)
 	CancelCompleteProjectInitiation(ctx context.Context, arg CancelCompleteProjectInitiationParams) (Project, error)
 	CancelRecommendation(ctx context.Context, arg CancelRecommendationParams) error
@@ -75,6 +76,8 @@ type Querier interface {
 	ListExperiences(ctx context.Context, userID string) ([]ListExperiencesRow, error)
 	ListExpiredAds(ctx context.Context) ([]Ad, error)
 	ListFirms(ctx context.Context, arg ListFirmsParams) ([]Firm, error)
+	ListLicenseUnVerifiedUsers(ctx context.Context, arg ListLicenseUnVerifiedUsersParams) ([]ListLicenseUnVerifiedUsersRow, error)
+	ListLicenseVerifiedUsers(ctx context.Context, arg ListLicenseVerifiedUsersParams) ([]ListLicenseVerifiedUsersRow, error)
 	ListMessages(ctx context.Context, arg ListMessagesParams) ([]ListMessagesRow, error)
 	ListNewsFeed(ctx context.Context, arg ListNewsFeedParams) ([]ListNewsFeedRow, error)
 	ListPlayingAds(ctx context.Context) ([]Ad, error)
@@ -92,14 +95,13 @@ type Querier interface {
 	ListReferrerActiveProjects(ctx context.Context, userID string) ([]ListReferrerActiveProjectsRow, error)
 	ListReferrerCompletedProjects(ctx context.Context, userID string) ([]ListReferrerCompletedProjectsRow, error)
 	ListSocials(ctx context.Context, arg ListSocialsParams) ([]Social, error)
-	ListUnVerifiedUsers(ctx context.Context, arg ListUnVerifiedUsersParams) ([]ListUnVerifiedUsersRow, error)
 	ListUninvitedParticipants(ctx context.Context, discussionID int32) ([]ListUninvitedParticipantsRow, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
-	ListVerifiedUsers(ctx context.Context, arg ListVerifiedUsersParams) ([]ListVerifiedUsersRow, error)
 	MarkWizardCompleted(ctx context.Context, arg MarkWizardCompletedParams) (User, error)
 	PostToNewsFeed(ctx context.Context, arg PostToNewsFeedParams) error
 	RejectConnection(ctx context.Context, id int32) error
 	RejectDiscussion(ctx context.Context, arg RejectDiscussionParams) error
+	RejectLicense(ctx context.Context, userID string) error
 	//
 	RejectProject(ctx context.Context, arg RejectProjectParams) (Project, error)
 	SaveAboutYou(ctx context.Context, arg SaveAboutYouParams) (User, error)

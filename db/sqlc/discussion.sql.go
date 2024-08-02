@@ -129,7 +129,7 @@ func (q *Queries) ListActiveDiscussions(ctx context.Context, authorID string) ([
 }
 
 const listDiscussionInvites = `-- name: ListDiscussionInvites :many
-SELECT discussion_invites.discussion_invite_id, discussion_invites.discussion_id, discussion_invites.invitee_user_id, discussion_invites.invited_user_id, discussion_invites.status, discussion_invites.created_at, discussions.discussion_id, discussions.author_id, discussions.topic, discussions.created_at, users.user_id, users.email, users.first_name, users.last_name, users.about, users.mobile, users.address, users.avatar_url, users.banner_url, users.email_verified, users.mobile_verified, users.wizard_step, users.wizard_completed, users.signup_method, users.practice_area, users.practice_location, users.experience, users.average_billing_per_client, users.case_resolution_rate, users.open_to_referral, users.is_verified, users.join_date
+SELECT discussion_invites.discussion_invite_id, discussion_invites.discussion_id, discussion_invites.invitee_user_id, discussion_invites.invited_user_id, discussion_invites.status, discussion_invites.created_at, discussions.discussion_id, discussions.author_id, discussions.topic, discussions.created_at, users.user_id, users.email, users.first_name, users.last_name, users.about, users.mobile, users.address, users.avatar_url, users.banner_url, users.email_verified, users.mobile_verified, users.wizard_step, users.wizard_completed, users.signup_method, users.practice_area, users.practice_location, users.experience, users.average_billing_per_client, users.case_resolution_rate, users.open_to_referral, users.license_verified, users.join_date
 FROM discussion_invites
 JOIN discussions ON discussion_invites.discussion_id = discussions.discussion_id
 JOIN users ON discussion_invites.invitee_user_id = users.user_id
@@ -183,7 +183,7 @@ func (q *Queries) ListDiscussionInvites(ctx context.Context, invitedUserID strin
 			&i.User.AverageBillingPerClient,
 			&i.User.CaseResolutionRate,
 			&i.User.OpenToReferral,
-			&i.User.IsVerified,
+			&i.User.LicenseVerified,
 			&i.User.JoinDate,
 		); err != nil {
 			return nil, err
