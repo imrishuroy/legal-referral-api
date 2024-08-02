@@ -46,9 +46,10 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: legalreferral
           IMAGE_TAG: "latest"
+          GITHUB_SHA: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:GITHUB_SHA -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
 
       - name: Update kube config
         run: aws eks update-kubeconfig --name legalreferral --region ap-south-1
@@ -56,6 +57,7 @@ jobs:
       - name: Deploy image to Amazon EKS
         env:
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
+
         run: |
           kubectl apply -f eks/aws-auth.yaml
           kubectl apply -f eks/deployment.yaml
