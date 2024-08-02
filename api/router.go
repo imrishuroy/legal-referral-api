@@ -111,8 +111,13 @@ func (server *Server) setupRouter() {
 
 	auth.GET("/users/:user_id/connected", server.listConnectedUsers)
 	auth.GET("/users", server.listUsers)
-	auth.GET("/users/verified", server.listVerifiedUsers)
-	auth.GET("/users/unverified", server.listUnverifiedUsers)
+
+	auth.GET("/users/license-verified", server.listLicenseVerifiedUsers)
+	auth.GET("/users/license-unverified", server.listLicenseUnverifiedUsers)
+
+	// approve license
+	auth.PUT("/users/:user_id/approve-license", server.approveLicense)
+	auth.PUT("/users/:user_id/reject-license", server.rejectLicense)
 
 	// posts
 	auth.POST("/posts", server.createPost)

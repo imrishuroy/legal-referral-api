@@ -135,7 +135,7 @@ ORDER BY
 LIMIT $2
 OFFSET $3;
 
--- name: ListVerifiedUsers :many
+-- name: ListLicenseVerifiedUsers :many
 SELECT
     u.user_id,
     u.first_name,
@@ -154,14 +154,14 @@ FROM
     licenses l ON u.user_id = l.user_id
 WHERE
     u.user_id != $1
-  AND u.is_verified = true
+  AND u.license_verified = true
 ORDER BY
     u.join_date DESC
 LIMIT $2
 OFFSET $3;
 
 
--- name: ListUnVerifiedUsers :many
+-- name: ListLicenseUnVerifiedUsers :many
 SELECT
     u.user_id,
     u.first_name,
@@ -180,8 +180,22 @@ FROM
     licenses l ON u.user_id = l.user_id
 WHERE
     u.user_id != $1
-  AND u.is_verified = false
+    AND u.license_verified = false
 ORDER BY
     u.join_date DESC
 LIMIT $2
 OFFSET $3;
+
+-- name: ApproveLicense :exec
+UPDATE users
+SET
+    license_verified = true
+WHERE
+    user_id = $1;
+
+-- name: RejectLicense :exec
+UPDATE users
+SET
+    license_verified = false
+WHERE
+    user_id = $1;
