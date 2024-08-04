@@ -20,6 +20,7 @@ CREATE TABLE users (
     case_resolution_rate INTEGER,
     open_to_referral BOOLEAN NOT NULL DEFAULT false,
     license_verified BOOLEAN NOT NULL DEFAULT false,
+    license_rejected BOOLEAN NOT NULL DEFAULT false,
     join_date TIMESTAMPTZ NOT NULL DEFAULT current_timestamp
 );
 
