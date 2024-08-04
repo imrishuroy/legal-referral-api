@@ -123,9 +123,14 @@ Scale Down
     
     aws autoscaling update-auto-scaling-group --auto-scaling-group-name <your-auto-scaling-group-name> --desired-capacity 0
 
+Manually delete pods
+    
+    kubectl delete pods -l app=legal-referral-api
+
+
 
 https://repost.aws/knowledge-center/amazon-eks-cluster-access
-
+ers
 
 
 Deploy to EC2 AWS

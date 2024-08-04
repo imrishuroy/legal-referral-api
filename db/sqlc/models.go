@@ -604,5 +604,6 @@ type User struct {
 	CaseResolutionRate      *int32    `json:"case_resolution_rate"`
 	OpenToReferral          bool      `json:"open_to_referral"`
 	LicenseVerified         bool      `json:"license_verified"`
+	LicenseRejected         bool      `json:"license_rejected"`
 	JoinDate                time.Time `json:"join_date"`
 }
