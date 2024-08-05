@@ -76,6 +76,7 @@ type Querier interface {
 	ListExperiences(ctx context.Context, userID string) ([]ListExperiencesRow, error)
 	ListExpiredAds(ctx context.Context) ([]Ad, error)
 	ListFirms(ctx context.Context, arg ListFirmsParams) ([]Firm, error)
+	//     AND u.license_rejected = false
 	ListLicenseUnVerifiedUsers(ctx context.Context, arg ListLicenseUnVerifiedUsersParams) ([]ListLicenseUnVerifiedUsersRow, error)
 	ListLicenseVerifiedUsers(ctx context.Context, arg ListLicenseVerifiedUsersParams) ([]ListLicenseVerifiedUsersRow, error)
 	ListMessages(ctx context.Context, arg ListMessagesParams) ([]ListMessagesRow, error)

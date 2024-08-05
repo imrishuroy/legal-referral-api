@@ -258,7 +258,6 @@ FROM
 WHERE
     u.user_id != $1
     AND u.license_verified = false
-    AND u.license_rejected = false
 ORDER BY
     u.join_date DESC
 LIMIT $2
@@ -285,6 +284,7 @@ type ListLicenseUnVerifiedUsersRow struct {
 	IssueState       *string     `json:"issue_state"`
 }
 
+// AND u.license_rejected = false
 func (q *Queries) ListLicenseUnVerifiedUsers(ctx context.Context, arg ListLicenseUnVerifiedUsersParams) ([]ListLicenseUnVerifiedUsersRow, error) {
 	rows, err := q.db.Query(ctx, listLicenseUnVerifiedUsers, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {

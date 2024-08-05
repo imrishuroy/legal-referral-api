@@ -181,7 +181,7 @@ FROM
 WHERE
     u.user_id != $1
     AND u.license_verified = false
-    AND u.license_rejected = false
+--     AND u.license_rejected = false
 ORDER BY
     u.join_date DESC
 LIMIT $2
