@@ -162,6 +162,9 @@ func (server *Server) setupRouter() {
 	// extend ad period
 	auth.PUT("/ads/:ad_id/extend", server.extendAdPeriod)
 
+	// admin
+	auth.GET("/attorneys", server.listAttorneys)
+
 }
 
 func CORSMiddleware() gin.HandlerFunc {
