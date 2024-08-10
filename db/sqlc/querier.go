@@ -61,6 +61,7 @@ type Querier interface {
 	ListActiveDiscussions(ctx context.Context, authorID string) ([]ListActiveDiscussionsRow, error)
 	ListActiveProposals(ctx context.Context, userID string) ([]ListActiveProposalsRow, error)
 	ListActiveReferrals(ctx context.Context, userID string) ([]Project, error)
+	ListAttorneys(ctx context.Context, arg ListAttorneysParams) ([]ListAttorneysRow, error)
 	ListAwardedProjects(ctx context.Context, userID string) ([]ListAwardedProjectsRow, error)
 	ListChatRooms(ctx context.Context, user1ID string) ([]ListChatRoomsRow, error)
 	ListComments(ctx context.Context, postID int32) ([]ListCommentsRow, error)

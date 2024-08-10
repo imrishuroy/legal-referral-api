@@ -200,3 +200,4 @@ SET
     license_verified = false
 WHERE
     user_id = $1;
+
