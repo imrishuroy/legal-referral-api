@@ -19,7 +19,8 @@ func (server *Server) uploadFile(file multipart.File, fileName string, contentTy
 	// TODO: lets initialize the session in the main.go file and pass svc as a parameter to the uploadFile function
 	svc := s3.New(server.awsSession)
 
-	bucketName := server.config.AWSBucketPrefix + "-" + folderName
+	//bucketName := server.config.AWSBucketName + "-" + folderName
+	bucketName := server.config.AWSBucketName
 	log.Info().Msgf("Uploading file to bucket: %s", bucketName)
 
 	// Upload the file to S3

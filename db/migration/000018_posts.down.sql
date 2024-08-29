@@ -1,2 +1,2 @@
-DROP TABLE posts;
-DROP TYPE post_type;
+DROP TABLE IF EXISTS posts;
+DROP TYPE IF EXISTS post_type;

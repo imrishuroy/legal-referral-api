@@ -1,1 +1,1 @@
-DROP TABLE posts_results;
+DROP TABLE IF EXISTS poll_results;
