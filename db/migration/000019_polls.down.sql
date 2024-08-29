@@ -1,1 +1,1 @@
-DROP TABLE polls;
+DROP TABLE IF EXISTS polls;

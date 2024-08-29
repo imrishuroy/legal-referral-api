@@ -19,7 +19,7 @@ type Config struct {
 	AWSRegion              string `mapstructure:"AWS_REGION"`
 	AWSAccessKeyID         string `mapstructure:"AWS_ACCESS_KEY_ID"`
 	AWSSecretKey           string `mapstructure:"AWS_SECRET_KEY"`
-	AWSBucketPrefix        string `mapstructure:"AWS_BUCKET_PREFIX"`
+	AWSBucketName          string `mapstructure:"AWS_BUCKET_NAME"`
 	LinkedinClientID       string `mapstructure:"LINKEDIN_CLIENT_ID"`
 	LinkedinClientSecret   string `mapstructure:"LINKEDIN_CLIENT_SECRET"`
 	BootStrapServers       string `mapstructure:"BOOTSTRAP_SERVERS"`

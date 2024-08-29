@@ -164,6 +164,14 @@ func (server *Server) setupRouter() {
 
 	// admin
 	auth.GET("/attorneys", server.listAttorneys)
+	auth.GET("/lawyers", server.listLawyers)
+
+	auth.GET("/referrals/:user_id", server.listAllReferralProjects)
+	auth.GET("/referrals/completed/:user_id", server.listCompletedReferralProjects)
+	auth.GET("/referrals/active/:user_id", server.listActiveReferralProjects)
+
+	auth.POST("/faqs", server.createFAQ)
+	auth.GET("/faqs", server.listFAQs)
 
 }
 

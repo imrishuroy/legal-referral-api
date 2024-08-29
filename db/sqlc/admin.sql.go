@@ -11,6 +11,108 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const listActiveReferralProjects = `-- name: ListActiveReferralProjects :many
+SELECT
+    project_id,
+    title,
+    preferred_practice_area,
+    preferred_practice_location,
+    case_description,
+    referrer_user_id,
+    referred_user_id,
+    status,
+    created_at,
+    started_at,
+    completed_at
+FROM
+    projects
+WHERE
+    status = 'active' AND referrer_user_id = $1
+`
+
+func (q *Queries) ListActiveReferralProjects(ctx context.Context, referrerUserID string) ([]Project, error) {
+	rows, err := q.db.Query(ctx, listActiveReferralProjects, referrerUserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Project{}
+	for rows.Next() {
+		var i Project
+		if err := rows.Scan(
+			&i.ProjectID,
+			&i.Title,
+			&i.PreferredPracticeArea,
+			&i.PreferredPracticeLocation,
+			&i.CaseDescription,
+			&i.ReferrerUserID,
+			&i.ReferredUserID,
+			&i.Status,
+			&i.CreatedAt,
+			&i.StartedAt,
+			&i.CompletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listAllReferralProjects = `-- name: ListAllReferralProjects :many
+SELECT
+    project_id,
+    title,
+    preferred_practice_area,
+    preferred_practice_location,
+    case_description,
+    referrer_user_id,
+    referred_user_id,
+    status,
+    created_at,
+    started_at,
+    completed_at
+FROM
+    projects
+WHERE
+    referrer_user_id = $1
+`
+
+func (q *Queries) ListAllReferralProjects(ctx context.Context, referrerUserID string) ([]Project, error) {
+	rows, err := q.db.Query(ctx, listAllReferralProjects, referrerUserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Project{}
+	for rows.Next() {
+		var i Project
+		if err := rows.Scan(
+			&i.ProjectID,
+			&i.Title,
+			&i.PreferredPracticeArea,
+			&i.PreferredPracticeLocation,
+			&i.CaseDescription,
+			&i.ReferrerUserID,
+			&i.ReferredUserID,
+			&i.Status,
+			&i.CreatedAt,
+			&i.StartedAt,
+			&i.CompletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listAttorneys = `-- name: ListAttorneys :many
 WITH conn AS (
     SELECT
@@ -88,6 +190,110 @@ func (q *Queries) ListAttorneys(ctx context.Context, arg ListAttorneysParams) ([
 			&i.ContingencyPrice,
 			&i.HybridPrice,
 			&i.TotalConnections,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listCompletedReferralProjects = `-- name: ListCompletedReferralProjects :many
+SELECT
+    project_id,
+    title,
+    preferred_practice_area,
+    preferred_practice_location,
+    case_description,
+    referrer_user_id,
+    referred_user_id,
+    status,
+    created_at,
+    started_at,
+    completed_at
+FROM
+    projects
+WHERE
+    status = 'completed' AND referrer_user_id = $1
+`
+
+func (q *Queries) ListCompletedReferralProjects(ctx context.Context, referrerUserID string) ([]Project, error) {
+	rows, err := q.db.Query(ctx, listCompletedReferralProjects, referrerUserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Project{}
+	for rows.Next() {
+		var i Project
+		if err := rows.Scan(
+			&i.ProjectID,
+			&i.Title,
+			&i.PreferredPracticeArea,
+			&i.PreferredPracticeLocation,
+			&i.CaseDescription,
+			&i.ReferrerUserID,
+			&i.ReferredUserID,
+			&i.Status,
+			&i.CreatedAt,
+			&i.StartedAt,
+			&i.CompletedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listLawyers = `-- name: ListLawyers :many
+
+SELECT
+    u.user_id,
+    u.first_name,
+    u.last_name,
+    u.avatar_url,
+    COUNT(r.referral_user_id) AS referral_count
+FROM
+    users u
+        LEFT JOIN
+    referral_users r ON u.user_id = r.referred_user_id
+GROUP BY
+    u.user_id, u.first_name, u.last_name
+ORDER BY
+    u.user_id
+`
+
+type ListLawyersRow struct {
+	UserID        string  `json:"user_id"`
+	FirstName     string  `json:"first_name"`
+	LastName      string  `json:"last_name"`
+	AvatarUrl     *string `json:"avatar_url"`
+	ReferralCount int64   `json:"referral_count"`
+}
+
+// lawyers
+func (q *Queries) ListLawyers(ctx context.Context) ([]ListLawyersRow, error) {
+	rows, err := q.db.Query(ctx, listLawyers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListLawyersRow{}
+	for rows.Next() {
+		var i ListLawyersRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.FirstName,
+			&i.LastName,
+			&i.AvatarUrl,
+			&i.ReferralCount,
 		); err != nil {
 			return nil, err
 		}

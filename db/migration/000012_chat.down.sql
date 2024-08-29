@@ -1,8 +1,8 @@
 -- Drop constraints first if they exist
-ALTER TABLE attachments DROP CONSTRAINT IF EXISTS fk_attachment_message;
-ALTER TABLE messages DROP CONSTRAINT IF EXISTS fk_message_sender;
-ALTER TABLE messages DROP CONSTRAINT IF EXISTS fk_message_recipient;
-ALTER TABLE messages DROP CONSTRAINT IF EXISTS unique_room_message;
+ALTER TABLE IF EXISTS attachments DROP CONSTRAINT IF EXISTS fk_attachment_message;
+ALTER TABLE IF exists messages DROP CONSTRAINT IF EXISTS fk_message_sender;
+ALTER TABLE IF exists messages DROP CONSTRAINT IF EXISTS fk_message_recipient;
+ALTER TABLE IF exists messages DROP CONSTRAINT IF EXISTS unique_room_message;
 
 -- Drop indexes if necessary
 DROP INDEX IF EXISTS idx_sender_id;

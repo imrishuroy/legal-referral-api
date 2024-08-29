@@ -31,3 +31,75 @@ ORDER BY
     u.user_id
 LIMIT $1
 OFFSET $2;
+
+-- lawyers
+
+-- name: ListLawyers :many
+SELECT
+    u.user_id,
+    u.first_name,
+    u.last_name,
+    u.avatar_url,
+    COUNT(r.referral_user_id) AS referral_count
+FROM
+    users u
+        LEFT JOIN
+    referral_users r ON u.user_id = r.referred_user_id
+GROUP BY
+    u.user_id, u.first_name, u.last_name
+ORDER BY
+    u.user_id;
+
+-- name: ListAllReferralProjects :many
+SELECT
+    project_id,
+    title,
+    preferred_practice_area,
+    preferred_practice_location,
+    case_description,
+    referrer_user_id,
+    referred_user_id,
+    status,
+    created_at,
+    started_at,
+    completed_at
+FROM
+    projects
+WHERE
+    referrer_user_id = $1;
+
+-- name: ListCompletedReferralProjects :many
+SELECT
+    project_id,
+    title,
+    preferred_practice_area,
+    preferred_practice_location,
+    case_description,
+    referrer_user_id,
+    referred_user_id,
+    status,
+    created_at,
+    started_at,
+    completed_at
+FROM
+    projects
+WHERE
+    status = 'completed' AND referrer_user_id = $1;
+
+-- name: ListActiveReferralProjects :many
+SELECT
+    project_id,
+    title,
+    preferred_practice_area,
+    preferred_practice_location,
+    case_description,
+    referrer_user_id,
+    referred_user_id,
+    status,
+    created_at,
+    started_at,
+    completed_at
+FROM
+    projects
+WHERE
+    status = 'active' AND referrer_user_id = $1;

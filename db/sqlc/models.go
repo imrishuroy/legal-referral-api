@@ -439,6 +439,13 @@ type Experience struct {
 	Skills           []string    `json:"skills"`
 }
 
+type Faq struct {
+	FaqID     int32     `json:"faq_id"`
+	Question  string    `json:"question"`
+	Answer    string    `json:"answer"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
 type Firm struct {
 	FirmID   int64  `json:"firm_id"`
 	Name     string `json:"name"`

@@ -8,7 +8,7 @@ CREATE TABLE discussion_invites (
     invited_user_id VARCHAR NOT NULL,
     status discussion_invite_status NOT NULL DEFAULT 'pending',
     created_at TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
-    FOREIGN KEY (discussion_id) REFERENCES discussion(discussion_id),
+    FOREIGN KEY (discussion_id) REFERENCES discussions(discussion_id),
     FOREIGN KEY (invitee_user_id) REFERENCES users(user_id),
     FOREIGN KEY (invited_user_id) REFERENCES users(user_id),
     UNIQUE (discussion_id, invitee_user_id, invited_user_id)
