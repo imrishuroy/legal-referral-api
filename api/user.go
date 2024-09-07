@@ -353,65 +353,6 @@ func (server *Server) listUsers(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, users)
 }
-
-func (server *Server) listLicenseVerifiedUsers(ctx *gin.Context) {
-	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
-	log.Info().Msgf("auth payload listVerifiedUsers %v", authPayload)
-	if authPayload.UID == "" {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
-		return
-	}
-
-	var req listUsersReq
-	if err := ctx.ShouldBindQuery(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
-		return
-	}
-
-	arg := db.ListLicenseVerifiedUsersParams{
-		UserID: authPayload.UID,
-		Limit:  req.Limit,
-		Offset: req.Offset,
-	}
-
-	users, err := server.store.ListLicenseVerifiedUsers(ctx, arg)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, users)
-}
-
-func (server *Server) listLicenseUnverifiedUsers(ctx *gin.Context) {
-	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
-	log.Info().Msgf("auth payload listUnverifiedUsers %v", authPayload)
-	if authPayload.UID == "" {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
-		return
-	}
-
-	var req listUsersReq
-	if err := ctx.ShouldBindQuery(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
-		return
-	}
-
-	arg := db.ListLicenseUnVerifiedUsersParams{
-		UserID: authPayload.UID,
-		Limit:  req.Limit,
-		Offset: req.Offset,
-	}
-
-	users, err := server.store.ListLicenseUnVerifiedUsers(ctx, arg)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, users)
-}
-
 func (server *Server) approveLicense(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 

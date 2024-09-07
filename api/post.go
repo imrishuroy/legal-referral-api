@@ -67,7 +67,7 @@ func (server *Server) createPost(ctx *gin.Context) {
 	imageUrls := make([]string, 0)
 
 	if req.PostType == PostTypeImage || req.PostType == PostTypeVideo || req.PostType == PostTypeDocument {
-		urls, err := server.handleFileUpload(ctx, req.Files, s3BucketName(req.PostType))
+		urls, err := server.handleFilesUpload(req.Files, s3BucketName(req.PostType))
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
@@ -121,7 +121,7 @@ func (server *Server) createPost(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, "Post created successfully")
 }
 
-func (server *Server) handleFileUpload(ctx *gin.Context, files []*multipart.FileHeader, bucket string) ([]string, error) {
+func (server *Server) handleFilesUpload(files []*multipart.FileHeader, bucket string) ([]string, error) {
 	if len(files) == 0 {
 		return nil, errors.New("no file uploaded")
 	}
@@ -143,7 +143,12 @@ func (server *Server) uploadFileHandler(file *multipart.FileHeader, bucket strin
 	if err != nil {
 		return "", err
 	}
-	defer multiPartFile.Close()
+	defer func(multiPartFile multipart.File) {
+		err := multiPartFile.Close()
+		if err != nil {
+			log.Error().Err(err).Msg("Error closing file")
+		}
+	}(multiPartFile)
 
 	return server.uploadFile(multiPartFile, fileName, file.Header.Get("Content-Type"), bucket)
 }

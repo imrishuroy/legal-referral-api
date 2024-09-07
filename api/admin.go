@@ -7,6 +7,60 @@ import (
 	"net/http"
 )
 
+func (server *Server) listLicenseVerifiedUsers(ctx *gin.Context) {
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	var req listUsersReq
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+		return
+	}
+
+	arg := db.ListLicenseVerifiedUsersParams{
+		Limit:  req.Limit,
+		Offset: (req.Offset - 1) * req.Limit,
+	}
+
+	users, err := server.store.ListLicenseVerifiedUsers(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, users)
+}
+
+func (server *Server) listLicenseUnverifiedUsers(ctx *gin.Context) {
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	var req listUsersReq
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+		return
+	}
+
+	arg := db.ListLicenseUnVerifiedUsersParams{
+		Limit:  req.Limit,
+		Offset: (req.Offset - 1) * req.Limit,
+	}
+
+	users, err := server.store.ListLicenseUnVerifiedUsers(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, users)
+}
+
 type listAttorneysReq struct {
 	Limit  int32 `form:"limit"`
 	Offset int32 `form:"offset"`

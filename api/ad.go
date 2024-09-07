@@ -62,7 +62,7 @@ func (server *Server) createAd(ctx *gin.Context) {
 			bucketName = "post-videos"
 		}
 
-		urls, err := server.handleFileUpload(ctx, req.Files, bucketName)
+		urls, err := server.handleFilesUpload(req.Files, bucketName)
 		if err != nil {
 			log.Error().Msgf("Error uploading files: %v", err)
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))

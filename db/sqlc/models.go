@@ -447,13 +447,15 @@ type Faq struct {
 }
 
 type Firm struct {
-	FirmID   int64  `json:"firm_id"`
-	Name     string `json:"name"`
-	LogoUrl  string `json:"logo_url"`
-	OrgType  string `json:"org_type"`
-	Website  string `json:"website"`
-	Location string `json:"location"`
-	About    string `json:"about"`
+	FirmID      int64     `json:"firm_id"`
+	OwnerUserID string    `json:"owner_user_id"`
+	Name        string    `json:"name"`
+	LogoUrl     string    `json:"logo_url"`
+	OrgType     string    `json:"org_type"`
+	Website     string    `json:"website"`
+	Location    string    `json:"location"`
+	About       string    `json:"about"`
+	CreatedAt   time.Time `json:"created_at"`
 }
 
 type License struct {
