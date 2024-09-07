@@ -135,58 +135,6 @@ ORDER BY
 LIMIT $2
 OFFSET $3;
 
--- name: ListLicenseVerifiedUsers :many
-SELECT
-    u.user_id,
-    u.first_name,
-    u.last_name,
-    u.avatar_url,
-    u.practice_location,
-    u.join_date,
-    l.license_id,
-    l.license_number,
-    l.name AS license_name,
-    l.issue_date,
-    l.issue_state
-FROM
-    users u
-        LEFT JOIN
-    licenses l ON u.user_id = l.user_id
-WHERE
-    u.user_id != $1
-  AND u.license_verified = true
-ORDER BY
-    u.join_date DESC
-LIMIT $2
-OFFSET $3;
-
-
--- name: ListLicenseUnVerifiedUsers :many
-SELECT
-    u.user_id,
-    u.first_name,
-    u.last_name,
-    u.avatar_url,
-    u.practice_location,
-    u.join_date,
-    l.license_id,
-    l.license_number,
-    l.name AS license_name,
-    l.issue_date,
-    l.issue_state
-FROM
-    users u
-        LEFT JOIN
-    licenses l ON u.user_id = l.user_id
-WHERE
-    u.user_id != $1
-    AND u.license_verified = false
---     AND u.license_rejected = false
-ORDER BY
-    u.join_date DESC
-LIMIT $2
-OFFSET $3;
-
 -- name: ApproveLicense :exec
 UPDATE users
 SET

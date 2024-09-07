@@ -82,7 +82,7 @@ func (q *Queries) DeleteExperience(ctx context.Context, experienceID int64) erro
 }
 
 const listExperiences = `-- name: ListExperiences :many
-SELECT experiences.experience_id, experiences.user_id, experiences.title, experiences.practice_area, experiences.firm_id, experiences.practice_location, experiences.start_date, experiences.end_date, experiences.current, experiences.description, experiences.skills, firms.firm_id, firms.name, firms.logo_url, firms.org_type, firms.website, firms.location, firms.about
+SELECT experiences.experience_id, experiences.user_id, experiences.title, experiences.practice_area, experiences.firm_id, experiences.practice_location, experiences.start_date, experiences.end_date, experiences.current, experiences.description, experiences.skills, firms.firm_id, firms.owner_user_id, firms.name, firms.logo_url, firms.org_type, firms.website, firms.location, firms.about, firms.created_at
 FROM experiences
 JOIN firms ON experiences.firm_id = firms.firm_id
 WHERE user_id = $1
@@ -116,12 +116,14 @@ func (q *Queries) ListExperiences(ctx context.Context, userID string) ([]ListExp
 			&i.Experience.Description,
 			&i.Experience.Skills,
 			&i.Firm.FirmID,
+			&i.Firm.OwnerUserID,
 			&i.Firm.Name,
 			&i.Firm.LogoUrl,
 			&i.Firm.OrgType,
 			&i.Firm.Website,
 			&i.Firm.Location,
 			&i.Firm.About,
+			&i.Firm.CreatedAt,
 		); err != nil {
 			return nil, err
 		}

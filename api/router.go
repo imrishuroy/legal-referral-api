@@ -20,8 +20,8 @@ func (server *Server) setupRouter() {
 
 	server.router.POST("/api/reset-password", server.resetPassword)
 	server.router.GET("/api/users/:user_id/wizardstep", server.getUserWizardStep)
-	server.router.POST("/api/firm", server.addFirm)
-	server.router.GET("/api/firms", server.listFirms)
+
+	server.router.GET("/api/firms", server.searchFirms)
 
 	server.router.POST("/api/sign-in/linkedin", server.linkedinLogin)
 
@@ -172,6 +172,9 @@ func (server *Server) setupRouter() {
 
 	auth.POST("/faqs", server.createFAQ)
 	auth.GET("/faqs", server.listFAQs)
+
+	auth.POST("/firms", server.addFirm)
+	auth.GET("/firms/owner/:owner_user_id", server.listFirmsByOwner)
 
 }
 

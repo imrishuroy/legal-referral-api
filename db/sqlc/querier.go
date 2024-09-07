@@ -82,6 +82,7 @@ type Querier interface {
 	ListExpiredAds(ctx context.Context) ([]Ad, error)
 	ListFAQs(ctx context.Context) ([]Faq, error)
 	ListFirms(ctx context.Context, arg ListFirmsParams) ([]Firm, error)
+	ListFirmsByOwner(ctx context.Context, ownerUserID string) ([]Firm, error)
 	// lawyers
 	ListLawyers(ctx context.Context) ([]ListLawyersRow, error)
 	//     AND u.license_rejected = false

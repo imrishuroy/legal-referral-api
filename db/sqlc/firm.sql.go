@@ -12,28 +12,31 @@ import (
 const addFirm = `-- name: AddFirm :one
 INSERT INTO firms (
     name,
+    owner_user_id,
     logo_url,
     org_type,
     website,
     location,
     about
 ) VALUES (
-    $1, $2, $3, $4, $5, $6
-)RETURNING firm_id, name, logo_url, org_type, website, location, about
+    $1, $2, $3, $4, $5, $6, $7
+)RETURNING firm_id, owner_user_id, name, logo_url, org_type, website, location, about, created_at
 `
 
 type AddFirmParams struct {
-	Name     string `json:"name"`
-	LogoUrl  string `json:"logo_url"`
-	OrgType  string `json:"org_type"`
-	Website  string `json:"website"`
-	Location string `json:"location"`
-	About    string `json:"about"`
+	Name        string `json:"name"`
+	OwnerUserID string `json:"owner_user_id"`
+	LogoUrl     string `json:"logo_url"`
+	OrgType     string `json:"org_type"`
+	Website     string `json:"website"`
+	Location    string `json:"location"`
+	About       string `json:"about"`
 }
 
 func (q *Queries) AddFirm(ctx context.Context, arg AddFirmParams) (Firm, error) {
 	row := q.db.QueryRow(ctx, addFirm,
 		arg.Name,
+		arg.OwnerUserID,
 		arg.LogoUrl,
 		arg.OrgType,
 		arg.Website,
@@ -43,18 +46,20 @@ func (q *Queries) AddFirm(ctx context.Context, arg AddFirmParams) (Firm, error) 
 	var i Firm
 	err := row.Scan(
 		&i.FirmID,
+		&i.OwnerUserID,
 		&i.Name,
 		&i.LogoUrl,
 		&i.OrgType,
 		&i.Website,
 		&i.Location,
 		&i.About,
+		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const getFirm = `-- name: GetFirm :one
-SELECT firm_id, name, logo_url, org_type, website, location, about FROM firms
+SELECT firm_id, owner_user_id, name, logo_url, org_type, website, location, about, created_at FROM firms
 WHERE firm_id = $1
 `
 
@@ -63,18 +68,20 @@ func (q *Queries) GetFirm(ctx context.Context, firmID int64) (Firm, error) {
 	var i Firm
 	err := row.Scan(
 		&i.FirmID,
+		&i.OwnerUserID,
 		&i.Name,
 		&i.LogoUrl,
 		&i.OrgType,
 		&i.Website,
 		&i.Location,
 		&i.About,
+		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const listFirms = `-- name: ListFirms :many
-SELECT firm_id, name, logo_url, org_type, website, location, about FROM firms
+SELECT firm_id, owner_user_id, name, logo_url, org_type, website, location, about, created_at FROM firms
 WHERE $3::text = '' OR name ILIKE '%' || $3 || '%'
 ORDER BY firm_id
 LIMIT $1
@@ -98,12 +105,49 @@ func (q *Queries) ListFirms(ctx context.Context, arg ListFirmsParams) ([]Firm, e
 		var i Firm
 		if err := rows.Scan(
 			&i.FirmID,
+			&i.OwnerUserID,
 			&i.Name,
 			&i.LogoUrl,
 			&i.OrgType,
 			&i.Website,
 			&i.Location,
 			&i.About,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listFirmsByOwner = `-- name: ListFirmsByOwner :many
+SELECT firm_id, owner_user_id, name, logo_url, org_type, website, location, about, created_at FROM firms
+WHERE owner_user_id = $1
+`
+
+func (q *Queries) ListFirmsByOwner(ctx context.Context, ownerUserID string) ([]Firm, error) {
+	rows, err := q.db.Query(ctx, listFirmsByOwner, ownerUserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Firm{}
+	for rows.Next() {
+		var i Firm
+		if err := rows.Scan(
+			&i.FirmID,
+			&i.OwnerUserID,
+			&i.Name,
+			&i.LogoUrl,
+			&i.OrgType,
+			&i.Website,
+			&i.Location,
+			&i.About,
+			&i.CreatedAt,
 		); err != nil {
 			return nil, err
 		}
