@@ -176,6 +176,10 @@ func (server *Server) setupRouter() {
 	auth.POST("/firms", server.addFirm)
 	auth.GET("/firms/owner/:owner_user_id", server.listFirmsByOwner)
 
+	// save post
+	auth.POST("/saved-posts", server.savePost)
+	auth.GET("/saved-posts/:user_id", server.listSavedPosts)
+
 }
 
 func CORSMiddleware() gin.HandlerFunc {

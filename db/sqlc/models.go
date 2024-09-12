@@ -583,6 +583,13 @@ type Review struct {
 	Timestamp  time.Time `json:"timestamp"`
 }
 
+type SavedPost struct {
+	SavedPostID int32     `json:"saved_post_id"`
+	PostID      int32     `json:"post_id"`
+	UserID      string    `json:"user_id"`
+	CreatedAt   time.Time `json:"created_at"`
+}
+
 type Social struct {
 	SocialID   int64  `json:"social_id"`
 	EntityID   string `json:"entity_id"`

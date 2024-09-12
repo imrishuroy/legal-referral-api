@@ -104,6 +104,7 @@ type Querier interface {
 	ListReferredUsers2(ctx context.Context, projectID int32) ([]ListReferredUsers2Row, error)
 	ListReferrerActiveProjects(ctx context.Context, userID string) ([]ListReferrerActiveProjectsRow, error)
 	ListReferrerCompletedProjects(ctx context.Context, userID string) ([]ListReferrerCompletedProjectsRow, error)
+	ListSavedPosts(ctx context.Context, userID string) ([]ListSavedPostsRow, error)
 	ListSocials(ctx context.Context, arg ListSocialsParams) ([]Social, error)
 	ListUninvitedParticipants(ctx context.Context, discussionID int32) ([]ListUninvitedParticipantsRow, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
@@ -116,6 +117,7 @@ type Querier interface {
 	RejectProject(ctx context.Context, arg RejectProjectParams) (Project, error)
 	SaveAboutYou(ctx context.Context, arg SaveAboutYouParams) (User, error)
 	SaveLicense(ctx context.Context, arg SaveLicenseParams) (License, error)
+	SavePost(ctx context.Context, arg SavePostParams) (SavedPost, error)
 	Search1stDegreeConnections(ctx context.Context, arg Search1stDegreeConnectionsParams) ([]Search1stDegreeConnectionsRow, error)
 	// Exclude the current user
 	// Retrieve user information for the second-degree connections
