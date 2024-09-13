@@ -52,14 +52,13 @@ jobs:
           docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
 
       - name: Update kube config
-        run: aws eks update-kubeconfig --name legalreferral --region ap-south-1
+        run:  aws eks update-kubeconfig --name legal-referral --region us-east-1
 
       - name: Deploy image to Amazon EKS
         env:
           IMAGE_TAG: ${{ env.IMAGE_TAG }}
 
         run: |
-#          kubectl apply -f eks/aws-auth.yaml
           kubectl apply -f eks/deployment.yaml
           kubectl apply -f eks/service.yaml
           kubectl apply -f eks/issuer.yaml
