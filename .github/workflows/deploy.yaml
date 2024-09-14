@@ -54,10 +54,11 @@ jobs:
       - name: Update kube config
         run:  aws eks update-kubeconfig --name legal-referral --region us-east-1
 
-      - name: Deploy image to Amazon EKS
-        env:
-          IMAGE_TAG: ${{ env.GITHUB_SHA }}
+      - name: Replace image tag in deployment file
+        run: |
+          sed -i "s/{{IMAGE_TAG}}/${{ github.sha }}/g" eks/deployment.yaml
 
+      - name: Deploy image to Amazon EKS
         run: |
           kubectl apply -f eks/deployment.yaml
           kubectl apply -f eks/service.yaml
