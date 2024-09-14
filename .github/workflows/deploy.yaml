@@ -56,7 +56,7 @@ jobs:
 
       - name: Deploy image to Amazon EKS
         env:
-          IMAGE_TAG: ${{ env.IMAGE_TAG }}
+          IMAGE_TAG: ${{ env.GITHUB_SHA }}
 
         run: |
           kubectl apply -f eks/deployment.yaml
