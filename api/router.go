@@ -131,6 +131,10 @@ func (server *Server) setupRouter() {
 
 	auth.GET("/posts/:post_id/liked-users", server.listPostLikedUsers)
 
+	// get post likes and comments count
+	auth.GET("/posts/:post_id/likes-comments-count", server.postLikesAndCommentsCount)
+	auth.GET("/posts/:post_id/is-liked", server.isPostLiked)
+
 	// comments
 	auth.POST("/posts/:post_id/comments", server.commentPost)
 	auth.GET("/posts/:post_id/comments", server.listComments)
@@ -178,6 +182,7 @@ func (server *Server) setupRouter() {
 
 	// save post
 	auth.POST("/saved-posts", server.savePost)
+	auth.DELETE("/saved-posts/:saved_post_id", server.unsavePost)
 	auth.GET("/saved-posts/:user_id", server.listSavedPosts)
 
 }

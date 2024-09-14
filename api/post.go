@@ -6,6 +6,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"mime/multipart"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -191,6 +192,72 @@ func (server *Server) postToNewsFeed(ctx *gin.Context, userID string, postID int
 		//}
 	}
 	return nil
+}
+
+func (server *Server) postLikesAndCommentsCount(ctx *gin.Context) {
+	postIDStr := ctx.Param("post_id")
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	postID, err := strconv.Atoi(postIDStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	int32PostID := int32(postID)
+
+	likes, err := server.store.GetPostLikesCount(ctx, &int32PostID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	comments, err := server.store.GetPostCommentsCount(ctx, int32(postID))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"likes":    likes,
+		"comments": comments,
+	})
+}
+
+func (server *Server) isPostLiked(ctx *gin.Context) {
+	postIDStr := ctx.Param("post_id")
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	postID, err := strconv.Atoi(postIDStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	int32PostID := int32(postID)
+
+	arg := db.GetPosIsLikedByCurrentUserParams{
+		UserID: authPayload.UID,
+		PostID: &int32PostID,
+	}
+
+	liked, err := server.store.GetPosIsLikedByCurrentUser(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, liked)
 }
 
 func s3BucketName(postType PostType) string {
