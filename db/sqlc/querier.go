@@ -46,6 +46,10 @@ type Querier interface {
 	FetchUserProfile(ctx context.Context, userID string) (FetchUserProfileRow, error)
 	GetChatRoom(ctx context.Context, arg GetChatRoomParams) (GetChatRoomRow, error)
 	GetFirm(ctx context.Context, firmID int64) (Firm, error)
+	GetPosIsLikedByCurrentUser(ctx context.Context, arg GetPosIsLikedByCurrentUserParams) (bool, error)
+	GetPostCommentsCount(ctx context.Context, postID int32) (int64, error)
+	GetPostLikesAndCommentsCount(ctx context.Context, postID int32) (GetPostLikesAndCommentsCountRow, error)
+	GetPostLikesCount(ctx context.Context, postID *int32) (int64, error)
 	GetProjectReview(ctx context.Context, arg GetProjectReviewParams) (ProjectReview, error)
 	GetProjectStatus(ctx context.Context, projectID int32) (ProjectStatus, error)
 	//
@@ -104,6 +108,7 @@ type Querier interface {
 	ListReferredUsers2(ctx context.Context, projectID int32) ([]ListReferredUsers2Row, error)
 	ListReferrerActiveProjects(ctx context.Context, userID string) ([]ListReferrerActiveProjectsRow, error)
 	ListReferrerCompletedProjects(ctx context.Context, userID string) ([]ListReferrerCompletedProjectsRow, error)
+	ListSavedPosts(ctx context.Context, userID string) ([]ListSavedPostsRow, error)
 	ListSocials(ctx context.Context, arg ListSocialsParams) ([]Social, error)
 	ListUninvitedParticipants(ctx context.Context, discussionID int32) ([]ListUninvitedParticipantsRow, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
@@ -116,6 +121,7 @@ type Querier interface {
 	RejectProject(ctx context.Context, arg RejectProjectParams) (Project, error)
 	SaveAboutYou(ctx context.Context, arg SaveAboutYouParams) (User, error)
 	SaveLicense(ctx context.Context, arg SaveLicenseParams) (License, error)
+	SavePost(ctx context.Context, arg SavePostParams) error
 	Search1stDegreeConnections(ctx context.Context, arg Search1stDegreeConnectionsParams) ([]Search1stDegreeConnectionsRow, error)
 	// Exclude the current user
 	// Retrieve user information for the second-degree connections
@@ -127,6 +133,7 @@ type Querier interface {
 	ToggleOpenToRefferal(ctx context.Context, arg ToggleOpenToRefferalParams) error
 	UnlikeComment(ctx context.Context, arg UnlikeCommentParams) error
 	UnlikePost(ctx context.Context, arg UnlikePostParams) error
+	UnsavePost(ctx context.Context, savedPostID int32) error
 	UpdateDiscussionTopic(ctx context.Context, arg UpdateDiscussionTopicParams) error
 	UpdateEducation(ctx context.Context, arg UpdateEducationParams) (Education, error)
 	UpdateEmailVerificationStatus(ctx context.Context, arg UpdateEmailVerificationStatusParams) (User, error)
