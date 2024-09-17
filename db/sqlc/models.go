@@ -465,7 +465,7 @@ type License struct {
 	LicenseNumber string      `json:"license_number"`
 	IssueDate     pgtype.Date `json:"issue_date"`
 	IssueState    string      `json:"issue_state"`
-	LicensePdf    *string     `json:"license_pdf"`
+	LicenseUrl    *string     `json:"license_url"`
 }
 
 type Like struct {

@@ -318,7 +318,8 @@ SELECT
     l.license_number,
     l.name AS license_name,
     l.issue_date,
-    l.issue_state
+    l.issue_state,
+    l.license_url
 FROM
     users u
         LEFT JOIN
@@ -348,6 +349,7 @@ type ListLicenseUnVerifiedUsersRow struct {
 	LicenseName      *string     `json:"license_name"`
 	IssueDate        pgtype.Date `json:"issue_date"`
 	IssueState       *string     `json:"issue_state"`
+	LicenseUrl       *string     `json:"license_url"`
 }
 
 // AND u.license_rejected = false
@@ -372,6 +374,7 @@ func (q *Queries) ListLicenseUnVerifiedUsers(ctx context.Context, arg ListLicens
 			&i.LicenseName,
 			&i.IssueDate,
 			&i.IssueState,
+			&i.LicenseUrl,
 		); err != nil {
 			return nil, err
 		}
@@ -395,7 +398,8 @@ SELECT
     l.license_number,
     l.name AS license_name,
     l.issue_date,
-    l.issue_state
+    l.issue_state,
+    l.license_url
 FROM
     users u
         LEFT JOIN
@@ -425,6 +429,7 @@ type ListLicenseVerifiedUsersRow struct {
 	LicenseName      *string     `json:"license_name"`
 	IssueDate        pgtype.Date `json:"issue_date"`
 	IssueState       *string     `json:"issue_state"`
+	LicenseUrl       *string     `json:"license_url"`
 }
 
 func (q *Queries) ListLicenseVerifiedUsers(ctx context.Context, arg ListLicenseVerifiedUsersParams) ([]ListLicenseVerifiedUsersRow, error) {
@@ -448,6 +453,7 @@ func (q *Queries) ListLicenseVerifiedUsers(ctx context.Context, arg ListLicenseV
 			&i.LicenseName,
 			&i.IssueDate,
 			&i.IssueState,
+			&i.LicenseUrl,
 		); err != nil {
 			return nil, err
 		}

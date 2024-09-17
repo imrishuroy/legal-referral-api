@@ -12,7 +12,7 @@ INSERT INTO licenses (
 -- name: UploadLicense :one
 UPDATE licenses
 SET
-    license_pdf = $1
+    license_url = $1
 WHERE
     user_id = $2
 RETURNING *;

@@ -5,7 +5,7 @@ CREATE TABLE licenses (
     license_number VARCHAR NOT NULL,
     issue_date DATE NOT NULL,
     issue_state VARCHAR NOT NULL,
-    license_pdf VARCHAR,
+    license_url VARCHAR,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
