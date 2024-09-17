@@ -10,7 +10,8 @@ SELECT
     l.license_number,
     l.name AS license_name,
     l.issue_date,
-    l.issue_state
+    l.issue_state,
+    l.license_url
 FROM
     users u
         LEFT JOIN
@@ -35,7 +36,8 @@ SELECT
     l.license_number,
     l.name AS license_name,
     l.issue_date,
-    l.issue_state
+    l.issue_state,
+    l.license_url
 FROM
     users u
         LEFT JOIN

@@ -20,7 +20,7 @@ INSERT INTO licenses (
     issue_state
 ) VALUES (
     $1, $2, $3, $4, $5
-) RETURNING license_id, user_id, name, license_number, issue_date, issue_state, license_pdf
+) RETURNING license_id, user_id, name, license_number, issue_date, issue_state, license_url
 `
 
 type SaveLicenseParams struct {
@@ -47,7 +47,7 @@ func (q *Queries) SaveLicense(ctx context.Context, arg SaveLicenseParams) (Licen
 		&i.LicenseNumber,
 		&i.IssueDate,
 		&i.IssueState,
-		&i.LicensePdf,
+		&i.LicenseUrl,
 	)
 	return i, err
 }
@@ -55,19 +55,19 @@ func (q *Queries) SaveLicense(ctx context.Context, arg SaveLicenseParams) (Licen
 const uploadLicense = `-- name: UploadLicense :one
 UPDATE licenses
 SET
-    license_pdf = $1
+    license_url = $1
 WHERE
     user_id = $2
-RETURNING license_id, user_id, name, license_number, issue_date, issue_state, license_pdf
+RETURNING license_id, user_id, name, license_number, issue_date, issue_state, license_url
 `
 
 type UploadLicenseParams struct {
-	LicensePdf *string `json:"license_pdf"`
+	LicenseUrl *string `json:"license_url"`
 	UserID     string  `json:"user_id"`
 }
 
 func (q *Queries) UploadLicense(ctx context.Context, arg UploadLicenseParams) (License, error) {
-	row := q.db.QueryRow(ctx, uploadLicense, arg.LicensePdf, arg.UserID)
+	row := q.db.QueryRow(ctx, uploadLicense, arg.LicenseUrl, arg.UserID)
 	var i License
 	err := row.Scan(
 		&i.LicenseID,
@@ -76,7 +76,7 @@ func (q *Queries) UploadLicense(ctx context.Context, arg UploadLicenseParams) (L
 		&i.LicenseNumber,
 		&i.IssueDate,
 		&i.IssueState,
-		&i.LicensePdf,
+		&i.LicenseUrl,
 	)
 	return i, err
 }

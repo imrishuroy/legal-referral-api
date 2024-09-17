@@ -102,7 +102,7 @@ func (server *Server) uploadLicense(ctx *gin.Context) {
 
 	uploadLicenseArg := db.UploadLicenseParams{
 		UserID:     authPayload.UID,
-		LicensePdf: &url,
+		LicenseUrl: &url,
 	}
 	_, err = server.store.UploadLicense(ctx, uploadLicenseArg)
 	if err != nil {
