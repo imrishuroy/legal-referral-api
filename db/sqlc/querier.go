@@ -85,6 +85,7 @@ type Querier interface {
 	ListExperiences(ctx context.Context, userID string) ([]ListExperiencesRow, error)
 	ListExpiredAds(ctx context.Context) ([]Ad, error)
 	ListFAQs(ctx context.Context) ([]Faq, error)
+	ListFeaturePosts(ctx context.Context) ([]ListFeaturePostsRow, error)
 	ListFirms(ctx context.Context, arg ListFirmsParams) ([]Firm, error)
 	ListFirmsByOwner(ctx context.Context, ownerUserID string) ([]Firm, error)
 	// lawyers
@@ -120,6 +121,7 @@ type Querier interface {
 	//
 	RejectProject(ctx context.Context, arg RejectProjectParams) (Project, error)
 	SaveAboutYou(ctx context.Context, arg SaveAboutYouParams) (User, error)
+	SaveFeaturePost(ctx context.Context, arg SaveFeaturePostParams) error
 	SaveLicense(ctx context.Context, arg SaveLicenseParams) (License, error)
 	SavePost(ctx context.Context, arg SavePostParams) error
 	Search1stDegreeConnections(ctx context.Context, arg Search1stDegreeConnectionsParams) ([]Search1stDegreeConnectionsRow, error)
@@ -131,6 +133,7 @@ type Querier interface {
 	SendMessageToDiscussion(ctx context.Context, arg SendMessageToDiscussionParams) (DiscussionMessage, error)
 	StartProject(ctx context.Context, arg StartProjectParams) (Project, error)
 	ToggleOpenToRefferal(ctx context.Context, arg ToggleOpenToRefferalParams) error
+	UnSaveFeaturePost(ctx context.Context, arg UnSaveFeaturePostParams) error
 	UnlikeComment(ctx context.Context, arg UnlikeCommentParams) error
 	UnlikePost(ctx context.Context, arg UnlikePostParams) error
 	UnsavePost(ctx context.Context, savedPostID int32) error

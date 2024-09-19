@@ -47,7 +47,7 @@ func (server *Server) savePost(ctx *gin.Context) {
 
 }
 
-func (server *Server) unsavePost(ctx *gin.Context) {
+func (server *Server) unSavePost(ctx *gin.Context) {
 
 	savedPostParam := ctx.Param("saved_post_id")
 	// convert this to int32

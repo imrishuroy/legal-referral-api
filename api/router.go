@@ -182,8 +182,13 @@ func (server *Server) setupRouter() {
 
 	// save post
 	auth.POST("/saved-posts", server.savePost)
-	auth.DELETE("/saved-posts/:saved_post_id", server.unsavePost)
+	auth.DELETE("/saved-posts/:saved_post_id", server.unSavePost)
 	auth.GET("/saved-posts/:user_id", server.listSavedPosts)
+
+	// feature posts
+	auth.POST("/feature-posts", server.saveFeaturePost)
+	auth.DELETE("/feature-posts/:post_id", server.unSaveFeaturePost)
+	auth.GET("/feature-posts/:user_id", server.listFeaturePosts)
 
 }
 
