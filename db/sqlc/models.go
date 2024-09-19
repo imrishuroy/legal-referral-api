@@ -446,6 +446,13 @@ type Faq struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+type FeaturePost struct {
+	FeaturePostID int32     `json:"feature_post_id"`
+	PostID        int32     `json:"post_id"`
+	UserID        string    `json:"user_id"`
+	CreatedAt     time.Time `json:"created_at"`
+}
+
 type Firm struct {
 	FirmID      int64     `json:"firm_id"`
 	OwnerUserID string    `json:"owner_user_id"`
