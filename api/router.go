@@ -1,16 +1,35 @@
 package api
 
 import (
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
 	"github.com/imrishuroy/legal-referral/chat"
+	"github.com/imrishuroy/legal-referral/graph"
 )
+
+func playgroundHandler() gin.HandlerFunc {
+	h := playground.Handler("GraphQL", "/api/query")
+	return func(c *gin.Context) {
+		h.ServeHTTP(c.Writer, c.Request)
+	}
+}
 
 func (server *Server) setupRouter() {
 	// Set Gin to release mode
 	//gin.SetMode(gin.ReleaseMode)
 	gin.SetMode(gin.ReleaseMode)
 
+	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{
+		Store: server.store}}))
+
+	//http.Handle("/", playground.Handler("GraphQL playground", "/query"))
+	//http.Handle("/query", srv)
+
 	server.router = gin.Default()
+
+	server.router.GET("/playground", playgroundHandler())
+
 	server.router.GET("/", server.ping).Use(CORSMiddleware())
 	server.router.GET("/health", server.ping).Use(CORSMiddleware())
 	server.router.GET("/check", server.ping).Use(CORSMiddleware())
@@ -27,6 +46,9 @@ func (server *Server) setupRouter() {
 
 	auth := server.router.Group("/api").
 		Use(authMiddleware(server.firebaseAuth))
+
+	// GRAPHQL
+	auth.POST("/query", gin.WrapH(srv))
 
 	auth.GET("/check-token", server.ping)
 	auth.POST("/users", server.createUser)
