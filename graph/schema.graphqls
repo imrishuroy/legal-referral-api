@@ -1,0 +1,26 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+type FAQ {
+  id: Int!
+  question: String!
+  answer: String!
+}
+
+type Query {
+  faqs: [FAQ!]!
+}
+
+input NewFAQ {
+  question: String!
+  answer: String!
+}
+
+type Mutation {
+  createFAQ(input: NewFAQ!): FAQ!
+}
+
+
+
+
