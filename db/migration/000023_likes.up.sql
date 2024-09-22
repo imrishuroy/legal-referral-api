@@ -6,7 +6,7 @@ CREATE TABLE likes (
     type VARCHAR(7) NOT NULL CHECK (type IN ('post', 'comment')),
     created_at TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (post_id) REFERENCES posts(post_id),
+    FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,
     FOREIGN KEY (comment_id) REFERENCES comments(comment_id),
     CHECK (
         (type = 'post' AND post_id IS NOT NULL AND comment_id IS NULL) OR

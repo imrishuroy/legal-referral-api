@@ -49,3 +49,7 @@ SELECT
     CASE WHEN like_id IS NOT NULL THEN true ELSE false END AS is_liked
 FROM likes
 WHERE post_id = $1 AND user_id = $2 AND type = 'post';
+
+-- name: DeletePost :exec
+DELETE FROM posts
+WHERE post_id = $1 AND owner_id = $2;

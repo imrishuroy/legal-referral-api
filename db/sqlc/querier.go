@@ -41,6 +41,7 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteEducation(ctx context.Context, educationID int64) error
 	DeleteExperience(ctx context.Context, experienceID int64) error
+	DeletePost(ctx context.Context, arg DeletePostParams) error
 	DeleteSocial(ctx context.Context, socialID int64) error
 	ExtendAdPeriod(ctx context.Context, arg ExtendAdPeriodParams) (Ad, error)
 	FetchUserProfile(ctx context.Context, userID string) (FetchUserProfileRow, error)

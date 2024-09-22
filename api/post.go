@@ -260,6 +260,37 @@ func (server *Server) isPostLiked(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, liked)
 }
 
+func (server *Server) deletePost(ctx *gin.Context) {
+	postIDStr := ctx.Param("post_id")
+	postID, err := strconv.Atoi(postIDStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
+	int32PostID := int32(postID)
+
+	arg := db.DeletePostParams{
+		PostID:  int32PostID,
+		OwnerID: authPayload.UID,
+	}
+
+	err = server.store.DeletePost(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{})
+
+}
+
 func s3BucketName(postType PostType) string {
 	switch postType {
 	case PostTypeImage:

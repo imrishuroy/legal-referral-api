@@ -50,6 +50,21 @@ func (q *Queries) CreatePost(ctx context.Context, arg CreatePostParams) (Post, e
 	return i, err
 }
 
+const deletePost = `-- name: DeletePost :exec
+DELETE FROM posts
+WHERE post_id = $1 AND owner_id = $2
+`
+
+type DeletePostParams struct {
+	PostID  int32  `json:"post_id"`
+	OwnerID string `json:"owner_id"`
+}
+
+func (q *Queries) DeletePost(ctx context.Context, arg DeletePostParams) error {
+	_, err := q.db.Exec(ctx, deletePost, arg.PostID, arg.OwnerID)
+	return err
+}
+
 const getPosIsLikedByCurrentUser = `-- name: GetPosIsLikedByCurrentUser :one
 SELECT
     CASE WHEN like_id IS NOT NULL THEN true ELSE false END AS is_liked
