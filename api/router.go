@@ -28,7 +28,7 @@ func (server *Server) setupRouter() {
 
 	server.router = gin.Default()
 
-	server.router.GET("/playground", playgroundHandler())
+	//server.router.GET("/playground", playgroundHandler())
 
 	server.router.GET("/", server.ping).Use(CORSMiddleware())
 	server.router.GET("/health", server.ping).Use(CORSMiddleware())
@@ -143,6 +143,7 @@ func (server *Server) setupRouter() {
 
 	// posts
 	auth.POST("/posts", server.createPost)
+	auth.DELETE("/posts/:post_id", server.deletePost)
 
 	// news feed
 	auth.GET("/feeds/:user_id", server.listNewsFeed)

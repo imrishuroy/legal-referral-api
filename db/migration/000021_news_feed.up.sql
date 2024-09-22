@@ -4,5 +4,5 @@ CREATE TABLE news_feed (
     post_id INT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (post_id) REFERENCES posts(post_id)
+    FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE
 );
