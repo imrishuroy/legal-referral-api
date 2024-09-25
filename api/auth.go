@@ -103,13 +103,6 @@ func (server *Server) signIn(ctx *gin.Context) {
 }
 
 type signUpReq struct {
-	//FirstName         string  `json:"first_name" binding:"required"`
-	//LastName          string  `json:"last_name" binding:"required"`
-	//Email             string  `json:"email" binding:"required"`
-	//Mobile            *string `json:"mobile" binding:"required"`
-	//AvatarUrl         *string `json:"avatar_url"`
-	//Password          string  `json:"password" binding:"required"`
-	//ReturnSecureToken bool    `json:"returnSecureToken"`
 	Email             string `json:"email" binding:"required"`
 	Password          string `json:"password" binding:"required"`
 	ReturnSecureToken bool   `json:"returnSecureToken"`
