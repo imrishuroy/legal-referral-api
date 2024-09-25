@@ -34,12 +34,15 @@ func (server *Server) setupRouter() {
 	server.router.GET("/health", server.ping).Use(CORSMiddleware())
 	server.router.GET("/check", server.ping).Use(CORSMiddleware())
 
+	// auth
+	server.router.POST("/api/sign-in", server.signIn)
+	server.router.POST("/api/sign-up", server.signUp)
+	server.router.POST("/api/refresh-token", server.refreshToken)
 	server.router.POST("/api/otp/send", server.sendOTP)
 	server.router.POST("/api/otp/verify", server.verifyOTP)
-
 	server.router.POST("/api/reset-password", server.resetPassword)
-	server.router.GET("/api/users/:user_id/wizardstep", server.getUserWizardStep)
 
+	server.router.GET("/api/users/:user_id/wizardstep", server.getUserWizardStep)
 	server.router.GET("/api/firms", server.searchFirms)
 
 	server.router.POST("/api/sign-in/linkedin", server.linkedinLogin)

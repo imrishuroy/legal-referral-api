@@ -9,6 +9,7 @@ type Config struct {
 	DBDriver               string `mapstructure:"DB_DRIVER"`
 	DBSource               string `mapstructure:"DB_SOURCE"`
 	ServerAddress          string `mapstructure:"SERVER_ADDRESS"`
+	FirebaseAuthKey        string `mapstructure:"FIREBASE_AUTH_KEY"`
 	Auth0Audience          string `mapstructure:"AUTH0_AUDIENCE"`
 	Auth0Domain            string `mapstructure:"AUTH0_DOMAIN"`
 	SigningKey             string `mapstructure:"SIGNING_KEY"`
