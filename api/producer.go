@@ -3,29 +3,40 @@ package api
 import (
 	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"github.com/imrishuroy/legal-referral/util"
 	"github.com/rs/zerolog/log"
 )
 
-func (server *Server) createProducer(userID string, postID string) {
-
-	// creates a new producer instance
+func createKafkaProducer(config util.Config) (*kafka.Producer, error) {
 
 	conf := kafka.ConfigMap{
 		// User-specific properties that you must set
-		"bootstrap.servers": server.config.BootStrapServers,
-		"sasl.username":     server.config.SASLUsername,
-		"sasl.password":     server.config.SASLPassword,
+		"bootstrap.servers": config.BootStrapServers,
+		"sasl.username":     config.SASLUsername,
+		"sasl.password":     config.SASLPassword,
 
 		// Fixed properties
 		"security.protocol": "SASL_SSL",
 		"sasl.mechanisms":   "PLAIN",
 		"acks":              "all"}
 
-	p, _ := kafka.NewProducer(&conf)
-	topic := "publish-feed"
+	p, err := kafka.NewProducer(&conf)
+	if err != nil {
+		log.Error().Msgf("Failed to create producer: %s", err)
+		return nil, err
+	}
+	return p, nil
+}
 
-	// go-routine to handle message delivery reports and
-	// possibly other event types (errors, stats, etc)
+func (server *Server) publishToKafka(topic string, key string, value string) {
+	// create a new producer instance
+	p, err := createKafkaProducer(server.config)
+	if err != nil {
+		log.Error().Msgf("Failed to create producer: %s", err)
+		return
+	}
+	defer p.Close()
+
 	go func() {
 		for e := range p.Events() {
 			switch ev := e.(type) {
@@ -40,63 +51,17 @@ func (server *Server) createProducer(userID string, postID string) {
 		}
 	}()
 
-	// TODO: see if we can create the initializer function in the main.go file and
-	// create a separate function for the producer with the topic, data as parameters
-
-	// produces a sample message to the user-created topic
-	err := p.Produce(&kafka.Message{
+	err = p.Produce(&kafka.Message{
 		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
-		Key:            []byte(userID),
-		Value:          []byte(postID),
+		Key:            []byte(key),
+		Value:          []byte(value),
 	}, nil)
 	if err != nil {
+		log.Error().Msgf("Failed to produce message: %v", err)
 		return
 	}
 
 	// send any outstanding or buffered messages to the Kafka broker and close the connection
 	p.Flush(15 * 1000)
 	p.Close()
-
-}
-
-func (server *Server) publishToKafka(userID string, postID string) {
-	topic := "publish-feed"
-
-	// go-routine to handle message delivery reports and
-	// possibly other event types (errors, stats, etc)
-	go func() {
-		for e := range server.producer.Events() {
-			switch ev := e.(type) {
-			case *kafka.Message:
-				if ev.TopicPartition.Error != nil {
-					fmt.Printf("Failed to deliver message: %v\n", ev.TopicPartition)
-				} else {
-					fmt.Printf("Produced event to topic %s: key = %-10s value = %s\n",
-						*ev.TopicPartition.Topic, string(ev.Key), string(ev.Value))
-				}
-			}
-		}
-	}()
-
-	// create a separate function for the producer with the topic, data as parameters
-
-	// produces a sample message to the user-created topic
-	err := server.producer.Produce(&kafka.Message{
-		TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
-		Key:            []byte(userID),
-		Value:          []byte(postID),
-	}, nil)
-	if err != nil {
-		log.Error().Msgf("Failed to produce message: %v", err)
-
-		// reconnect to the producer
-		//server.producer.Close()
-		//server.createProducer(userID, postID)
-
-		return
-	}
-
-	// send any outstanding or buffered messages to the Kafka broker and close the connection
-	server.producer.Flush(15 * 1000)
-	server.producer.Close()
 }

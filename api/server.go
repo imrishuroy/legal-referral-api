@@ -34,8 +34,6 @@ type Server struct {
 
 func NewServer(config util.Config, store db.Store, hub *chat.Hub, producer *kafka.Producer) (*Server, error) {
 
-	//func NewServer(config util.Config, store db.Store, hub *chat.Hub) (*Server, error) {
-
 	opt := option.WithCredentialsFile("./service-account-key.json")
 	app, err := firebase.NewApp(context.Background(), nil, opt)
 	if err != nil {

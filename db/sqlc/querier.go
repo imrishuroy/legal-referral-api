@@ -122,6 +122,7 @@ type Querier interface {
 	//
 	RejectProject(ctx context.Context, arg RejectProjectParams) (Project, error)
 	SaveAboutYou(ctx context.Context, arg SaveAboutYouParams) (User, error)
+	SaveDevice(ctx context.Context, arg SaveDeviceParams) error
 	SaveFeaturePost(ctx context.Context, arg SaveFeaturePostParams) error
 	SaveLicense(ctx context.Context, arg SaveLicenseParams) (License, error)
 	SavePost(ctx context.Context, arg SavePostParams) error
