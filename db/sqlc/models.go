@@ -386,6 +386,13 @@ type ConnectionInvitation struct {
 	CreatedAt   time.Time        `json:"created_at"`
 }
 
+type Device struct {
+	DeviceID    string    `json:"device_id"`
+	DeviceToken string    `json:"device_token"`
+	UserID      string    `json:"user_id"`
+	LastUsedAt  time.Time `json:"last_used_at"`
+}
+
 type Discussion struct {
 	DiscussionID int32     `json:"discussion_id"`
 	AuthorID     string    `json:"author_id"`
