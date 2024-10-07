@@ -61,7 +61,7 @@ Get Secret from AWS Secrets Manager and transform into json format
 Login to AWS ECR
 https://docs.aws.amazon.com/cli/latest/reference/ecr/get-login-password.html
 
-    aws ecr get-login-password | docker login --username AWS --password-stdin 533267397749.dkr.ecr.ap-south-1.amazonaws.com
+    aws ecr get-login-password | docker login --username AWS --password-stdin <aws_account_id>.dkr.ecr.<region>.amazonaws.com
 
 Docker Pull image
 
