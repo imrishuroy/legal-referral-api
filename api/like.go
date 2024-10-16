@@ -4,6 +4,7 @@ import (
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"strconv"
 )
@@ -23,6 +24,8 @@ func (server *Server) likePost(ctx *gin.Context) {
 	}
 	postID32 := int32(postID)
 
+	log.Info().Msgf("likePost: postID: %d, authPayload: %v", postID, authPayload)
+
 	arg := db.LikePostParams{
 		UserID: authPayload.UID,
 		PostID: &postID32,
@@ -30,9 +33,12 @@ func (server *Server) likePost(ctx *gin.Context) {
 
 	err = server.store.LikePost(ctx, arg)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+		if db.ErrorCode(err) != db.UniqueViolation {
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			return
+		}
 	}
+
 }
 
 func (server *Server) unlikePost(ctx *gin.Context) {
@@ -57,9 +63,12 @@ func (server *Server) unlikePost(ctx *gin.Context) {
 
 	err = server.store.UnlikePost(ctx, arg)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+		if db.ErrorCode(err) != db.UniqueViolation {
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			return
+		}
 	}
+
 }
 
 func (server *Server) listPostLikedUsers(ctx *gin.Context) {
