@@ -216,6 +216,9 @@ func (server *Server) setupRouter() {
 	auth.DELETE("/feature-posts/:post_id", server.unSaveFeaturePost)
 	auth.GET("/feature-posts/:user_id", server.listFeaturePosts)
 
+	// notifications
+	auth.POST("/device-details", server.saveDevice)
+
 }
 
 func CORSMiddleware() gin.HandlerFunc {

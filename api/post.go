@@ -110,8 +110,10 @@ func (server *Server) createPost(ctx *gin.Context) {
 		return
 	}
 
+	server.publishToKafka("publish-feed", req.OwnerID, string(post.PostID))
+
 	// this should also throw an error
-	server.createProducer(req.OwnerID, string(post.PostID))
+	//server.createProducer(req.OwnerID, string(post.PostID))
 	//server.publishToKafka(req.OwnerID, string(post.PostID))
 
 	//if err := server.postToNewsFeed(ctx, req.OwnerID, post.PostID); err != nil {
@@ -186,7 +188,8 @@ func (server *Server) postToNewsFeed(ctx *gin.Context, userID string, postID int
 		//	UserID: id.(string),
 		//	PostID: postID,
 		//}
-		server.createProducer(id.(string), string(postID))
+		//server.createProducer(id.(string), string(postID))
+		server.publishToKafka("publish-feed", id.(string), string(postID))
 		//if err := server.store.PostToNewsFeed(ctx, arg); err != nil {
 		//	return err
 		//}

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
@@ -24,7 +25,11 @@ func (server *Server) likePost(ctx *gin.Context) {
 	}
 	postID32 := int32(postID)
 
+<<<<<<< HEAD
 	log.Info().Msgf("likePost: postID: %d, authPayload: %v", postID, authPayload)
+=======
+	log.Printf("Post ID: %d", postID32)
+>>>>>>> ff75aa9059f0bfbe669b29669f1faa4c95d4cf67
 
 	arg := db.LikePostParams{
 		UserID: authPayload.UID,
@@ -33,12 +38,37 @@ func (server *Server) likePost(ctx *gin.Context) {
 
 	err = server.store.LikePost(ctx, arg)
 	if err != nil {
+<<<<<<< HEAD
 		if db.ErrorCode(err) != db.UniqueViolation {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
 		}
 	}
 
+=======
+		log.Error().Err(err).Msg("Error liking post")
+
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	// create a data map
+	data := map[string]string{
+		"user_id": authPayload.UID,
+		"post_id": postIDStr,
+	}
+
+	//Convert the map to a JSON string
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		log.Error().Err(err).Msg("Error marshalling data")
+	}
+
+	jsonString := string(jsonData)
+
+	//server.publishToKafka("likes", authPayload.UID, string(postID32))
+	server.publishToKafka("likes", authPayload.UID, jsonString)
+>>>>>>> ff75aa9059f0bfbe669b29669f1faa4c95d4cf67
 }
 
 func (server *Server) unlikePost(ctx *gin.Context) {
