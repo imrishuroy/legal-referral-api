@@ -25,7 +25,11 @@ func (server *Server) likePost(ctx *gin.Context) {
 	}
 	postID32 := int32(postID)
 
+<<<<<<< HEAD
+	log.Info().Msgf("likePost: postID: %d, authPayload: %v", postID, authPayload)
+=======
 	log.Printf("Post ID: %d", postID32)
+>>>>>>> ff75aa9059f0bfbe669b29669f1faa4c95d4cf67
 
 	arg := db.LikePostParams{
 		UserID: authPayload.UID,
@@ -34,6 +38,14 @@ func (server *Server) likePost(ctx *gin.Context) {
 
 	err = server.store.LikePost(ctx, arg)
 	if err != nil {
+<<<<<<< HEAD
+		if db.ErrorCode(err) != db.UniqueViolation {
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			return
+		}
+	}
+
+=======
 		log.Error().Err(err).Msg("Error liking post")
 
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -56,6 +68,7 @@ func (server *Server) likePost(ctx *gin.Context) {
 
 	//server.publishToKafka("likes", authPayload.UID, string(postID32))
 	server.publishToKafka("likes", authPayload.UID, jsonString)
+>>>>>>> ff75aa9059f0bfbe669b29669f1faa4c95d4cf67
 }
 
 func (server *Server) unlikePost(ctx *gin.Context) {
@@ -80,9 +93,12 @@ func (server *Server) unlikePost(ctx *gin.Context) {
 
 	err = server.store.UnlikePost(ctx, arg)
 	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+		if db.ErrorCode(err) != db.UniqueViolation {
+			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+			return
+		}
 	}
+
 }
 
 func (server *Server) listPostLikedUsers(ctx *gin.Context) {
