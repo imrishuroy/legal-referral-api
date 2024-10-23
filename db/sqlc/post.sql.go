@@ -84,6 +84,34 @@ func (q *Queries) GetPosIsLikedByCurrentUser(ctx context.Context, arg GetPosIsLi
 	return is_liked, err
 }
 
+const getPost = `-- name: GetPost :one
+SELECT
+    posts.post_id,
+    posts.owner_id,
+    posts.content,
+    posts.media,
+    posts.post_type,
+    posts.poll_id,
+    posts.created_at
+FROM posts
+WHERE posts.post_id = $1
+`
+
+func (q *Queries) GetPost(ctx context.Context, postID int32) (Post, error) {
+	row := q.db.QueryRow(ctx, getPost, postID)
+	var i Post
+	err := row.Scan(
+		&i.PostID,
+		&i.OwnerID,
+		&i.Content,
+		&i.Media,
+		&i.PostType,
+		&i.PollID,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getPostCommentsCount = `-- name: GetPostCommentsCount :one
 SELECT
     COUNT(*) AS comments_count

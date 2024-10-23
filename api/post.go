@@ -294,6 +294,25 @@ func (server *Server) deletePost(ctx *gin.Context) {
 
 }
 
+func (server *Server) getPost(ctx *gin.Context) {
+	postIDStr := ctx.Param("post_id")
+	postID, err := strconv.Atoi(postIDStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	int32PostID := int32(postID)
+
+	post, err := server.store.GetPost(ctx, int32PostID)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, post)
+}
+
 func s3BucketName(postType PostType) string {
 	switch postType {
 	case PostTypeImage:

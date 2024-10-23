@@ -146,6 +146,7 @@ func (server *Server) setupRouter() {
 
 	// posts
 	auth.POST("/posts", server.createPost)
+	auth.GET("/posts/:post_id", server.getPost)
 	auth.DELETE("/posts/:post_id", server.deletePost)
 
 	// news feed

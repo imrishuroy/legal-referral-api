@@ -53,3 +53,15 @@ WHERE post_id = $1 AND user_id = $2 AND type = 'post';
 -- name: DeletePost :exec
 DELETE FROM posts
 WHERE post_id = $1 AND owner_id = $2;
+
+-- name: GetPost :one
+SELECT
+    posts.post_id,
+    posts.owner_id,
+    posts.content,
+    posts.media,
+    posts.post_type,
+    posts.poll_id,
+    posts.created_at
+FROM posts
+WHERE posts.post_id = $1;
