@@ -48,6 +48,7 @@ type Querier interface {
 	GetChatRoom(ctx context.Context, arg GetChatRoomParams) (GetChatRoomRow, error)
 	GetFirm(ctx context.Context, firmID int64) (Firm, error)
 	GetPosIsLikedByCurrentUser(ctx context.Context, arg GetPosIsLikedByCurrentUserParams) (bool, error)
+	GetPost(ctx context.Context, postID int32) (Post, error)
 	GetPostCommentsCount(ctx context.Context, postID int32) (int64, error)
 	GetPostLikesAndCommentsCount(ctx context.Context, postID int32) (GetPostLikesAndCommentsCountRow, error)
 	GetPostLikesCount(ctx context.Context, postID *int32) (int64, error)
