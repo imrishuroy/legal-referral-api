@@ -219,6 +219,8 @@ func (server *Server) setupRouter() {
 
 	// notifications
 	auth.POST("/device-details", server.saveDevice)
+	auth.POST("/notifications", server.createNotification)
+	auth.GET("/notifications/:user_id", server.listNotifications)
 
 }
 

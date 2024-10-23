@@ -33,6 +33,7 @@ type Querier interface {
 	CreateDiscussion(ctx context.Context, arg CreateDiscussionParams) (Discussion, error)
 	CreateFAQ(ctx context.Context, arg CreateFAQParams) (Faq, error)
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
+	CreateNotification(ctx context.Context, arg CreateNotificationParams) (Notification, error)
 	CreatePoll(ctx context.Context, arg CreatePollParams) (Poll, error)
 	CreatePost(ctx context.Context, arg CreatePostParams) (Post, error)
 	CreateProjectReview(ctx context.Context, arg CreateProjectReviewParams) (ProjectReview, error)
@@ -41,12 +42,14 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteEducation(ctx context.Context, educationID int64) error
 	DeleteExperience(ctx context.Context, experienceID int64) error
+	DeleteNotificationById(ctx context.Context, notificationID int32) (Notification, error)
 	DeletePost(ctx context.Context, arg DeletePostParams) error
 	DeleteSocial(ctx context.Context, socialID int64) error
 	ExtendAdPeriod(ctx context.Context, arg ExtendAdPeriodParams) (Ad, error)
 	FetchUserProfile(ctx context.Context, userID string) (FetchUserProfileRow, error)
 	GetChatRoom(ctx context.Context, arg GetChatRoomParams) (GetChatRoomRow, error)
 	GetFirm(ctx context.Context, firmID int64) (Firm, error)
+	GetNotificationById(ctx context.Context, notificationID int32) (Notification, error)
 	GetPosIsLikedByCurrentUser(ctx context.Context, arg GetPosIsLikedByCurrentUserParams) (bool, error)
 	GetPost(ctx context.Context, postID int32) (Post, error)
 	GetPostCommentsCount(ctx context.Context, postID int32) (int64, error)
@@ -97,6 +100,7 @@ type Querier interface {
 	ListLicenseVerifiedUsers(ctx context.Context, arg ListLicenseVerifiedUsersParams) ([]ListLicenseVerifiedUsersRow, error)
 	ListMessages(ctx context.Context, arg ListMessagesParams) ([]ListMessagesRow, error)
 	ListNewsFeed(ctx context.Context, arg ListNewsFeedParams) ([]ListNewsFeedRow, error)
+	ListNotifications(ctx context.Context, arg ListNotificationsParams) ([]ListNotificationsRow, error)
 	ListPlayingAds(ctx context.Context) ([]Ad, error)
 	ListPostLikedUsers(ctx context.Context, postID *int32) ([]ListPostLikedUsersRow, error)
 	ListPostLikedUsers2(ctx context.Context, arg ListPostLikedUsers2Params) ([]ListPostLikedUsers2Row, error)
@@ -115,6 +119,7 @@ type Querier interface {
 	ListSocials(ctx context.Context, arg ListSocialsParams) ([]Social, error)
 	ListUninvitedParticipants(ctx context.Context, discussionID int32) ([]ListUninvitedParticipantsRow, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
+	MarkNotificationAsRead(ctx context.Context, notificationID int32) (Notification, error)
 	MarkWizardCompleted(ctx context.Context, arg MarkWizardCompletedParams) (User, error)
 	PostToNewsFeed(ctx context.Context, arg PostToNewsFeedParams) error
 	RejectConnection(ctx context.Context, id int32) error
