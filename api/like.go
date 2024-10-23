@@ -10,7 +10,18 @@ import (
 	"strconv"
 )
 
+type likePostReq struct {
+	UserID   string `json:"user_id" binding:"required"`
+	SenderID string `json:"sender_id" binding:"required"`
+}
+
 func (server *Server) likePost(ctx *gin.Context) {
+
+	var req likePostReq
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+		return
+	}
 	postIDStr := ctx.Param("post_id")
 	postID, err := strconv.Atoi(postIDStr)
 	if err != nil {
@@ -19,7 +30,7 @@ func (server *Server) likePost(ctx *gin.Context) {
 	}
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
-	if authPayload.UID == "" {
+	if authPayload.UID != req.SenderID {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 		return
 	}
@@ -38,10 +49,13 @@ func (server *Server) likePost(ctx *gin.Context) {
 		}
 	}
 
-	// create a data map
+	// notification data
 	data := map[string]string{
-		"user_id": authPayload.UID,
-		"post_id": postIDStr,
+		"user_id":           req.UserID,
+		"sender_id":         req.SenderID,
+		"target_id":         postIDStr,
+		"target_type":       "post",
+		"notification_type": "like",
 	}
 
 	//Convert the map to a JSON string
