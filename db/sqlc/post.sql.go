@@ -7,6 +7,7 @@ package db
 
 import (
 	"context"
+	"time"
 )
 
 const createPost = `-- name: CreatePost :one
@@ -173,4 +174,77 @@ func (q *Queries) GetPostLikesCount(ctx context.Context, postID *int32) (int64, 
 	var likes_count int64
 	err := row.Scan(&likes_count)
 	return likes_count, err
+}
+
+const searchPosts = `-- name: SearchPosts :many
+SELECT
+    posts.post_id,
+    posts.owner_id,
+    users.first_name as owner_first_name,
+    users.last_name as owner_last_name,
+    users.avatar_url as owner_avatar_url,
+    users.practice_area as owner_practice_area,
+    posts.content,
+    posts.media,
+    posts.post_type,
+    posts.poll_id,
+    posts.created_at
+FROM posts
+JOIN users ON posts.owner_id = users.user_id
+WHERE posts.content ILIKE '%' || $3::text || '%'
+ORDER BY posts.created_at DESC
+LIMIT $1
+OFFSET $2
+`
+
+type SearchPostsParams struct {
+	Limit       int32  `json:"limit"`
+	Offset      int32  `json:"offset"`
+	Searchquery string `json:"searchquery"`
+}
+
+type SearchPostsRow struct {
+	PostID            int32     `json:"post_id"`
+	OwnerID           string    `json:"owner_id"`
+	OwnerFirstName    string    `json:"owner_first_name"`
+	OwnerLastName     string    `json:"owner_last_name"`
+	OwnerAvatarUrl    *string   `json:"owner_avatar_url"`
+	OwnerPracticeArea *string   `json:"owner_practice_area"`
+	Content           *string   `json:"content"`
+	Media             []string  `json:"media"`
+	PostType          PostType  `json:"post_type"`
+	PollID            *int32    `json:"poll_id"`
+	CreatedAt         time.Time `json:"created_at"`
+}
+
+func (q *Queries) SearchPosts(ctx context.Context, arg SearchPostsParams) ([]SearchPostsRow, error) {
+	rows, err := q.db.Query(ctx, searchPosts, arg.Limit, arg.Offset, arg.Searchquery)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SearchPostsRow{}
+	for rows.Next() {
+		var i SearchPostsRow
+		if err := rows.Scan(
+			&i.PostID,
+			&i.OwnerID,
+			&i.OwnerFirstName,
+			&i.OwnerLastName,
+			&i.OwnerAvatarUrl,
+			&i.OwnerPracticeArea,
+			&i.Content,
+			&i.Media,
+			&i.PostType,
+			&i.PollID,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

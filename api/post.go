@@ -313,6 +313,40 @@ func (server *Server) getPost(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, post)
 }
 
+type searchPostsReq struct {
+	Limit       int32  `form:"limit" binding:"required"`
+	Offset      int32  `form:"offset" binding:"required"`
+	SearchQuery string `form:"query"`
+}
+
+func (server *Server) searchPosts(ctx *gin.Context) {
+	var req searchPostsReq
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	arg := db.SearchPostsParams{
+		Limit:       req.Limit,
+		Offset:      (req.Offset - 1) * req.Limit,
+		Searchquery: req.SearchQuery,
+	}
+
+	posts, err := server.store.SearchPosts(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, posts)
+}
+
 func s3BucketName(postType PostType) string {
 	switch postType {
 	case PostTypeImage:
