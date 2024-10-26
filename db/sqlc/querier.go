@@ -137,6 +137,7 @@ type Querier interface {
 	// Retrieve user information for the second-degree connections
 	Search2ndDegreeConnections(ctx context.Context, arg Search2ndDegreeConnectionsParams) ([]Search2ndDegreeConnectionsRow, error)
 	SearchAllUsers(ctx context.Context, query string) ([]SearchAllUsersRow, error)
+	SearchPosts(ctx context.Context, arg SearchPostsParams) ([]SearchPostsRow, error)
 	SendConnection(ctx context.Context, arg SendConnectionParams) (int32, error)
 	SendMessageToDiscussion(ctx context.Context, arg SendMessageToDiscussionParams) (DiscussionMessage, error)
 	StartProject(ctx context.Context, arg StartProjectParams) (Project, error)

@@ -148,6 +148,7 @@ func (server *Server) setupRouter() {
 	auth.POST("/posts", server.createPost)
 	auth.GET("/posts/:post_id", server.getPost)
 	auth.DELETE("/posts/:post_id", server.deletePost)
+	auth.GET("/search/posts", server.searchPosts)
 
 	// news feed
 	auth.GET("/feeds/:user_id", server.listNewsFeed)
