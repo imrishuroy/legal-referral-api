@@ -550,6 +550,15 @@ type Post struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+type PostStatistic struct {
+	PostID    int32     `json:"post_id"`
+	Views     int64     `json:"views"`
+	Likes     int64     `json:"likes"`
+	Comments  int64     `json:"comments"`
+	Shares    int64     `json:"shares"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 type Pricing struct {
 	PriceID          int64          `json:"price_id"`
 	UserID           string         `json:"user_id"`

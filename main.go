@@ -9,11 +9,10 @@ import (
 	"github.com/imrishuroy/legal-referral/chat"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
 	"github.com/imrishuroy/legal-referral/util"
-	"github.com/redis/go-redis/v9"
-	"time"
-
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
+	"time"
 )
 
 func main() {
@@ -90,6 +89,13 @@ func main() {
 		RouteByLatency: false,
 	})
 
+	//rdb := redis.NewClient(&redis.Options{
+	//	Addr:     "localhost:6379",
+	//	Password: "", // No password set
+	//	DB:       0,  // Use default DB
+	//	Protocol: 2,  // Connection protocol
+	//})
+
 	pong, err := rdb.Ping(ctx).Result()
 	if err != nil {
 		log.Error().Err(err).Msg("cannot connect to redis")
@@ -97,7 +103,7 @@ func main() {
 		log.Info().Msg("Connected to Redis with TLS:" + pong)
 	}
 
-	// Set a key-value pair in Redis
+	//Set a key-value pair in Redis
 	err = rdb.Set(ctx, "mykey", "myvalue", 0).Err()
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to set key")
@@ -112,7 +118,7 @@ func main() {
 	fmt.Println("mykey:", val)
 
 	// api server setup
-	server, err := api.NewServer(config, store, hub, producer)
+	server, err := api.NewServer(config, store, hub, producer, rdb)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create server:")
 	}

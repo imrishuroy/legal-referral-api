@@ -113,20 +113,6 @@ func (q *Queries) GetPost(ctx context.Context, postID int32) (Post, error) {
 	return i, err
 }
 
-const getPostCommentsCount = `-- name: GetPostCommentsCount :one
-SELECT
-    COUNT(*) AS comments_count
-FROM comments
-WHERE post_id = $1
-`
-
-func (q *Queries) GetPostCommentsCount(ctx context.Context, postID int32) (int64, error) {
-	row := q.db.QueryRow(ctx, getPostCommentsCount, postID)
-	var comments_count int64
-	err := row.Scan(&comments_count)
-	return comments_count, err
-}
-
 const getPostLikesAndCommentsCount = `-- name: GetPostLikesAndCommentsCount :one
 SELECT
     COALESCE(likes_counts.likes_count, 0) AS likes_count,
@@ -162,18 +148,55 @@ func (q *Queries) GetPostLikesAndCommentsCount(ctx context.Context, postID int32
 	return i, err
 }
 
-const getPostLikesCount = `-- name: GetPostLikesCount :one
+const getPostV2 = `-- name: GetPostV2 :one
 SELECT
-    COUNT(*) AS likes_count
-FROM likes
-WHERE post_id = $1 AND type = 'post'
+    posts.post_id,
+    posts.owner_id,
+    users.first_name as owner_first_name,
+    users.last_name as owner_last_name,
+    users.avatar_url as owner_avatar_url,
+    users.practice_area as owner_practice_area,
+    posts.content,
+    posts.media,
+    posts.post_type,
+    posts.poll_id,
+    posts.created_at
+FROM posts
+JOIN users ON posts.owner_id = users.user_id
+WHERE posts.post_id = $1
 `
 
-func (q *Queries) GetPostLikesCount(ctx context.Context, postID *int32) (int64, error) {
-	row := q.db.QueryRow(ctx, getPostLikesCount, postID)
-	var likes_count int64
-	err := row.Scan(&likes_count)
-	return likes_count, err
+type GetPostV2Row struct {
+	PostID            int32     `json:"post_id"`
+	OwnerID           string    `json:"owner_id"`
+	OwnerFirstName    string    `json:"owner_first_name"`
+	OwnerLastName     string    `json:"owner_last_name"`
+	OwnerAvatarUrl    *string   `json:"owner_avatar_url"`
+	OwnerPracticeArea *string   `json:"owner_practice_area"`
+	Content           *string   `json:"content"`
+	Media             []string  `json:"media"`
+	PostType          PostType  `json:"post_type"`
+	PollID            *int32    `json:"poll_id"`
+	CreatedAt         time.Time `json:"created_at"`
+}
+
+func (q *Queries) GetPostV2(ctx context.Context, postID int32) (GetPostV2Row, error) {
+	row := q.db.QueryRow(ctx, getPostV2, postID)
+	var i GetPostV2Row
+	err := row.Scan(
+		&i.PostID,
+		&i.OwnerID,
+		&i.OwnerFirstName,
+		&i.OwnerLastName,
+		&i.OwnerAvatarUrl,
+		&i.OwnerPracticeArea,
+		&i.Content,
+		&i.Media,
+		&i.PostType,
+		&i.PollID,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const searchPosts = `-- name: SearchPosts :many

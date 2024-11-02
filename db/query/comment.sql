@@ -126,11 +126,8 @@ FROM
 ORDER BY
     comment_tree.created_at;
 
-
-
-
-
-
-
-
-
+-- name: GetPostCommentsCount :one
+SELECT
+    COUNT(*) AS comments_count
+FROM comments
+WHERE post_id = $1;

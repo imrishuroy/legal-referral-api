@@ -62,6 +62,20 @@ func (q *Queries) CommentPost(ctx context.Context, arg CommentPostParams) (Comme
 	return i, err
 }
 
+const getPostCommentsCount = `-- name: GetPostCommentsCount :one
+SELECT
+    COUNT(*) AS comments_count
+FROM comments
+WHERE post_id = $1
+`
+
+func (q *Queries) GetPostCommentsCount(ctx context.Context, postID int32) (int64, error) {
+	row := q.db.QueryRow(ctx, getPostCommentsCount, postID)
+	var comments_count int64
+	err := row.Scan(&comments_count)
+	return comments_count, err
+}
+
 const listComments = `-- name: ListComments :many
 WITH RECURSIVE comment_tree AS (
     SELECT

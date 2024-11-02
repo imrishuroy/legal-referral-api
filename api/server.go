@@ -10,6 +10,7 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/imrishuroy/legal-referral/chat"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
+	"github.com/redis/go-redis/v9"
 	"github.com/twilio/twilio-go"
 	"google.golang.org/api/option"
 
@@ -27,12 +28,12 @@ type Server struct {
 	firebaseAuth *auth.Client
 	twilioClient *twilio.RestClient
 	awsSession   *session.Session
-	//redis        *redis.Client
-	hub      *chat.Hub
-	producer *kafka.Producer
+	rdb          *redis.ClusterClient
+	hub          *chat.Hub
+	producer     *kafka.Producer
 }
 
-func NewServer(config util.Config, store db.Store, hub *chat.Hub, producer *kafka.Producer) (*Server, error) {
+func NewServer(config util.Config, store db.Store, hub *chat.Hub, producer *kafka.Producer, rdb *redis.ClusterClient) (*Server, error) {
 
 	opt := option.WithCredentialsFile("./service-account-key.json")
 	app, err := firebase.NewApp(context.Background(), nil, opt)
@@ -68,9 +69,9 @@ func NewServer(config util.Config, store db.Store, hub *chat.Hub, producer *kafk
 		firebaseAuth: firebaseAuth,
 		twilioClient: twilioClient,
 		awsSession:   awsSession,
-		//redis:        redis,
-		hub:      hub,
-		producer: producer,
+		rdb:          rdb,
+		hub:          hub,
+		producer:     producer,
 	}
 
 	server.setupRouter()
