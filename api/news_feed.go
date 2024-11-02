@@ -60,6 +60,8 @@ func (server *Server) listNewsFeedV2(ctx *gin.Context) {
 
 	// Check cache
 	if feedList, err := server.getCachedFeed(ctx, redisKey); err == nil {
+		// print
+		log.Printf("Feed list from cache: %v", feedList)
 		ctx.JSON(http.StatusOK, feedList)
 		return
 	} else if !errors.Is(err, redis.Nil) {
