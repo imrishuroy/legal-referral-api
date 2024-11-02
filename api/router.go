@@ -151,7 +151,8 @@ func (server *Server) setupRouter() {
 	auth.GET("/search/posts", server.searchPosts)
 
 	// news feed
-	auth.GET("/feeds/:user_id", server.listNewsFeed)
+	//auth.GET("/feeds/:user_id", server.listNewsFeed)
+	auth.GET("/v2/feeds/:user_id", server.listNewsFeedV2)
 
 	// like post
 	auth.POST("/posts/:post_id/like", server.likePost)

@@ -64,3 +64,14 @@ INSERT INTO likes (
 DELETE FROM likes
 WHERE user_id = $1 AND comment_id = $2 AND type = 'comment';
 
+-- name: GetPostLikesCount :one
+SELECT
+    COUNT(*) AS likes_count
+FROM likes
+WHERE post_id = $1 AND type = 'post';
+
+-- name: GetIsPostLikedByUser :one
+SELECT
+    CASE WHEN like_id IS NOT NULL THEN true ELSE false END AS is_liked
+FROM likes
+WHERE post_id = $1 AND user_id = $2 AND type = 'post';

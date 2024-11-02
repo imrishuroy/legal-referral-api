@@ -29,6 +29,39 @@ func (q *Queries) CheckPostLike(ctx context.Context, arg CheckPostLikeParams) (b
 	return exists, err
 }
 
+const getIsPostLikedByUser = `-- name: GetIsPostLikedByUser :one
+SELECT
+    CASE WHEN like_id IS NOT NULL THEN true ELSE false END AS is_liked
+FROM likes
+WHERE post_id = $1 AND user_id = $2 AND type = 'post'
+`
+
+type GetIsPostLikedByUserParams struct {
+	PostID *int32 `json:"post_id"`
+	UserID string `json:"user_id"`
+}
+
+func (q *Queries) GetIsPostLikedByUser(ctx context.Context, arg GetIsPostLikedByUserParams) (bool, error) {
+	row := q.db.QueryRow(ctx, getIsPostLikedByUser, arg.PostID, arg.UserID)
+	var is_liked bool
+	err := row.Scan(&is_liked)
+	return is_liked, err
+}
+
+const getPostLikesCount = `-- name: GetPostLikesCount :one
+SELECT
+    COUNT(*) AS likes_count
+FROM likes
+WHERE post_id = $1 AND type = 'post'
+`
+
+func (q *Queries) GetPostLikesCount(ctx context.Context, postID *int32) (int64, error) {
+	row := q.db.QueryRow(ctx, getPostLikesCount, postID)
+	var likes_count int64
+	err := row.Scan(&likes_count)
+	return likes_count, err
+}
+
 const likeComment = `-- name: LikeComment :exec
 INSERT INTO likes (
     user_id,
