@@ -84,9 +84,11 @@ func main() {
 			InsecureSkipVerify: true,
 		},
 
-		ReadOnly:       false,
-		RouteRandomly:  false,
-		RouteByLatency: false,
+		ReadOnly: false,
+		//RouteRandomly:  false,
+		//RouteByLatency: false,
+		RouteByLatency: true,
+		RouteRandomly:  true,
 	})
 
 	//rdb := redis.NewClient(&redis.Options{
