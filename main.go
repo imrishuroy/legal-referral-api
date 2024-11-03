@@ -103,7 +103,7 @@ func main() {
 	if err != nil {
 		log.Error().Err(err).Msg("cannot connect to redis")
 	} else {
-		log.Info().Msg("Connected to Redis with TLS:" + pong)
+		log.Info().Msg("Connected to Redis with TLS: " + pong)
 	}
 
 	//Set a key-value pair in Redis
