@@ -153,6 +153,7 @@ func (server *Server) setupRouter() {
 	// news feed
 	//auth.GET("/feeds/:user_id", server.listNewsFeed)
 	auth.GET("/v2/feeds/:user_id", server.listNewsFeedV2)
+	auth.GET("/v2/test-redis-latency", server.testRedisLatency)
 
 	// like post
 	auth.POST("/posts/:post_id/like", server.likePost)

@@ -58,37 +58,41 @@ func main() {
 	}
 
 	redisURL := fmt.Sprintf("%s:%s", config.RedisHost, config.RedisPort)
-	log.Info().Msg("Connecting to Redis at " + redisURL)
 
 	ctx := context.Background()
 	rdb := redis.NewClusterClient(&redis.ClusterOptions{
-		Addrs:        []string{redisURL},
-		Password:     "",
-		PoolSize:     10,
-		MinIdleConns: 10,
+		Addrs:    []string{redisURL},
+		Password: "",
 
-		DialTimeout:  5 * time.Second,
-		ReadTimeout:  3 * time.Second,
-		WriteTimeout: 3 * time.Second,
-		PoolTimeout:  4 * time.Second,
+		// Increased pool size and idle connections for high-concurrency handling
+		PoolSize:     50,
+		MinIdleConns: 20,
 
-		//IdleCheckFrequency: 60 * time.Second,
-		//IdleTimeout:        5 * time.Minute,
-		//MaxConnAge:         0 * time.Second,
+		// Reduced timeouts for faster fail over in case of delays
+		DialTimeout:  3 * time.Second,
+		ReadTimeout:  1 * time.Second,
+		WriteTimeout: 1 * time.Second,
+		PoolTimeout:  2 * time.Second,
 
-		MaxRetries:      10,
+		// Connection idle and age management for better connection freshness
+		//IdleCheckFrequency: 30 * time.Second,
+		//IdleTimeout:        2 * time.Minute,
+		//MaxConnAge:         5 * time.Minute,
+
+		// Adjusted retry settings for optimal backoff strategy
+		MaxRetries:      3,
 		MinRetryBackoff: 8 * time.Millisecond,
-		MaxRetryBackoff: 512 * time.Millisecond,
+		MaxRetryBackoff: 256 * time.Millisecond,
 
+		// TLS configuration based on your security needs
 		TLSConfig: &tls.Config{
-			InsecureSkipVerify: true,
+			InsecureSkipVerify: false, // Better to set to false for production, assuming valid certificates
 		},
 
-		ReadOnly: false,
-		//RouteRandomly:  false,
-		//RouteByLatency: false,
-		RouteByLatency: true,
-		RouteRandomly:  true,
+		// Routing adjustments for balanced load with low latency focus
+		ReadOnly:       false,
+		RouteByLatency: true,  // Prioritize low-latency nodes
+		RouteRandomly:  false, // Avoid random routing to improve predictability
 	})
 
 	//rdb := redis.NewClient(&redis.Options{
