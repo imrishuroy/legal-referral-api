@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/imrishuroy/legal-referral/api"
@@ -11,6 +12,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
+	"time"
 )
 
 func main() {
@@ -59,41 +61,43 @@ func main() {
 	log.Info().Msg("Connecting to Redis at " + redisURL)
 
 	ctx := context.Background()
-	//rdb := redis.NewClusterClient(&redis.ClusterOptions{
-	//	Addrs:        []string{redisURL},
-	//	Password:     "",
-	//	PoolSize:     10,
-	//	MinIdleConns: 10,
-	//
-	//	DialTimeout:  5 * time.Second,
-	//	ReadTimeout:  3 * time.Second,
-	//	WriteTimeout: 3 * time.Second,
-	//	PoolTimeout:  4 * time.Second,
-	//
-	//	//IdleCheckFrequency: 60 * time.Second,
-	//	//IdleTimeout:        5 * time.Minute,
-	//	//MaxConnAge:         0 * time.Second,
-	//
-	//	MaxRetries:      10,
-	//	MinRetryBackoff: 8 * time.Millisecond,
-	//	MaxRetryBackoff: 512 * time.Millisecond,
-	//
-	//	TLSConfig: &tls.Config{
-	//		InsecureSkipVerify: true,
-	//	},
-	//
-	//	ReadOnly:       false,
-	//	RouteRandomly:  false,
-	//	RouteByLatency: false,
-	//})
+	rdb := redis.NewClusterClient(&redis.ClusterOptions{
+		Addrs:        []string{redisURL},
+		Password:     "",
+		PoolSize:     10,
+		MinIdleConns: 10,
 
-	rdb := redis.NewClient(&redis.Options{
-		//Addr: "localhost:6379",
-		Addr:     redisURL,
-		Password: "", // No password set
-		DB:       0,  // Use default DB
-		Protocol: 2,  // Connection protocol
+		DialTimeout:  5 * time.Second,
+		ReadTimeout:  3 * time.Second,
+		WriteTimeout: 3 * time.Second,
+		PoolTimeout:  4 * time.Second,
+
+		//IdleCheckFrequency: 60 * time.Second,
+		//IdleTimeout:        5 * time.Minute,
+		//MaxConnAge:         0 * time.Second,
+
+		MaxRetries:      10,
+		MinRetryBackoff: 8 * time.Millisecond,
+		MaxRetryBackoff: 512 * time.Millisecond,
+
+		TLSConfig: &tls.Config{
+			InsecureSkipVerify: true,
+		},
+
+		ReadOnly: false,
+		//RouteRandomly:  false,
+		//RouteByLatency: false,
+		RouteByLatency: true,
+		RouteRandomly:  true,
 	})
+
+	//rdb := redis.NewClient(&redis.Options{
+	//	//Addr: "localhost:6379",
+	//	Addr:     redisURL,
+	//	Password: "", // No password set
+	//	DB:       0,  // Use default DB
+	//	Protocol: 2,  // Connection protocol
+	//})
 
 	pong, err := rdb.Ping(ctx).Result()
 	if err != nil {
