@@ -177,6 +177,24 @@ func (server *Server) CacheUserFeed(ctx *gin.Context, userID string, feed []feed
 	return nil
 }
 
+// create two test function to check the latency of the redis cluster
+func (server *Server) testRedisLatency(ctx *gin.Context) {
+	// Set a key-value pair in Redis
+	err := server.rdb.Set(ctx, "foo", "bar", 0).Err()
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to set key")
+	}
+
+	// Retrieve the value of the key
+	val, err := server.rdb.Get(ctx, "foo").Result()
+	if err != nil {
+		log.Error().Err(err).Msg("Failed to get key")
+	}
+
+	ctx.JSON(http.StatusOK, val)
+
+}
+
 //
 //func (server *Server) listNewsFeed(ctx *gin.Context) {
 //	var req listNewsFeedReq
