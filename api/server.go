@@ -28,12 +28,12 @@ type Server struct {
 	firebaseAuth *auth.Client
 	twilioClient *twilio.RestClient
 	awsSession   *session.Session
-	rdb          *redis.Client
+	rdb          *redis.ClusterClient
 	hub          *chat.Hub
 	producer     *kafka.Producer
 }
 
-func NewServer(config util.Config, store db.Store, hub *chat.Hub, producer *kafka.Producer, rdb *redis.Client) (*Server, error) {
+func NewServer(config util.Config, store db.Store, hub *chat.Hub, producer *kafka.Producer, rdb *redis.ClusterClient) (*Server, error) {
 
 	opt := option.WithCredentialsFile("./service-account-key.json")
 	app, err := firebase.NewApp(context.Background(), nil, opt)
