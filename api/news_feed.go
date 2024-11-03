@@ -10,6 +10,7 @@ import (
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
 	"github.com/redis/go-redis/v9"
 	"github.com/rs/zerolog/log"
+	"math/rand"
 	"net/http"
 	"time"
 )
@@ -58,38 +59,37 @@ func (server *Server) listNewsFeedV2(ctx *gin.Context) {
 
 	redisKey := server.buildFeedCacheKey(userID, req.Limit, req.Offset)
 
-	// Check cache
+	// Try to get the feed from the cache
 	if feedList, err := server.getCachedFeed(ctx, redisKey); err == nil {
-		// print
 		log.Printf("Feed list from cache: %v", feedList)
 		ctx.JSON(http.StatusOK, feedList)
 		return
 	} else if !errors.Is(err, redis.Nil) {
-		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error fetching cached feed"})
-		return
+		// Log non-cache-miss errors without returning 500 to client
+		log.Printf("Redis error: %v", err)
 	}
 
-	// Cache miss: Generate the feed
+	// Cache miss or error: Fetch from DB
 	arg := db.ListNewsFeedParams{
 		UserID: userID,
 		Limit:  req.Limit,
 		Offset: maxOffset(0, (req.Offset-1)*req.Limit),
 	}
 
-	// Fetch feed posts from the database
 	feedPosts, err := server.store.ListNewsFeed(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching feed posts"})
 		return
 	}
 
-	// Prepare the feed list
 	feedList := server.buildFeedList(feedPosts)
 
-	// Cache the feed list with a 10-minute expiration
-	if err := server.cacheFeed(ctx, redisKey, feedList, 10*time.Minute); err != nil {
-		log.Printf("Error caching feed: %v", err)
-	}
+	// Attempt to cache asynchronously to avoid delays
+	go func() {
+		if err := server.cacheFeed(ctx, redisKey, feedList, 10*time.Minute); err != nil {
+			log.Printf("Error caching feed: %v", err)
+		}
+	}()
 
 	ctx.JSON(http.StatusOK, feedList)
 }
@@ -177,117 +177,65 @@ func (server *Server) CacheUserFeed(ctx *gin.Context, userID string, feed []feed
 	return nil
 }
 
-// create two test function to check the latency of the redis cluster
-func (server *Server) testRedisLatency(ctx *gin.Context) {
-	// Set a key-value pair in Redis
-	err := server.rdb.Set(ctx, "foo", "bar", 0).Err()
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to set key")
+func (server *Server) listNewsFeed(ctx *gin.Context) {
+	var req listNewsFeedReq
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+		return
 	}
 
-	// Retrieve the value of the key
-	val, err := server.rdb.Get(ctx, "foo").Result()
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to get key")
+	userID := ctx.Param("user_id")
+
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID != userID {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
 	}
 
-	ctx.JSON(http.StatusOK, val)
+	arg := db.ListNewsFeedParams{
+		UserID: userID,
+		Limit:  req.Limit,
+		Offset: maxOffset(0, (req.Offset-1)*req.Limit),
+	}
 
+	// Fetch the feed posts from the database
+	feedPosts, err := server.store.ListNewsFeed(ctx, arg)
+	if err != nil {
+		log.Printf("Error fetching feed posts: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching feed posts"})
+		return
+	}
+
+	feedList := server.buildFeedList(feedPosts)
+
+	if len(feedList) == 0 {
+		ctx.JSON(http.StatusOK, feedList)
+		return
+	}
+
+	// Fetch a random ad
+	randomAd, err := server.store.GetRandomAd(ctx)
+	if err != nil && !errors.Is(err, db.ErrRecordNotFound) {
+		log.Printf("Error fetching ads: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching ads"})
+		return
+	}
+
+	// Add the ad to the feed if available
+	feedList = server.insertAdAtRandomPosition(feedList, randomAd)
+
+	ctx.JSON(http.StatusOK, feedList)
 }
 
-//
-//func (server *Server) listNewsFeed(ctx *gin.Context) {
-//	var req listNewsFeedReq
-//	if err := ctx.ShouldBindQuery(&req); err != nil {
-//		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
-//		return
-//	}
-//
-//	userID := ctx.Param("user_id")
-//
-//	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
-//	if authPayload.UID != userID {
-//		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
-//		return
-//	}
-//
-//	arg := db.ListNewsFeedParams{
-//		UserID: userID,
-//		Limit:  req.Limit,
-//		Offset: (req.Offset - 1) * req.Limit,
-//	}
-//
-//	feedList := make([]feed, 0)
-//
-//	// Fetch the feed posts
-//	feedPosts, err := server.store.ListNewsFeed(ctx, arg)
-//	if err != nil {
-//		log.Printf("Error fetching feed posts: %v", err)
-//		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching feed posts"})
-//		return
-//	}
-//
-//	// Fetch the ads
-//	randomAd, err := server.store.GetRandomAd(ctx)
-//
-//	// If no ads are found, return the feed posts
-//	if errors.Is(err, db.ErrRecordNotFound) {
-//		for _, f := range feedPosts {
-//			feedList = append(feedList, feed{
-//				FeedPost: (*feedPost)(&f),
-//				FeedType: "post",
-//			})
-//		}
-//
-//		err = server.CacheUserFeed(ctx, userID, feedList)
-//		if err != nil {
-//			log.Error().Err(err).Msg("Error caching feed")
-//		}
-//
-//		err = server.rdb.Set(ctx, "foo", "bar", 10*time.Minute).Err()
-//		if err != nil {
-//			log.Error().Err(err).Msg("Error setting foo")
-//		}
-//
-//		ctx.JSON(http.StatusOK, feedList)
-//		return
-//	}
-//
-//	if err != nil {
-//		log.Printf("Error fetching ads: %v", err)
-//		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching ads"})
-//		return
-//	}
-//
-//	for _, f := range feedPosts {
-//		feedList = append(feedList, feed{
-//			FeedPost: (*feedPost)(&f),
-//			FeedType: "post",
-//		})
-//	}
-//
-//	randSource := rand.NewSource(time.Now().UnixNano())
-//	random := rand.New(randSource)
-//
-//	log.Printf("Feed list: %v", len(feedList))
-//
-//	if len(feedList) == 0 {
-//		ctx.JSON(http.StatusOK, feedList)
-//		return
-//	}
-//
-//	// Generate a random index between 1 and 10 (inclusive)
-//	randomIndex := random.Intn(len(feedList)) + 1
-//
-//	log.Printf("Random index: %d", randomIndex)
-//
-//	newFeedList := make([]feed, len(feedList)+1)
-//	copy(newFeedList, feedList[:randomIndex])
-//	newFeedList[randomIndex] = feed{
-//		Ad:       &randomAd,
-//		FeedType: "ad",
-//	}
-//	copy(newFeedList[randomIndex+1:], feedList[randomIndex:])
-//
-//	ctx.JSON(http.StatusOK, newFeedList)
-//}
+// insertAdAtRandomPosition inserts an ad at a random position within the feed list
+func (server *Server) insertAdAtRandomPosition(feedList []feed, ad db.Ad) []feed {
+	randSource := rand.NewSource(time.Now().UnixNano())
+	random := rand.New(randSource)
+
+	// Generate a random index within the feed list bounds
+	randomIndex := random.Intn(len(feedList) + 1)
+
+	// Insert the ad at the random position
+	newFeedList := append(feedList[:randomIndex], append([]feed{{Ad: &ad, FeedType: "ad"}}, feedList[randomIndex:]...)...)
+	return newFeedList
+}

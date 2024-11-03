@@ -40,6 +40,7 @@ type Querier interface {
 	CreateProposal(ctx context.Context, arg CreateProposalParams) (Proposal, error)
 	CreateReferral(ctx context.Context, arg CreateReferralParams) (Project, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DecrementLikes(ctx context.Context, postID int32) error
 	DeleteEducation(ctx context.Context, educationID int64) error
 	DeleteExperience(ctx context.Context, experienceID int64) error
 	DeleteNotificationById(ctx context.Context, notificationID int32) (Notification, error)
@@ -56,6 +57,7 @@ type Querier interface {
 	GetPostCommentsCount(ctx context.Context, postID int32) (int64, error)
 	GetPostLikesAndCommentsCount(ctx context.Context, postID int32) (GetPostLikesAndCommentsCountRow, error)
 	GetPostLikesCount(ctx context.Context, postID *int32) (int64, error)
+	GetPostStats(ctx context.Context, postID int32) (PostStatistic, error)
 	GetPostV2(ctx context.Context, postID int32) (GetPostV2Row, error)
 	GetProjectReview(ctx context.Context, arg GetProjectReviewParams) (ProjectReview, error)
 	GetProjectStatus(ctx context.Context, projectID int32) (ProjectStatus, error)
@@ -65,6 +67,8 @@ type Querier interface {
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, userID string) (User, error)
 	GetUserWizardStep(ctx context.Context, userID string) (int32, error)
+	IncrementComments(ctx context.Context, postID int32) error
+	IncrementLikes(ctx context.Context, postID int32) error
 	InitiateCompleteProject(ctx context.Context, arg InitiateCompleteProjectParams) (Project, error)
 	InviteUserToDiscussion(ctx context.Context, arg InviteUserToDiscussionParams) error
 	JoinDiscussion(ctx context.Context, arg JoinDiscussionParams) error

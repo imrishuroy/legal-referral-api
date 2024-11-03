@@ -2,18 +2,17 @@ package api
 
 import (
 	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
 	"github.com/imrishuroy/legal-referral/chat"
 	"github.com/imrishuroy/legal-referral/graph"
 )
 
-func playgroundHandler() gin.HandlerFunc {
-	h := playground.Handler("GraphQL", "/api/query")
-	return func(c *gin.Context) {
-		h.ServeHTTP(c.Writer, c.Request)
-	}
-}
+//func playgroundHandler() gin.HandlerFunc {
+//	h := playground.Handler("GraphQL", "/api/query")
+//	return func(c *gin.Context) {
+//		h.ServeHTTP(c.Writer, c.Request)
+//	}
+//}
 
 func (server *Server) setupRouter() {
 	// Set Gin to release mode
@@ -151,9 +150,8 @@ func (server *Server) setupRouter() {
 	auth.GET("/search/posts", server.searchPosts)
 
 	// news feed
-	//auth.GET("/feeds/:user_id", server.listNewsFeed)
+	auth.GET("/feeds/:user_id", server.listNewsFeed)
 	auth.GET("/v2/feeds/:user_id", server.listNewsFeedV2)
-	auth.GET("/v2/test-redis-latency", server.testRedisLatency)
 
 	// like post
 	auth.POST("/posts/:post_id/like", server.likePost)
@@ -224,6 +222,9 @@ func (server *Server) setupRouter() {
 	auth.POST("/device-details", server.saveDevice)
 	auth.POST("/notifications", server.createNotification)
 	auth.GET("/notifications/:user_id", server.listNotifications)
+
+	// post stats
+	auth.GET("/posts/:post_id/stats", server.getPostStats)
 
 }
 

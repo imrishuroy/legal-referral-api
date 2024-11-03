@@ -16,12 +16,12 @@ type likePostReq struct {
 }
 
 func (server *Server) likePost(ctx *gin.Context) {
-
 	var req likePostReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
 		return
 	}
+
 	postIDStr := ctx.Param("post_id")
 	postID, err := strconv.Atoi(postIDStr)
 	if err != nil {
@@ -34,40 +34,48 @@ func (server *Server) likePost(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 		return
 	}
-	postID32 := int32(postID)
 
+	postID32 := int32(postID)
 	arg := db.LikePostParams{
 		UserID: authPayload.UID,
 		PostID: &postID32,
 	}
 
+	alreadyLiked := false
 	err = server.store.LikePost(ctx, arg)
 	if err != nil {
 		if db.ErrorCode(err) != db.UniqueViolation {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
+		} else {
+			alreadyLiked = true
 		}
 	}
 
-	// notification data
-	data := map[string]string{
-		"user_id":           req.UserID,
-		"sender_id":         req.SenderID,
-		"target_id":         postIDStr,
-		"target_type":       "post",
-		"notification_type": "like",
+	if !alreadyLiked {
+
+		// Prepare notification data
+		data := map[string]string{
+			"user_id":           req.UserID,
+			"sender_id":         req.SenderID,
+			"target_id":         postIDStr,
+			"target_type":       "post",
+			"notification_type": "like",
+			"already_liked":     strconv.FormatBool(alreadyLiked),
+		}
+
+		// Convert the map to a JSON string
+		jsonData, err := json.Marshal(data)
+		if err != nil {
+			log.Error().Err(err).Msg("Error marshalling data")
+		}
+
+		// Launch a goroutine to publish to Kafka
+		go func() {
+			jsonString := string(jsonData)
+			server.publishToKafka("likes", authPayload.UID, jsonString)
+		}()
 	}
-
-	//Convert the map to a JSON string
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		log.Error().Err(err).Msg("Error marshalling data")
-	}
-
-	jsonString := string(jsonData)
-
-	//server.publishToKafka("likes", authPayload.UID, string(postID32))
-	server.publishToKafka("likes", authPayload.UID, jsonString)
 }
 
 func (server *Server) unlikePost(ctx *gin.Context) {
@@ -96,6 +104,13 @@ func (server *Server) unlikePost(ctx *gin.Context) {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
 		}
+	}
+
+	// Decrement likes
+	err = server.store.DecrementLikes(ctx, postID32)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
 	}
 
 }

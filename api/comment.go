@@ -1,32 +1,72 @@
 package api
 
 import (
+	"encoding/json"
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"strconv"
 )
 
+type commentPostReq struct {
+	UserID          string `json:"user_id"`
+	SenderID        string `json:"sender_id"`
+	PostId          int    `json:"post_id"`
+	Content         string `json:"content"`
+	ParentCommentId *int32 `json:"parent_comment_id"`
+}
+
 func (server *Server) commentPost(ctx *gin.Context) {
 
-	var req db.CommentPostParams
+	var req commentPostReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
 		return
 	}
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
-	if authPayload.UID != req.UserID {
+	if authPayload.UID != req.SenderID {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 		return
 	}
 
-	comment, err := server.store.CommentPost(ctx, req)
+	arg := db.CommentPostParams{
+		UserID:          req.UserID,
+		PostID:          int32(req.PostId),
+		Content:         req.Content,
+		ParentCommentID: req.ParentCommentId,
+	}
+
+	postIDStr := strconv.Itoa(req.PostId)
+
+	comment, err := server.store.CommentPost(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
+
+	// Prepare notification data
+	data := map[string]string{
+		"user_id":           req.UserID,
+		"sender_id":         req.SenderID,
+		"target_id":         postIDStr,
+		"target_type":       "comment",
+		"notification_type": "like",
+	}
+
+	// Convert the map to a JSON string
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		log.Error().Err(err).Msg("Error marshalling data")
+	}
+
+	// Launch a goroutine to publish to Kafka
+	go func() {
+		jsonString := string(jsonData)
+		server.publishToKafka("likes", authPayload.UID, jsonString)
+	}()
 
 	ctx.JSON(http.StatusOK, comment)
 
