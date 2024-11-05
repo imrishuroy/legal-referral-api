@@ -88,27 +88,66 @@ func (q *Queries) GetPosIsLikedByCurrentUser(ctx context.Context, arg GetPosIsLi
 const getPost = `-- name: GetPost :one
 SELECT
     posts.post_id,
-    posts.owner_id,
     posts.content,
     posts.media,
     posts.post_type,
     posts.poll_id,
-    posts.created_at
+    posts.created_at,
+    posts.owner_id,
+    post_owner.first_name AS owner_first_name,
+    post_owner.last_name AS owner_last_name,
+    post_owner.avatar_url AS owner_avatar_url,
+    post_owner.practice_area AS owner_practice_area,
+    COALESCE(post_stats.likes, 0) AS likes_count,
+    COALESCE(post_stats.comments, 0) AS comments_count,
+    EXISTS (
+        SELECT 1
+        FROM likes
+        WHERE likes.user_id = posts.owner_id
+          AND likes.post_id = posts.post_id
+          AND likes.type = 'post'
+    ) AS is_liked
 FROM posts
+         JOIN users post_owner ON posts.owner_id = post_owner.user_id
+         LEFT JOIN post_statistics post_stats ON posts.post_id = post_stats.post_id
 WHERE posts.post_id = $1
 `
 
-func (q *Queries) GetPost(ctx context.Context, postID int32) (Post, error) {
+type GetPostRow struct {
+	PostID            int32     `json:"post_id"`
+	Content           *string   `json:"content"`
+	Media             []string  `json:"media"`
+	PostType          PostType  `json:"post_type"`
+	PollID            *int32    `json:"poll_id"`
+	CreatedAt         time.Time `json:"created_at"`
+	OwnerID           string    `json:"owner_id"`
+	OwnerFirstName    string    `json:"owner_first_name"`
+	OwnerLastName     string    `json:"owner_last_name"`
+	OwnerAvatarUrl    *string   `json:"owner_avatar_url"`
+	OwnerPracticeArea *string   `json:"owner_practice_area"`
+	LikesCount        int64     `json:"likes_count"`
+	CommentsCount     int64     `json:"comments_count"`
+	IsLiked           bool      `json:"is_liked"`
+}
+
+func (q *Queries) GetPost(ctx context.Context, postID int32) (GetPostRow, error) {
 	row := q.db.QueryRow(ctx, getPost, postID)
-	var i Post
+	var i GetPostRow
 	err := row.Scan(
 		&i.PostID,
-		&i.OwnerID,
 		&i.Content,
 		&i.Media,
 		&i.PostType,
 		&i.PollID,
 		&i.CreatedAt,
+		&i.OwnerID,
+		&i.OwnerFirstName,
+		&i.OwnerLastName,
+		&i.OwnerAvatarUrl,
+		&i.OwnerPracticeArea,
+		&i.LikesCount,
+		&i.CommentsCount,
+		&i.IsLiked,
 	)
 	return i, err
 }
@@ -145,57 +184,6 @@ func (q *Queries) GetPostLikesAndCommentsCount(ctx context.Context, postID int32
 	row := q.db.QueryRow(ctx, getPostLikesAndCommentsCount, postID)
 	var i GetPostLikesAndCommentsCountRow
 	err := row.Scan(&i.LikesCount, &i.CommentsCount)
-	return i, err
-}
-
-const getPostV2 = `-- name: GetPostV2 :one
-SELECT
-    posts.post_id,
-    posts.owner_id,
-    users.first_name as owner_first_name,
-    users.last_name as owner_last_name,
-    users.avatar_url as owner_avatar_url,
-    users.practice_area as owner_practice_area,
-    posts.content,
-    posts.media,
-    posts.post_type,
-    posts.poll_id,
-    posts.created_at
-FROM posts
-JOIN users ON posts.owner_id = users.user_id
-WHERE posts.post_id = $1
-`
-
-type GetPostV2Row struct {
-	PostID            int32     `json:"post_id"`
-	OwnerID           string    `json:"owner_id"`
-	OwnerFirstName    string    `json:"owner_first_name"`
-	OwnerLastName     string    `json:"owner_last_name"`
-	OwnerAvatarUrl    *string   `json:"owner_avatar_url"`
-	OwnerPracticeArea *string   `json:"owner_practice_area"`
-	Content           *string   `json:"content"`
-	Media             []string  `json:"media"`
-	PostType          PostType  `json:"post_type"`
-	PollID            *int32    `json:"poll_id"`
-	CreatedAt         time.Time `json:"created_at"`
-}
-
-func (q *Queries) GetPostV2(ctx context.Context, postID int32) (GetPostV2Row, error) {
-	row := q.db.QueryRow(ctx, getPostV2, postID)
-	var i GetPostV2Row
-	err := row.Scan(
-		&i.PostID,
-		&i.OwnerID,
-		&i.OwnerFirstName,
-		&i.OwnerLastName,
-		&i.OwnerAvatarUrl,
-		&i.OwnerPracticeArea,
-		&i.Content,
-		&i.Media,
-		&i.PostType,
-		&i.PollID,
-		&i.CreatedAt,
-	)
 	return i, err
 }
 
