@@ -42,8 +42,6 @@ type createPostReq struct {
 	PollTitle string                  `form:"poll_title"`
 	Options   []string                `form:"options"`
 	EndTime   *time.Time              `form:"end_time"`
-	//PollID   *int32                  `form:"poll_id"`
-	//Poll     *createPollReq          `form:"poll"`
 }
 
 func (server *Server) createPost(ctx *gin.Context) {
@@ -68,7 +66,8 @@ func (server *Server) createPost(ctx *gin.Context) {
 	imageUrls := make([]string, 0)
 
 	if req.PostType == PostTypeImage || req.PostType == PostTypeVideo || req.PostType == PostTypeDocument {
-		urls, err := server.handleFilesUpload(req.Files, s3BucketName(req.PostType))
+		//urls, err := server.handleFilesUpload(req.Files, s3BucketName(req.PostType))
+		urls, err := server.handleFilesUpload(req.Files)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
@@ -79,15 +78,14 @@ func (server *Server) createPost(ctx *gin.Context) {
 	}
 
 	var pollID *int32
-
-	createPollReq := createPollReq{
-		OwnerID:   req.OwnerID,
-		PollTitle: req.PollTitle,
-		Options:   req.Options,
-		EndTime:   req.EndTime,
-	}
-
 	if req.PostType == PostTypePoll {
+		createPollReq := createPollReq{
+			OwnerID:   req.OwnerID,
+			PollTitle: req.PollTitle,
+			Options:   req.Options,
+			EndTime:   req.EndTime,
+		}
+
 		poll, err := server.createPoll(ctx, &createPollReq)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -122,38 +120,6 @@ func (server *Server) createPost(ctx *gin.Context) {
 	//}
 
 	ctx.JSON(http.StatusOK, "Post created successfully")
-}
-
-func (server *Server) handleFilesUpload(files []*multipart.FileHeader, bucket string) ([]string, error) {
-	if len(files) == 0 {
-		return nil, errors.New("no file uploaded")
-	}
-
-	urls := make([]string, 0, len(files))
-	for _, file := range files {
-		url, err := server.uploadFileHandler(file, bucket)
-		if err != nil {
-			return nil, err
-		}
-		urls = append(urls, url)
-	}
-	return urls, nil
-}
-
-func (server *Server) uploadFileHandler(file *multipart.FileHeader, bucket string) (string, error) {
-	fileName := generateUniqueFilename() + getFileExtension(file)
-	multiPartFile, err := file.Open()
-	if err != nil {
-		return "", err
-	}
-	defer func(multiPartFile multipart.File) {
-		err := multiPartFile.Close()
-		if err != nil {
-			log.Error().Err(err).Msg("Error closing file")
-		}
-	}(multiPartFile)
-
-	return server.uploadFile(multiPartFile, fileName, file.Header.Get("Content-Type"), bucket)
 }
 
 func (server *Server) createPoll(ctx *gin.Context, req *createPollReq) (*db.Poll, error) {

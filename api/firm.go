@@ -42,7 +42,7 @@ func (server *Server) addFirm(ctx *gin.Context) {
 		return
 	}
 
-	urls, err := server.handleFilesUpload(req.Files, server.config.AWSBucketName)
+	urls, err := server.handleFilesUpload(req.Files)
 
 	if err != nil && len(urls) == 0 {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))

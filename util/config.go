@@ -21,6 +21,7 @@ type Config struct {
 	AWSAccessKeyID         string `mapstructure:"AWS_ACCESS_KEY_ID"`
 	AWSSecretKey           string `mapstructure:"AWS_SECRET_KEY"`
 	AWSBucketName          string `mapstructure:"AWS_BUCKET_NAME"`
+	CloudFrontURL          string `mapstructure:"CLOUDFRONT_URL"`
 	LinkedinClientID       string `mapstructure:"LINKEDIN_CLIENT_ID"`
 	LinkedinClientSecret   string `mapstructure:"LINKEDIN_CLIENT_SECRET"`
 	BootStrapServers       string `mapstructure:"BOOTSTRAP_SERVERS"`
