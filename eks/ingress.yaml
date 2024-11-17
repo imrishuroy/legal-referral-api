@@ -4,6 +4,7 @@ metadata:
   name: legal-referral-ingress-http
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"  # Allow up to 50MB file uploads
 spec:
   ingressClassName: nginx
   rules:
