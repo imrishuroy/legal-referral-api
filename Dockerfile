@@ -1,5 +1,5 @@
 #Build state
-FROM golang:1.22.5-alpine3.20 AS builder
+FROM golang:1.23.3-alpine3.20 AS builder
 
 RUN apk add --no-progress --no-cache gcc musl-dev
 
