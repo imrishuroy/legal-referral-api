@@ -110,20 +110,6 @@ func main() {
 		log.Info().Msg("Connected to Redis with TLS: " + pong)
 	}
 
-	//Set a key-value pair in Redis
-	err = rdb.Set(ctx, "mykey", "myvalue", 0).Err()
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to set key")
-	}
-
-	// Retrieve the value of the key
-	val, err := rdb.Get(ctx, "mykey").Result()
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to get key")
-	}
-
-	fmt.Println("mykey:", val)
-
 	// api server setup
 	server, err := api.NewServer(config, store, hub, producer, rdb)
 	if err != nil {

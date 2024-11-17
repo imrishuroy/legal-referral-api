@@ -55,14 +55,16 @@ func (server *Server) createAd(ctx *gin.Context) {
 	imageUrls := make([]string, 0)
 
 	if req.AdType == AdTypeImage || req.AdType == AdTypeVideo {
-		var bucketName string
-		if req.AdType == AdTypeImage {
-			bucketName = "post-images"
-		} else {
-			bucketName = "post-videos"
-		}
+		//	var bucketName string
+		//	if req.AdType == AdTypeImage {
+		//		bucketName = "post-images"
+		//	} else {
+		//		bucketName = "post-videos"
+		//	}
 
-		urls, err := server.handleFilesUpload(req.Files, bucketName)
+		urls, err := server.handleFilesUpload(req.Files)
+
+		//urls, err := server.handleFilesUpload(req.Files, bucketName)
 		if err != nil {
 			log.Error().Msgf("Error uploading files: %v", err)
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))

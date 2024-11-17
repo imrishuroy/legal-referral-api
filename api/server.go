@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/imrishuroy/legal-referral/chat"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
@@ -28,6 +29,7 @@ type Server struct {
 	firebaseAuth *auth.Client
 	twilioClient *twilio.RestClient
 	awsSession   *session.Session
+	svc          *s3.S3
 	rdb          *redis.ClusterClient
 	hub          *chat.Hub
 	producer     *kafka.Producer
@@ -63,12 +65,16 @@ func NewServer(config util.Config, store db.Store, hub *chat.Hub, producer *kafk
 		return nil, err
 	}
 
+	// s3 session
+	svc := s3.New(awsSession)
+
 	server := &Server{
 		config:       config,
 		store:        store,
 		firebaseAuth: firebaseAuth,
 		twilioClient: twilioClient,
 		awsSession:   awsSession,
+		svc:          svc,
 		rdb:          rdb,
 		hub:          hub,
 		producer:     producer,

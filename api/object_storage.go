@@ -3,6 +3,7 @@ package api
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -10,21 +11,94 @@ import (
 	"mime/multipart"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 )
 
-func (server *Server) uploadFile(file multipart.File, fileName string, contentType string, folderName string) (string, error) {
-	// Create a session with S3
+func (server *Server) handleFilesUpload(files []*multipart.FileHeader) ([]string, error) {
+	if len(files) == 0 {
+		return nil, errors.New("no file uploaded")
+	}
 
-	// TODO: lets initialize the session in the main.go file and pass svc as a parameter to the uploadFile function
-	svc := s3.New(server.awsSession)
+	// Channels to collect results and errors
+	urlsChan := make(chan string, len(files))
+	errChan := make(chan error, len(files))
 
-	//bucketName := server.config.AWSBucketName + "-" + folderName
+	// Wait group to wait for all Go routines to finish
+	var wg sync.WaitGroup
+
+	for _, file := range files {
+		wg.Add(1)
+		go func(file *multipart.FileHeader) {
+			defer wg.Done()
+
+			url, err := server.uploadFileHandler(file)
+			if err != nil {
+				errChan <- err
+				return
+			}
+			urlsChan <- url
+		}(file)
+	}
+
+	// Wait for all uploads to complete
+	wg.Wait()
+	close(urlsChan)
+	close(errChan)
+
+	// Check if there were any errors
+	if len(errChan) > 0 {
+		return nil, <-errChan // Return the first error
+	}
+
+	// Collect all URLs
+	urls := make([]string, 0, len(files))
+	for url := range urlsChan {
+		urls = append(urls, url)
+	}
+
+	return urls, nil
+}
+
+//func (server *Server) handleFilesUpload(files []*multipart.FileHeader) ([]string, error) {
+//	if len(files) == 0 {
+//		return nil, errors.New("no file uploaded")
+//	}
+//
+//	urls := make([]string, 0, len(files))
+//	for _, file := range files {
+//		url, err := server.uploadFileHandler(file)
+//		if err != nil {
+//			return nil, err
+//		}
+//		urls = append(urls, url)
+//	}
+//	return urls, nil
+//}
+
+func (server *Server) uploadFileHandler(file *multipart.FileHeader) (string, error) {
+	fileName := generateUniqueFilename() + getFileExtension(file)
+	multiPartFile, err := file.Open()
+	if err != nil {
+		return "", err
+	}
+	defer func(multiPartFile multipart.File) {
+		err := multiPartFile.Close()
+		if err != nil {
+			log.Error().Err(err).Msg("Error closing file")
+		}
+	}(multiPartFile)
+
+	return server.uploadFile(multiPartFile, fileName, file.Header.Get("Content-Type"))
+}
+
+func (server *Server) uploadFile(file multipart.File, fileName string, contentType string) (string, error) {
+
 	bucketName := server.config.AWSBucketName
 	log.Info().Msgf("Uploading file to bucket: %s", bucketName)
 
 	// Upload the file to S3
-	_, err := svc.PutObject(&s3.PutObjectInput{
+	_, err := server.svc.PutObject(&s3.PutObjectInput{
 		Bucket:               aws.String(bucketName),
 		Key:                  aws.String(fileName),
 		Body:                 file,
@@ -38,9 +112,32 @@ func (server *Server) uploadFile(file multipart.File, fileName string, contentTy
 		return "", err
 	}
 
-	url := generateS3URL(server.config.AWSRegion, bucketName, fileName)
-	return url, nil
+	return fileName, nil
 }
+
+//func (server *Server) uploadFile(file multipart.File, fileName string, contentType string) (string, error) {
+//
+//	bucketName := server.config.AWSBucketName
+//	log.Info().Msgf("Uploading file to bucket: %s", bucketName)
+//
+//	// Upload the file to S3
+//	_, err := server.svc.PutObject(&s3.PutObjectInput{
+//		Bucket:               aws.String(bucketName),
+//		Key:                  aws.String(fileName),
+//		Body:                 file,
+//		ContentType:          aws.String(contentType),
+//		ContentDisposition:   aws.String("attachment"),
+//		ServerSideEncryption: aws.String("AES256"),
+//	})
+//
+//	if err != nil {
+//		log.Error().Err(err).Msg("Error uploading file to S3")
+//		return "", err
+//	}
+//
+//	url := generateS3URL(server.config.AWSRegion, bucketName, fileName)
+//	return url, nil
+//}
 
 func preSignS3Object(svc *s3.S3, bucket string, key string) (string, error) {
 	req, _ := svc.GetObjectRequest(&s3.GetObjectInput{
