@@ -45,13 +45,28 @@ WHERE post_id = $1 AND owner_id = $2;
 -- name: GetPost :one
 SELECT
     posts.post_id,
-    posts.owner_id,
     posts.content,
     posts.media,
     posts.post_type,
     posts.poll_id,
-    posts.created_at
+    posts.created_at,
+    posts.owner_id,
+    post_owner.first_name AS owner_first_name,
+    post_owner.last_name AS owner_last_name,
+    post_owner.avatar_url AS owner_avatar_url,
+    post_owner.practice_area AS owner_practice_area,
+    COALESCE(post_stats.likes, 0) AS likes_count,
+    COALESCE(post_stats.comments, 0) AS comments_count,
+    EXISTS (
+        SELECT 1
+        FROM likes
+        WHERE likes.user_id = posts.owner_id
+          AND likes.post_id = posts.post_id
+          AND likes.type = 'post'
+    ) AS is_liked
 FROM posts
+         JOIN users post_owner ON posts.owner_id = post_owner.user_id
+         LEFT JOIN post_statistics post_stats ON posts.post_id = post_stats.post_id
 WHERE posts.post_id = $1;
 
 -- name: SearchPosts :many
@@ -73,20 +88,3 @@ WHERE posts.content ILIKE '%' || @SearchQuery::text || '%'
 ORDER BY posts.created_at DESC
 LIMIT $1
 OFFSET $2;
-
--- name: GetPostV2 :one
-SELECT
-    posts.post_id,
-    posts.owner_id,
-    users.first_name as owner_first_name,
-    users.last_name as owner_last_name,
-    users.avatar_url as owner_avatar_url,
-    users.practice_area as owner_practice_area,
-    posts.content,
-    posts.media,
-    posts.post_type,
-    posts.poll_id,
-    posts.created_at
-FROM posts
-JOIN users ON posts.owner_id = users.user_id
-WHERE posts.post_id = $1;

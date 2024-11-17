@@ -53,12 +53,11 @@ type Querier interface {
 	GetIsPostLikedByUser(ctx context.Context, arg GetIsPostLikedByUserParams) (bool, error)
 	GetNotificationById(ctx context.Context, notificationID int32) (Notification, error)
 	GetPosIsLikedByCurrentUser(ctx context.Context, arg GetPosIsLikedByCurrentUserParams) (bool, error)
-	GetPost(ctx context.Context, postID int32) (Post, error)
+	GetPost(ctx context.Context, postID int32) (GetPostRow, error)
 	GetPostCommentsCount(ctx context.Context, postID int32) (int64, error)
 	GetPostLikesAndCommentsCount(ctx context.Context, postID int32) (GetPostLikesAndCommentsCountRow, error)
 	GetPostLikesCount(ctx context.Context, postID *int32) (int64, error)
 	GetPostStats(ctx context.Context, postID int32) (PostStatistic, error)
-	GetPostV2(ctx context.Context, postID int32) (GetPostV2Row, error)
 	GetProjectReview(ctx context.Context, arg GetProjectReviewParams) (ProjectReview, error)
 	GetProjectStatus(ctx context.Context, projectID int32) (ProjectStatus, error)
 	//
