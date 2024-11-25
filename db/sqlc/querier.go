@@ -48,8 +48,11 @@ type Querier interface {
 	DeleteSocial(ctx context.Context, socialID int64) error
 	ExtendAdPeriod(ctx context.Context, arg ExtendAdPeriodParams) (Ad, error)
 	FetchUserProfile(ctx context.Context, userID string) (FetchUserProfileRow, error)
+	GetAccountInfo(ctx context.Context, userID string) (GetAccountInfoRow, error)
 	GetChatRoom(ctx context.Context, arg GetChatRoomParams) (GetChatRoomRow, error)
+	GetConnectionsCount(ctx context.Context, senderID string) (int64, error)
 	GetFirm(ctx context.Context, firmID int64) (Firm, error)
+	GetFollowersCount(ctx context.Context, recipientID string) (int64, error)
 	GetIsPostLikedByUser(ctx context.Context, arg GetIsPostLikedByUserParams) (bool, error)
 	GetNotificationById(ctx context.Context, notificationID int32) (Notification, error)
 	GetPosIsLikedByCurrentUser(ctx context.Context, arg GetPosIsLikedByCurrentUserParams) (bool, error)
@@ -65,6 +68,7 @@ type Querier interface {
 	GetRandomAd(ctx context.Context) (Ad, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, userID string) (User, error)
+	GetUserRatingInfo(ctx context.Context, userID string) (GetUserRatingInfoRow, error)
 	GetUserWizardStep(ctx context.Context, userID string) (int32, error)
 	IncrementComments(ctx context.Context, postID int32) error
 	IncrementLikes(ctx context.Context, postID int32) error

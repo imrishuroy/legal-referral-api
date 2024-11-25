@@ -90,6 +90,9 @@ func (server *Server) setupRouter() {
 	auth.PUT("/users/:user_id/educations/:education_id", server.updateEducation)
 	auth.DELETE("/users/:user_id/educations/:education_id", server.deleteEducation)
 
+	// account
+	auth.GET("/accounts/:user_id", server.getAccountInfo)
+
 	// network
 	auth.POST("/connections/send", server.sendConnection)
 	auth.POST("/connections/:id/accept", server.acceptConnection)
