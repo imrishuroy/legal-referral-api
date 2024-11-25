@@ -614,7 +614,7 @@ type Review struct {
 	UserID     string    `json:"user_id"`
 	ReviewerID string    `json:"reviewer_id"`
 	Review     string    `json:"review"`
-	Rating     int32     `json:"rating"`
+	Rating     float64   `json:"rating"`
 	Timestamp  time.Time `json:"timestamp"`
 }
 

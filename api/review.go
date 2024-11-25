@@ -8,9 +8,9 @@ import (
 )
 
 type addReviewReq struct {
-	ReviewerID string `json:"reviewer_id" binding:"required"`
-	Review     string `json:"review" binding:"required"`
-	Ratting    int32  `json:"ratting" binding:"required"`
+	ReviewerID string  `json:"reviewer_id" binding:"required"`
+	Review     string  `json:"review" binding:"required"`
+	Ratting    float64 `json:"ratting" binding:"required"`
 }
 
 func (server *Server) addReview(ctx *gin.Context) {

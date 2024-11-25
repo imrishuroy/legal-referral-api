@@ -21,10 +21,10 @@ INSERT INTO reviews (
 `
 
 type AddReviewParams struct {
-	UserID     string `json:"user_id"`
-	ReviewerID string `json:"reviewer_id"`
-	Review     string `json:"review"`
-	Rating     int32  `json:"rating"`
+	UserID     string  `json:"user_id"`
+	ReviewerID string  `json:"reviewer_id"`
+	Review     string  `json:"review"`
+	Rating     float64 `json:"rating"`
 }
 
 func (q *Queries) AddReview(ctx context.Context, arg AddReviewParams) (Review, error) {
