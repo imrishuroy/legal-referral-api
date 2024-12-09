@@ -11,8 +11,8 @@ import (
 )
 
 type likePostReq struct {
-	UserID   string `json:"user_id" binding:"required"`
-	SenderID string `json:"sender_id" binding:"required"`
+	PostUserID    string `json:"post_user_id" binding:"required"`
+	CurrentUserID string `json:"current_user_id" binding:"required"`
 }
 
 func (server *Server) likePost(ctx *gin.Context) {
@@ -30,7 +30,7 @@ func (server *Server) likePost(ctx *gin.Context) {
 	}
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
-	if authPayload.UID != req.SenderID {
+	if authPayload.UID != req.CurrentUserID {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 		return
 	}
@@ -56,8 +56,8 @@ func (server *Server) likePost(ctx *gin.Context) {
 
 		// Prepare notification data
 		data := map[string]string{
-			"user_id":           req.UserID,
-			"sender_id":         req.SenderID,
+			"user_id":           req.PostUserID,
+			"sender_id":         req.CurrentUserID,
 			"target_id":         postIDStr,
 			"target_type":       "post",
 			"notification_type": "like",

@@ -8,13 +8,13 @@ import (
 	"strconv"
 )
 
-type saveFeaturePostReq struct {
+type featurePostReq struct {
 	PostID int32  `json:"post_id"`
 	UserID string `json:"user_id"`
 }
 
-func (server *Server) saveFeaturePost(ctx *gin.Context) {
-	var req saveFeaturePostReq
+func (server *Server) featurePost(ctx *gin.Context) {
+	var req featurePostReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(400, errorResponse(err))
 		return
@@ -26,12 +26,12 @@ func (server *Server) saveFeaturePost(ctx *gin.Context) {
 		return
 	}
 
-	arg := db.SaveFeaturePostParams{
+	arg := db.FeaturePostParams{
 		PostID: req.PostID,
 		UserID: req.UserID,
 	}
 
-	err := server.store.SaveFeaturePost(ctx, arg)
+	err := server.store.FeaturePost(ctx, arg)
 	if err != nil {
 
 		errorCode := db.ErrorCode(err)
@@ -46,7 +46,12 @@ func (server *Server) saveFeaturePost(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "success"})
 }
 
-func (server *Server) unSaveFeaturePost(ctx *gin.Context) {
+type unFeaturePostReq struct {
+	PostID int32  `json:"post_id"`
+	UserID string `json:"user_id"`
+}
+
+func (server *Server) unFeaturePost(ctx *gin.Context) {
 	postIdStr := ctx.Param("post_id")
 
 	postID, err := strconv.Atoi(postIdStr)
@@ -55,18 +60,24 @@ func (server *Server) unSaveFeaturePost(ctx *gin.Context) {
 		return
 	}
 
+	var req unFeaturePostReq
+	if err := ctx.ShouldBindJSON(&req); err != nil {
+		ctx.JSON(400, errorResponse(err))
+		return
+	}
+
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
-	if authPayload.UID == "" {
+	if authPayload.UID != req.UserID {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 		return
 	}
 
-	arg := db.UnSaveFeaturePostParams{
+	arg := db.UnFeaturePostParams{
 		PostID: int32(postID),
 		UserID: authPayload.UID,
 	}
 
-	err = server.store.UnSaveFeaturePost(ctx, arg)
+	err = server.store.UnFeaturePost(ctx, arg)
 
 	if err != nil {
 		ctx.JSON(500, errorResponse(err))
