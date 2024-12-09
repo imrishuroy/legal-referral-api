@@ -10,6 +10,25 @@ import (
 	"time"
 )
 
+const featurePost = `-- name: FeaturePost :exec
+INSERT INTO feature_posts (
+    user_id,
+    post_id
+) VALUES (
+    $1, $2
+) RETURNING feature_post_id, post_id, user_id, created_at
+`
+
+type FeaturePostParams struct {
+	UserID string `json:"user_id"`
+	PostID int32  `json:"post_id"`
+}
+
+func (q *Queries) FeaturePost(ctx context.Context, arg FeaturePostParams) error {
+	_, err := q.db.Exec(ctx, featurePost, arg.UserID, arg.PostID)
+	return err
+}
+
 const listFeaturePosts = `-- name: ListFeaturePosts :many
 SELECT
     feature_posts.feature_post_id,
@@ -59,37 +78,18 @@ func (q *Queries) ListFeaturePosts(ctx context.Context) ([]ListFeaturePostsRow, 
 	return items, nil
 }
 
-const saveFeaturePost = `-- name: SaveFeaturePost :exec
-INSERT INTO feature_posts (
-    user_id,
-    post_id
-) VALUES (
-    $1, $2
-) RETURNING feature_post_id, post_id, user_id, created_at
-`
-
-type SaveFeaturePostParams struct {
-	UserID string `json:"user_id"`
-	PostID int32  `json:"post_id"`
-}
-
-func (q *Queries) SaveFeaturePost(ctx context.Context, arg SaveFeaturePostParams) error {
-	_, err := q.db.Exec(ctx, saveFeaturePost, arg.UserID, arg.PostID)
-	return err
-}
-
-const unSaveFeaturePost = `-- name: UnSaveFeaturePost :exec
+const unFeaturePost = `-- name: UnFeaturePost :exec
 DELETE FROM feature_posts
 WHERE
     user_id = $1 AND post_id = $2
 `
 
-type UnSaveFeaturePostParams struct {
+type UnFeaturePostParams struct {
 	UserID string `json:"user_id"`
 	PostID int32  `json:"post_id"`
 }
 
-func (q *Queries) UnSaveFeaturePost(ctx context.Context, arg UnSaveFeaturePostParams) error {
-	_, err := q.db.Exec(ctx, unSaveFeaturePost, arg.UserID, arg.PostID)
+func (q *Queries) UnFeaturePost(ctx context.Context, arg UnFeaturePostParams) error {
+	_, err := q.db.Exec(ctx, unFeaturePost, arg.UserID, arg.PostID)
 	return err
 }

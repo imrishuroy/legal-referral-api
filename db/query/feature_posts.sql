@@ -1,4 +1,4 @@
--- name: SaveFeaturePost :exec
+-- name: FeaturePost :exec
 INSERT INTO feature_posts (
     user_id,
     post_id
@@ -6,7 +6,7 @@ INSERT INTO feature_posts (
     $1, $2
 ) RETURNING *;
 
--- name: UnSaveFeaturePost :exec
+-- name: UnFeaturePost :exec
 DELETE FROM feature_posts
 WHERE
     user_id = $1 AND post_id = $2;

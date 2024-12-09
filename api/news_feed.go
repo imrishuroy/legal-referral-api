@@ -29,6 +29,7 @@ type feedPost struct {
 	LikesCount     int64       `json:"likes_count"`
 	CommentsCount  int64       `json:"comments_count"`
 	IsLiked        bool        `json:"is_liked"`
+	IsFeatured     bool        `json:"is_featured"`
 }
 
 type feed struct {
@@ -145,6 +146,7 @@ func (server *Server) buildFeedList(feedPosts []db.ListNewsFeedRow) []feed {
 				LikesCount:     post.LikesCount,
 				CommentsCount:  post.CommentsCount,
 				IsLiked:        post.IsLiked,
+				IsFeatured:     post.IsFeatured,
 			},
 		}
 	}

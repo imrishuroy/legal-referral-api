@@ -11,7 +11,6 @@ import (
 )
 
 const listNewsFeed = `-- name: ListNewsFeed :many
-
 SELECT
     nf.feed_id,
     posts.post_id,
@@ -31,7 +30,12 @@ SELECT
         SELECT 1
         FROM likes
         WHERE likes.user_id = $1 AND likes.post_id = nf.post_id AND likes.type = 'post'
-    ) AS is_liked
+    ) AS is_liked,
+    EXISTS (
+        SELECT 1
+        FROM feature_posts
+        WHERE feature_posts.post_id = nf.post_id
+    ) AS is_featured
 FROM news_feed nf
          JOIN posts ON nf.post_id = posts.post_id
          JOIN users post_owner ON posts.owner_id = post_owner.user_id
@@ -64,6 +68,7 @@ type ListNewsFeedRow struct {
 	LikesCount        int64     `json:"likes_count"`
 	CommentsCount     int64     `json:"comments_count"`
 	IsLiked           bool      `json:"is_liked"`
+	IsFeatured        bool      `json:"is_featured"`
 }
 
 // -- name: ListNewsFeedV1 :many
@@ -187,6 +192,7 @@ func (q *Queries) ListNewsFeed(ctx context.Context, arg ListNewsFeedParams) ([]L
 			&i.LikesCount,
 			&i.CommentsCount,
 			&i.IsLiked,
+			&i.IsFeatured,
 		); err != nil {
 			return nil, err
 		}

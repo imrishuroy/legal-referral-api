@@ -47,6 +47,7 @@ type Querier interface {
 	DeletePost(ctx context.Context, arg DeletePostParams) error
 	DeleteSocial(ctx context.Context, socialID int64) error
 	ExtendAdPeriod(ctx context.Context, arg ExtendAdPeriodParams) (Ad, error)
+	FeaturePost(ctx context.Context, arg FeaturePostParams) error
 	FetchUserProfile(ctx context.Context, userID string) (FetchUserProfileRow, error)
 	GetAccountInfo(ctx context.Context, userID string) (GetAccountInfoRow, error)
 	GetChatRoom(ctx context.Context, arg GetChatRoomParams) (GetChatRoomRow, error)
@@ -219,7 +220,6 @@ type Querier interface {
 	RejectProject(ctx context.Context, arg RejectProjectParams) (Project, error)
 	SaveAboutYou(ctx context.Context, arg SaveAboutYouParams) (User, error)
 	SaveDevice(ctx context.Context, arg SaveDeviceParams) error
-	SaveFeaturePost(ctx context.Context, arg SaveFeaturePostParams) error
 	SaveLicense(ctx context.Context, arg SaveLicenseParams) (License, error)
 	SavePost(ctx context.Context, arg SavePostParams) error
 	Search1stDegreeConnections(ctx context.Context, arg Search1stDegreeConnectionsParams) ([]Search1stDegreeConnectionsRow, error)
@@ -232,7 +232,7 @@ type Querier interface {
 	SendMessageToDiscussion(ctx context.Context, arg SendMessageToDiscussionParams) (DiscussionMessage, error)
 	StartProject(ctx context.Context, arg StartProjectParams) (Project, error)
 	ToggleOpenToRefferal(ctx context.Context, arg ToggleOpenToRefferalParams) error
-	UnSaveFeaturePost(ctx context.Context, arg UnSaveFeaturePostParams) error
+	UnFeaturePost(ctx context.Context, arg UnFeaturePostParams) error
 	UnlikeComment(ctx context.Context, arg UnlikeCommentParams) error
 	UnlikePost(ctx context.Context, arg UnlikePostParams) error
 	UnsavePost(ctx context.Context, savedPostID int32) error

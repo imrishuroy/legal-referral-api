@@ -217,8 +217,8 @@ func (server *Server) setupRouter() {
 	auth.GET("/saved-posts/:user_id", server.listSavedPosts)
 
 	// feature posts
-	auth.POST("/feature-posts", server.saveFeaturePost)
-	auth.DELETE("/feature-posts/:post_id", server.unSaveFeaturePost)
+	auth.POST("/feature-posts", server.featurePost)
+	auth.DELETE("/feature-posts/:post_id", server.unFeaturePost)
 	auth.GET("/feature-posts/:user_id", server.listFeaturePosts)
 
 	// notifications
