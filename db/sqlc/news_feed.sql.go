@@ -30,12 +30,7 @@ SELECT
         SELECT 1
         FROM likes
         WHERE likes.user_id = $1 AND likes.post_id = nf.post_id AND likes.type = 'post'
-    ) AS is_liked,
-    EXISTS (
-        SELECT 1
-        FROM feature_posts
-        WHERE feature_posts.post_id = nf.post_id
-    ) AS is_featured
+    ) AS is_liked
 FROM news_feed nf
          JOIN posts ON nf.post_id = posts.post_id
          JOIN users post_owner ON posts.owner_id = post_owner.user_id
@@ -68,7 +63,6 @@ type ListNewsFeedRow struct {
 	LikesCount        int64     `json:"likes_count"`
 	CommentsCount     int64     `json:"comments_count"`
 	IsLiked           bool      `json:"is_liked"`
-	IsFeatured        bool      `json:"is_featured"`
 }
 
 // -- name: ListNewsFeedV1 :many
@@ -167,6 +161,12 @@ type ListNewsFeedRow struct {
 // ORDER BY nf.created_at DESC
 // LIMIT $2
 // OFFSET $3;
+//
+//	EXISTS (
+//	    SELECT 1
+//	    FROM feature_posts
+//	    WHERE feature_posts.post_id = nf.post_id
+//	) AS is_featured
 func (q *Queries) ListNewsFeed(ctx context.Context, arg ListNewsFeedParams) ([]ListNewsFeedRow, error) {
 	rows, err := q.db.Query(ctx, listNewsFeed, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
@@ -192,7 +192,6 @@ func (q *Queries) ListNewsFeed(ctx context.Context, arg ListNewsFeedParams) ([]L
 			&i.LikesCount,
 			&i.CommentsCount,
 			&i.IsLiked,
-			&i.IsFeatured,
 		); err != nil {
 			return nil, err
 		}
@@ -221,6 +220,45 @@ type ListNewsFeedItemsParams struct {
 
 func (q *Queries) ListNewsFeedItems(ctx context.Context, arg ListNewsFeedItemsParams) ([]NewsFeed, error) {
 	rows, err := q.db.Query(ctx, listNewsFeedItems, arg.UserID, arg.Limit, arg.Offset)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []NewsFeed{}
+	for rows.Next() {
+		var i NewsFeed
+		if err := rows.Scan(
+			&i.FeedID,
+			&i.UserID,
+			&i.PostID,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listNewsFeedV3 = `-- name: ListNewsFeedV3 :many
+SELECT feed_id, user_id, post_id, created_at FROM news_feed
+WHERE user_id = $1
+ORDER BY created_at DESC
+LIMIT $2
+OFFSET $3
+`
+
+type ListNewsFeedV3Params struct {
+	UserID string `json:"user_id"`
+	Limit  int32  `json:"limit"`
+	Offset int32  `json:"offset"`
+}
+
+func (q *Queries) ListNewsFeedV3(ctx context.Context, arg ListNewsFeedV3Params) ([]NewsFeed, error) {
+	rows, err := q.db.Query(ctx, listNewsFeedV3, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
 		return nil, err
 	}

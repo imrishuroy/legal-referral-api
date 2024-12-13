@@ -106,12 +106,12 @@ SELECT
         SELECT 1
         FROM likes
         WHERE likes.user_id = $1 AND likes.post_id = nf.post_id AND likes.type = 'post'
-    ) AS is_liked,
-    EXISTS (
-        SELECT 1
-        FROM feature_posts
-        WHERE feature_posts.post_id = nf.post_id
-    ) AS is_featured
+    ) AS is_liked
+--     EXISTS (
+--         SELECT 1
+--         FROM feature_posts
+--         WHERE feature_posts.post_id = nf.post_id
+--     ) AS is_featured
 FROM news_feed nf
          JOIN posts ON nf.post_id = posts.post_id
          JOIN users post_owner ON posts.owner_id = post_owner.user_id
@@ -124,6 +124,13 @@ OFFSET $3;
 -- name: ListNewsFeedItems :many
 SELECT *
 FROM news_feed
+WHERE user_id = $1
+ORDER BY created_at DESC
+LIMIT $2
+OFFSET $3;
+
+-- name: ListNewsFeedV3 :many
+SELECT * FROM news_feed
 WHERE user_id = $1
 ORDER BY created_at DESC
 LIMIT $2

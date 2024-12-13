@@ -189,13 +189,20 @@ type Querier interface {
 	// ORDER BY nf.created_at DESC
 	// LIMIT $2
 	// OFFSET $3;
+	//     EXISTS (
+	//         SELECT 1
+	//         FROM feature_posts
+	//         WHERE feature_posts.post_id = nf.post_id
+	//     ) AS is_featured
 	ListNewsFeed(ctx context.Context, arg ListNewsFeedParams) ([]ListNewsFeedRow, error)
 	ListNewsFeedItems(ctx context.Context, arg ListNewsFeedItemsParams) ([]NewsFeed, error)
+	ListNewsFeedV3(ctx context.Context, arg ListNewsFeedV3Params) ([]NewsFeed, error)
 	ListNotifications(ctx context.Context, arg ListNotificationsParams) ([]ListNotificationsRow, error)
 	ListPlayingAds(ctx context.Context) ([]Ad, error)
 	ListPostLikedUsers(ctx context.Context, postID *int32) ([]ListPostLikedUsersRow, error)
 	ListPostLikedUsers2(ctx context.Context, arg ListPostLikedUsers2Params) ([]ListPostLikedUsers2Row, error)
 	ListPostLikes(ctx context.Context, postID *int32) ([]string, error)
+	ListPosts(ctx context.Context, arg ListPostsParams) ([]ListPostsRow, error)
 	ListRandomAds(ctx context.Context, limit int32) ([]Ad, error)
 	ListRecommendations(ctx context.Context, arg ListRecommendationsParams) ([]ListRecommendationsRow, error)
 	ListRecommendations2(ctx context.Context, arg ListRecommendations2Params) ([]ListRecommendations2Row, error)
