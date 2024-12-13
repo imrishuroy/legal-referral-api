@@ -6,7 +6,7 @@ CREATE TABLE comments (
     created_at TIMESTAMPTZ NOT NULL DEFAULT current_timestamp,
     parent_comment_id INT,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (post_id) REFERENCES posts(post_id),
+    FOREIGN KEY (post_id) REFERENCES posts(post_id) ON DELETE CASCADE,
     FOREIGN KEY (parent_comment_id) REFERENCES comments(comment_id) ON DELETE CASCADE
 );
 
