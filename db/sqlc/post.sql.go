@@ -187,6 +187,89 @@ func (q *Queries) GetPostLikesAndCommentsCount(ctx context.Context, postID int32
 	return i, err
 }
 
+const listPosts = `-- name: ListPosts :many
+SELECT
+    posts.post_id,
+    posts.owner_id,
+    users.first_name as owner_first_name,
+    users.last_name as owner_last_name,
+    users.avatar_url as owner_avatar_url,
+    users.practice_area as owner_practice_area,
+    posts.content,
+    posts.media,
+    posts.post_type,
+    posts.poll_id,
+    posts.created_at,
+    COALESCE(post_stats.likes, 0) AS likes_count,
+    COALESCE(post_stats.comments, 0) AS comments_count,
+    EXISTS (
+        SELECT 1
+        FROM likes
+        WHERE likes.user_id = $1 AND likes.post_id = posts.post_id AND likes.type = 'post'
+    ) AS is_liked
+FROM posts
+    LEFT JOIN post_statistics post_stats ON posts.post_id = post_stats.post_id
+    JOIN users ON posts.owner_id = users.user_id
+    WHERE posts.post_id = ANY($2)
+`
+
+type ListPostsParams struct {
+	UserID  string  `json:"user_id"`
+	PostIds []int32 `json:"post_ids"`
+}
+
+type ListPostsRow struct {
+	PostID            int32     `json:"post_id"`
+	OwnerID           string    `json:"owner_id"`
+	OwnerFirstName    string    `json:"owner_first_name"`
+	OwnerLastName     string    `json:"owner_last_name"`
+	OwnerAvatarUrl    *string   `json:"owner_avatar_url"`
+	OwnerPracticeArea *string   `json:"owner_practice_area"`
+	Content           *string   `json:"content"`
+	Media             []string  `json:"media"`
+	PostType          PostType  `json:"post_type"`
+	PollID            *int32    `json:"poll_id"`
+	CreatedAt         time.Time `json:"created_at"`
+	LikesCount        int64     `json:"likes_count"`
+	CommentsCount     int64     `json:"comments_count"`
+	IsLiked           bool      `json:"is_liked"`
+}
+
+func (q *Queries) ListPosts(ctx context.Context, arg ListPostsParams) ([]ListPostsRow, error) {
+	rows, err := q.db.Query(ctx, listPosts, arg.UserID, arg.PostIds)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListPostsRow{}
+	for rows.Next() {
+		var i ListPostsRow
+		if err := rows.Scan(
+			&i.PostID,
+			&i.OwnerID,
+			&i.OwnerFirstName,
+			&i.OwnerLastName,
+			&i.OwnerAvatarUrl,
+			&i.OwnerPracticeArea,
+			&i.Content,
+			&i.Media,
+			&i.PostType,
+			&i.PollID,
+			&i.CreatedAt,
+			&i.LikesCount,
+			&i.CommentsCount,
+			&i.IsLiked,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const searchPosts = `-- name: SearchPosts :many
 SELECT
     posts.post_id,

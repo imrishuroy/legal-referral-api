@@ -14,6 +14,7 @@ import (
 	"github.com/redis/go-redis/v9"
 	"github.com/twilio/twilio-go"
 	"google.golang.org/api/option"
+	"time"
 
 	"github.com/imrishuroy/legal-referral/util"
 
@@ -21,6 +22,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rs/zerolog/log"
 )
+
+// RedisClient is a common interface for both standalone and cluster clients
+type RedisClient interface {
+	Ping(ctx context.Context) *redis.StatusCmd
+	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) *redis.StatusCmd
+	Get(ctx context.Context, key string) *redis.StringCmd
+	MGet(ctx context.Context, keys ...string) *redis.SliceCmd
+}
 
 type Server struct {
 	config       util.Config
@@ -30,12 +39,12 @@ type Server struct {
 	twilioClient *twilio.RestClient
 	awsSession   *session.Session
 	svc          *s3.S3
-	rdb          *redis.ClusterClient
+	rdb          RedisClient
 	hub          *chat.Hub
 	producer     *kafka.Producer
 }
 
-func NewServer(config util.Config, store db.Store, hub *chat.Hub, producer *kafka.Producer, rdb *redis.ClusterClient) (*Server, error) {
+func NewServer(config util.Config, store db.Store, hub *chat.Hub, producer *kafka.Producer, rdb RedisClient) (*Server, error) {
 
 	opt := option.WithCredentialsFile("./service-account-key.json")
 	app, err := firebase.NewApp(context.Background(), nil, opt)

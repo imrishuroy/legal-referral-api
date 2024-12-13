@@ -256,8 +256,7 @@ func (server *Server) deletePost(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{})
-
+	ctx.JSON(http.StatusOK, gin.H{"message": "Post deleted successfully"})
 }
 
 func (server *Server) getPost(ctx *gin.Context) {

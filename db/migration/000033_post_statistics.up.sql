@@ -10,4 +10,4 @@ CREATE TABLE post_statistics (
 
 -- Adding individual indexes on likes and comments columns
 CREATE INDEX idx_post_statistics_likes ON post_statistics (likes);
-CREATE INDEX idx_post_statistics_comments ON post_statistics (comments );
+CREATE INDEX idx_post_statistics_comments ON post_statistics (comments) ;
