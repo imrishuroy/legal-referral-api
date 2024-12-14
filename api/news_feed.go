@@ -43,6 +43,27 @@ type listNewsFeedReq struct {
 	Offset int32 `form:"offset" binding:"required"`
 }
 
+type post struct {
+	PostID    int32     `json:"post_id"`
+	OwnerID   string    `json:"owner_id"`
+	Content   *string   `json:"content"`
+	Media     []string  `json:"media"`
+	PostType  PostType  `json:"post_type"`
+	PollID    *int32    `json:"poll_id"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+type postMetaData struct {
+	PostID            int32   `json:"post_id"`
+	OwnerFirstName    string  `json:"owner_first_name"`
+	OwnerLastName     string  `json:"owner_last_name"`
+	OwnerAvatarUrl    *string `json:"owner_avatar_url"`
+	OwnerPracticeArea *string `json:"owner_practice_area"`
+	LikesCount        int64   `json:"likes_count"`
+	CommentsCount     int64   `json:"comments_count"`
+	IsLiked           bool    `json:"is_liked"`
+}
+
 func (server *Server) listNewsFeedV3(ctx *gin.Context) {
 	var req listNewsFeedReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -57,7 +78,6 @@ func (server *Server) listNewsFeedV3(ctx *gin.Context) {
 		return
 	}
 
-	// Query news feed from DB
 	arg := db.ListNewsFeedV3Params{
 		UserID: userID,
 		Limit:  req.Limit,
@@ -70,120 +90,117 @@ func (server *Server) listNewsFeedV3(ctx *gin.Context) {
 		return
 	}
 
-	// Prepare Redis keys for batch fetch
-	redisKeys := make([]string, len(newsFeed))
-	feedMap := make(map[string]int) // Map Redis keys to feed index
-	for i, feed := range newsFeed {
-		redisKey := fmt.Sprintf("post:%d", feed.PostID)
-		redisKeys[i] = redisKey
-		feedMap[redisKey] = i
-	}
-
 	var postsToFetchFromDB []int32
+	var posts []post
+	feedPostMap := make(map[int32]int32)
 
-	// Batch fetch from Redis
-	redisResults, err := server.rdb.MGet(ctx, redisKeys...).Result()
-	if err != nil {
-		log.Printf("Error fetching posts from cache: %v", err)
-		postsToFetchFromDB = make([]int32, 0, len(newsFeed))
-		for _, feed := range newsFeed {
+	for _, feed := range newsFeed {
+		feedPostMap[feed.PostID] = feed.FeedID
+		redisKey := fmt.Sprintf("post:%d", feed.PostID)
+		post, err := server.getCachedPost(ctx, redisKey)
+		if err != nil {
 			postsToFetchFromDB = append(postsToFetchFromDB, feed.PostID)
-		}
-
-	}
-
-	// Separate posts found in Redis and those requiring DB fetch
-	cachedFeeds := make(map[int32]*feedPost)
-	for i, result := range redisResults {
-		if result == nil {
-			postsToFetchFromDB = append(postsToFetchFromDB, newsFeed[i].PostID)
 		} else {
-			var fp feedPost
-			if err := json.Unmarshal([]byte(result.(string)), &fp); err != nil {
-				log.Printf("Error unmarshalling post data for key %s: %v", redisKeys[i], err)
-				postsToFetchFromDB = append(postsToFetchFromDB, newsFeed[i].PostID)
-			} else {
-				cachedFeeds[newsFeed[i].PostID] = &fp
-			}
+			posts = append(posts, *post)
 		}
 	}
 
-	// Fetch remaining posts from DB
 	if len(postsToFetchFromDB) > 0 {
-		arg := db.ListPostsParams{
-			UserID:  userID,
-			PostIds: postsToFetchFromDB,
-		}
-		posts, err := server.store.ListPosts(ctx, arg)
+		postsFromDB, err := server.store.ListPosts(ctx, postsToFetchFromDB)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching missing posts from database"})
 			return
 		}
-
-		// Cache posts fetched from DB
-		for _, post := range posts {
-			redisKey := fmt.Sprintf("post:%d", post.PostID)
-			fPost := &feedPost{
-				OwnerID:        post.OwnerID,
-				OwnerFirstName: post.OwnerFirstName,
-				OwnerLastName:  post.OwnerLastName,
-				OwnerAvatarUrl: post.OwnerAvatarUrl,
-				PostID:         post.PostID,
-				Content:        post.Content,
-				Media:          post.Media,
-				PostType:       post.PostType,
-				PollID:         post.PollID,
-				CreatedAt:      post.CreatedAt,
-				LikesCount:     post.LikesCount,
-				CommentsCount:  post.CommentsCount,
-				IsLiked:        post.IsLiked,
+		postsMap := make(map[string]*post)
+		for _, p := range postsFromDB {
+			redisKey := fmt.Sprintf("post:%d", p.PostID)
+			post := post{
+				PostID:    p.PostID,
+				OwnerID:   p.OwnerID,
+				Content:   p.Content,
+				Media:     p.Media,
+				PostType:  PostType(p.PostType),
+				PollID:    p.PollID,
+				CreatedAt: p.CreatedAt,
 			}
-			if err := server.cachePost(ctx, redisKey, fPost, 12*time.Hour); err != nil {
-				log.Printf("Error caching post with key %s: %v", redisKey, err)
-			}
-
-			cachedFeeds[post.PostID] = &feedPost{
-				OwnerID:        post.OwnerID,
-				OwnerFirstName: post.OwnerFirstName,
-				OwnerLastName:  post.OwnerLastName,
-				OwnerAvatarUrl: post.OwnerAvatarUrl,
-				PostID:         post.PostID,
-				Content:        post.Content,
-				Media:          post.Media,
-				PostType:       post.PostType,
-				PollID:         post.PollID,
-				CreatedAt:      post.CreatedAt,
-				LikesCount:     post.LikesCount,
-				CommentsCount:  post.CommentsCount,
-				IsLiked:        post.IsLiked,
-			}
+			postsMap[redisKey] = &post
+			posts = append(posts, post)
+		}
+		if err := server.cachePosts(ctx, postsMap, 12*time.Hour); err != nil {
+			log.Printf("Error caching posts: %v", err)
 		}
 	}
 
-	// Construct the feed list
-	feedList := make([]feed, 0, len(newsFeed))
-	for _, nf := range newsFeed {
-		if cachedPost, found := cachedFeeds[nf.PostID]; found {
-			feedList = append(feedList, feed{
-				FeedID:   nf.FeedID,
-				FeedType: "post",
-				FeedPost: cachedPost,
-			})
-		} else {
-			log.Printf("Post not found in cache or DB: %d", nf.PostID)
+	postsIDs := extractPostIDs(posts)
+	postMetaArg := db.PostsMetaDataParams{
+		UserID:  userID,
+		PostIds: postsIDs,
+	}
+
+	postMetaDataMap := make(map[int32]postMetaData)
+
+	metaData, err := server.store.PostsMetaData(ctx, postMetaArg)
+	for _, md := range metaData {
+		postMetaDataMap[md.PostID] = postMetaData{
+			PostID:            md.PostID,
+			OwnerFirstName:    md.OwnerFirstName,
+			OwnerLastName:     md.OwnerLastName,
+			OwnerAvatarUrl:    md.OwnerAvatarUrl,
+			OwnerPracticeArea: md.OwnerPracticeArea,
+			LikesCount:        md.LikesCount,
+			CommentsCount:     md.CommentsCount,
+			IsLiked:           md.IsLiked,
 		}
 	}
 
-	ctx.JSON(http.StatusOK, feedList)
+	feedLists := createFeedList(posts, postMetaDataMap, feedPostMap)
+	ctx.JSON(http.StatusOK, feedLists)
 }
 
-func (server *Server) getCachedPost(ctx context.Context, key string) (*feedPost, error) {
+func createFeedList(posts []post, postMetaDataMap map[int32]postMetaData, feedPostMap map[int32]int32) []feed {
+	feedLists := make([]feed, 0, len(posts))
+
+	for _, post := range posts {
+		metaData := postMetaDataMap[post.PostID]
+		feed := feed{
+			FeedID:   feedPostMap[post.PostID],
+			FeedType: "post",
+			FeedPost: &feedPost{
+				OwnerID:        post.OwnerID,
+				OwnerFirstName: metaData.OwnerFirstName,
+				OwnerLastName:  metaData.OwnerLastName,
+				OwnerAvatarUrl: metaData.OwnerAvatarUrl,
+				PostID:         post.PostID,
+				Content:        post.Content,
+				Media:          post.Media,
+				PostType:       db.PostType(post.PostType),
+				PollID:         post.PollID,
+				CreatedAt:      post.CreatedAt,
+				LikesCount:     metaData.LikesCount,
+				CommentsCount:  metaData.CommentsCount,
+				IsLiked:        metaData.IsLiked,
+			},
+		}
+		feedLists = append(feedLists, feed)
+	}
+	return feedLists
+}
+
+func extractPostIDs(posts []post) []int32 {
+	postsIDs := make([]int32, 0, len(posts))
+	for _, post := range posts {
+		postsIDs = append(postsIDs, post.PostID)
+	}
+	return postsIDs
+}
+
+func (server *Server) getCachedPost(ctx context.Context, key string) (*post, error) {
 	cachedData, err := server.rdb.Get(ctx, key).Result()
 	if err != nil {
 		return nil, err
 	}
 
-	var post feedPost
+	var post post
 	if err := json.Unmarshal([]byte(cachedData), &post); err != nil {
 		return nil, fmt.Errorf("error deserializing post data: %v", err)
 	}
@@ -191,13 +208,24 @@ func (server *Server) getCachedPost(ctx context.Context, key string) (*feedPost,
 	return &post, nil
 }
 
-func (server *Server) cachePost(ctx context.Context, key string, post *feedPost, expiration time.Duration) error {
-	data, err := json.Marshal(post)
-	if err != nil {
-		return fmt.Errorf("error serializing post data: %v", err)
+func (server *Server) cachePosts(ctx context.Context, posts map[string]*post, expiration time.Duration) error {
+	pipe := server.rdb.Pipeline() // Use a Redis pipeline for batch operations
+
+	for key, post := range posts {
+		data, err := json.Marshal(post)
+		if err != nil {
+			return fmt.Errorf("error serializing post data for key %s: %v", key, err)
+		}
+		pipe.Set(ctx, key, data, expiration)
 	}
 
-	return server.rdb.Set(ctx, key, data, expiration).Err()
+	// Execute all commands in the pipeline
+	_, err := pipe.Exec(ctx)
+	if err != nil {
+		return fmt.Errorf("error executing Redis pipeline: %v", err)
+	}
+
+	return nil
 }
 
 func (server *Server) listNewsFeedV2(ctx *gin.Context) {
@@ -302,7 +330,6 @@ func (server *Server) buildFeedList(feedPosts []db.ListNewsFeedRow) []feed {
 				LikesCount:     post.LikesCount,
 				CommentsCount:  post.CommentsCount,
 				IsLiked:        post.IsLiked,
-				//IsFeatured:     post.IsFeatured,
 			},
 		}
 	}

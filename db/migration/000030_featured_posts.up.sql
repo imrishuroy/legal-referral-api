@@ -1,4 +1,4 @@
-CREATE TABLE feature_posts (
+CREATE TABLE featured_posts (
     feature_post_id SERIAL PRIMARY KEY,
     post_id INT NOT NULL,
     user_id VARCHAR NOT NULL,

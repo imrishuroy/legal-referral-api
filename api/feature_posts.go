@@ -97,7 +97,7 @@ func (server *Server) listFeaturePosts(ctx *gin.Context) {
 		return
 	}
 
-	posts, err := server.store.ListFeaturePosts(ctx)
+	posts, err := server.store.ListFeaturedPosts(ctx)
 	if err != nil {
 		ctx.JSON(500, errorResponse(err))
 		return

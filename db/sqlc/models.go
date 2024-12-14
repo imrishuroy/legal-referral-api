@@ -453,7 +453,7 @@ type Faq struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type FeaturePost struct {
+type FeaturedPost struct {
 	FeaturePostID int32     `json:"feature_post_id"`
 	PostID        int32     `json:"post_id"`
 	UserID        string    `json:"user_id"`
