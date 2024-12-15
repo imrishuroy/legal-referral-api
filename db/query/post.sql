@@ -93,15 +93,21 @@ OFFSET $2;
 SELECT
     posts.post_id,
     posts.owner_id,
-    users.first_name as owner_first_name,
-    users.last_name as owner_last_name,
-    users.avatar_url as owner_avatar_url,
-    users.practice_area as owner_practice_area,
     posts.content,
     posts.media,
     posts.post_type,
     posts.poll_id,
-    posts.created_at,
+    posts.created_at
+FROM posts
+WHERE posts.post_id = ANY(sqlc.slice('post_ids'));
+
+-- name: PostsMetaData :many
+SELECT
+    posts.post_id,
+    users.first_name as owner_first_name,
+    users.last_name as owner_last_name,
+    users.avatar_url as owner_avatar_url,
+    users.practice_area as owner_practice_area,
     COALESCE(post_stats.likes, 0) AS likes_count,
     COALESCE(post_stats.comments, 0) AS comments_count,
     EXISTS (
@@ -112,4 +118,4 @@ SELECT
 FROM posts
     LEFT JOIN post_statistics post_stats ON posts.post_id = post_stats.post_id
     JOIN users ON posts.owner_id = users.user_id
-    WHERE posts.post_id = ANY(sqlc.slice('post_ids'));
+WHERE posts.post_id = ANY(sqlc.slice('post_ids'));

@@ -151,6 +151,7 @@ func (server *Server) setupRouter() {
 	auth.GET("/posts/:post_id", server.getPost)
 	auth.DELETE("/posts/:post_id", server.deletePost)
 	auth.GET("/search/posts", server.searchPosts)
+	auth.GET("/posts/:post_id/is-featured", server.isPostFeatured)
 
 	// news feed
 	auth.GET("/feeds/:user_id", server.listNewsFeed)
@@ -160,7 +161,6 @@ func (server *Server) setupRouter() {
 	// like post
 	auth.POST("/posts/:post_id/like", server.likePost)
 	auth.DELETE("/posts/:post_id/like", server.unlikePost)
-
 	auth.GET("/posts/:post_id/liked-users", server.listPostLikedUsers)
 
 	// get post likes and comments count

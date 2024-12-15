@@ -75,6 +75,7 @@ type Querier interface {
 	IncrementLikes(ctx context.Context, postID int32) error
 	InitiateCompleteProject(ctx context.Context, arg InitiateCompleteProjectParams) (Project, error)
 	InviteUserToDiscussion(ctx context.Context, arg InviteUserToDiscussionParams) error
+	IsPostFeatured(ctx context.Context, postID int32) (bool, error)
 	JoinDiscussion(ctx context.Context, arg JoinDiscussionParams) error
 	LikeComment(ctx context.Context, arg LikeCommentParams) error
 	LikePost(ctx context.Context, arg LikePostParams) error
@@ -100,7 +101,7 @@ type Querier interface {
 	ListExperiences(ctx context.Context, userID string) ([]ListExperiencesRow, error)
 	ListExpiredAds(ctx context.Context) ([]Ad, error)
 	ListFAQs(ctx context.Context) ([]Faq, error)
-	ListFeaturePosts(ctx context.Context) ([]ListFeaturePostsRow, error)
+	ListFeaturedPosts(ctx context.Context) ([]ListFeaturedPostsRow, error)
 	ListFirms(ctx context.Context, arg ListFirmsParams) ([]Firm, error)
 	ListFirmsByOwner(ctx context.Context, ownerUserID string) ([]Firm, error)
 	// lawyers
@@ -189,11 +190,6 @@ type Querier interface {
 	// ORDER BY nf.created_at DESC
 	// LIMIT $2
 	// OFFSET $3;
-	//     EXISTS (
-	//         SELECT 1
-	//         FROM feature_posts
-	//         WHERE feature_posts.post_id = nf.post_id
-	//     ) AS is_featured
 	ListNewsFeed(ctx context.Context, arg ListNewsFeedParams) ([]ListNewsFeedRow, error)
 	ListNewsFeedItems(ctx context.Context, arg ListNewsFeedItemsParams) ([]NewsFeed, error)
 	ListNewsFeedV3(ctx context.Context, arg ListNewsFeedV3Params) ([]NewsFeed, error)
@@ -202,7 +198,7 @@ type Querier interface {
 	ListPostLikedUsers(ctx context.Context, postID *int32) ([]ListPostLikedUsersRow, error)
 	ListPostLikedUsers2(ctx context.Context, arg ListPostLikedUsers2Params) ([]ListPostLikedUsers2Row, error)
 	ListPostLikes(ctx context.Context, postID *int32) ([]string, error)
-	ListPosts(ctx context.Context, arg ListPostsParams) ([]ListPostsRow, error)
+	ListPosts(ctx context.Context, postIds []int32) ([]Post, error)
 	ListRandomAds(ctx context.Context, limit int32) ([]Ad, error)
 	ListRecommendations(ctx context.Context, arg ListRecommendationsParams) ([]ListRecommendationsRow, error)
 	ListRecommendations2(ctx context.Context, arg ListRecommendations2Params) ([]ListRecommendations2Row, error)
@@ -220,6 +216,7 @@ type Querier interface {
 	MarkNotificationAsRead(ctx context.Context, notificationID int32) (Notification, error)
 	MarkWizardCompleted(ctx context.Context, arg MarkWizardCompletedParams) (User, error)
 	PostToNewsFeed(ctx context.Context, arg PostToNewsFeedParams) error
+	PostsMetaData(ctx context.Context, arg PostsMetaDataParams) ([]PostsMetaDataRow, error)
 	RejectConnection(ctx context.Context, id int32) error
 	RejectDiscussion(ctx context.Context, arg RejectDiscussionParams) error
 	RejectLicense(ctx context.Context, userID string) error

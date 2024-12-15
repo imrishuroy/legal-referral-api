@@ -1,8 +1,11 @@
 package api
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
 	"firebase.google.com/go/v4/auth"
+	"fmt"
 	"github.com/rs/zerolog/log"
 	"mime/multipart"
 	"net/http"
@@ -102,24 +105,64 @@ func (server *Server) createPost(ctx *gin.Context) {
 		PollID:   pollID,
 	}
 
-	post, err := server.store.CreatePost(ctx, arg)
+	dbPost, err := server.store.CreatePost(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
+	post := post{
+		PostID:    dbPost.PostID,
+		OwnerID:   dbPost.OwnerID,
+		Content:   dbPost.Content,
+		Media:     dbPost.Media,
+		PostType:  PostType(dbPost.PostType),
+		PollID:    dbPost.PollID,
+		CreatedAt: dbPost.CreatedAt,
+	}
+
+	// cache the post
+	redisKey := fmt.Sprintf("post:%d", post.PostID)
+	if err := server.cachePost(ctx, redisKey, post, 12*time.Hour); err != nil {
+		log.Error().Err(err).Msg("Failed to cache post")
+	}
+
 	server.publishToKafka("publish-feed", req.OwnerID, string(post.PostID))
 
-	// this should also throw an error
-	//server.createProducer(req.OwnerID, string(post.PostID))
-	//server.publishToKafka(req.OwnerID, string(post.PostID))
-
-	//if err := server.postToNewsFeed(ctx, req.OwnerID, post.PostID); err != nil {
-	//	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	//	return
-	//}
-
 	ctx.JSON(http.StatusOK, "Post created successfully")
+}
+
+func (server *Server) isPostFeatured(ctx *gin.Context) {
+	postIDStr := ctx.Param("post_id")
+
+	postID, err := strconv.Atoi(postIDStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, errorResponse(err))
+		return
+	}
+
+	int32PostID := int32(postID)
+
+	featured, err := server.store.IsPostFeatured(ctx, int32PostID)
+	if err != nil {
+		if errors.Is(err, db.ErrRecordNotFound) {
+			ctx.JSON(http.StatusOK, false)
+			return
+		}
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, featured)
+}
+
+func (server *Server) cachePost(ctx context.Context, key string, post post, expiration time.Duration) error {
+	data, err := json.Marshal(post)
+	if err != nil {
+		return fmt.Errorf("error serializing post data: %v", err)
+	}
+
+	return server.rdb.Set(ctx, key, data, expiration).Err()
 }
 
 func (server *Server) createPoll(ctx *gin.Context, req *createPollReq) (*db.Poll, error) {
@@ -150,15 +193,9 @@ func (server *Server) postToNewsFeed(ctx *gin.Context, userID string, postID int
 
 	userIDs = append(userIDs, userID)
 	for _, id := range userIDs {
-		//arg := db.PostToNewsFeedParams{
-		//	UserID: id.(string),
-		//	PostID: postID,
-		//}
-		//server.createProducer(id.(string), string(postID))
+
 		server.publishToKafka("publish-feed", id.(string), string(postID))
-		//if err := server.store.PostToNewsFeed(ctx, arg); err != nil {
-		//	return err
-		//}
+
 	}
 	return nil
 }

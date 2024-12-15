@@ -161,12 +161,6 @@ type ListNewsFeedRow struct {
 // ORDER BY nf.created_at DESC
 // LIMIT $2
 // OFFSET $3;
-//
-//	EXISTS (
-//	    SELECT 1
-//	    FROM feature_posts
-//	    WHERE feature_posts.post_id = nf.post_id
-//	) AS is_featured
 func (q *Queries) ListNewsFeed(ctx context.Context, arg ListNewsFeedParams) ([]ListNewsFeedRow, error) {
 	rows, err := q.db.Query(ctx, listNewsFeed, arg.UserID, arg.Limit, arg.Offset)
 	if err != nil {
