@@ -37,18 +37,24 @@ func (server *Server) getAccountInfo(ctx *gin.Context) {
 		return
 	}
 
-	rating, err := server.store.GetUserRatingInfo(ctx, userID)
-
-	followersCount, err := server.store.GetFollowersCount(ctx, userID)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+	avgRating, ok := acInfo.AverageRating.(float64)
+	if !ok {
+		avgRating = 0.0
 	}
 
-	connectionsCount, err := server.store.GetConnectionsCount(ctx, userID)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
+	attorneys, ok := acInfo.Attorneys.(int64)
+	if !ok {
+		attorneys = 0
+	}
+
+	followers, ok := acInfo.FollowersCount.(int64)
+	if !ok {
+		followers = 0
+	}
+
+	connections, ok := acInfo.ConnectionsCount.(int64)
+	if !ok {
+		connections = 0
 	}
 
 	account := accountInfo{
@@ -58,11 +64,11 @@ func (server *Server) getAccountInfo(ctx *gin.Context) {
 		AvatarUrl:    acInfo.AvatarUrl,
 		PracticeArea: acInfo.PracticeArea,
 		RatingInfo: &ratingInfo{
-			AverageRating: rating.AverageRating,
-			Attorneys:     rating.Attorneys,
+			AverageRating: avgRating,
+			Attorneys:     attorneys,
 		},
-		FollowersCount:   followersCount,
-		ConnectionsCount: connectionsCount,
+		FollowersCount:   followers,
+		ConnectionsCount: connections,
 	}
 
 	ctx.JSON(http.StatusOK, account)

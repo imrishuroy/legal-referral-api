@@ -12,6 +12,7 @@ import (
 )
 
 const fetchUserProfile = `-- name: FetchUserProfile :one
+
 SELECT
     users.user_id,
     users.first_name,
@@ -28,10 +29,18 @@ SELECT
     pricing.per_hour_price,
     pricing.per_hearing_price,
     pricing.contingency_price,
-    pricing.hybrid_price
-
+    pricing.hybrid_price,
+    COALESCE((SELECT AVG(rating) FROM reviews WHERE user_id = users.user_id), 0.0) AS average_rating,
+    COALESCE((SELECT COUNT(*) FROM reviews WHERE user_id = users.user_id), 0) AS attorneys,
+    COALESCE((SELECT COUNT(*)
+              FROM connection_invitations
+              WHERE recipient_id = users.user_id
+                AND status NOT IN ('rejected', 'cancelled')), 0) AS followers_count,
+    COALESCE((SELECT COUNT(*)
+              FROM connections
+              WHERE sender_id = users.user_id OR recipient_id = users.user_id), 0) AS connections_count
 FROM users
-LEFT JOIN pricing ON pricing.user_id = users.user_id
+         LEFT JOIN pricing ON users.user_id = pricing.user_id
 WHERE users.user_id = $1
 `
 
@@ -52,6 +61,10 @@ type FetchUserProfileRow struct {
 	PerHearingPrice         pgtype.Numeric `json:"per_hearing_price"`
 	ContingencyPrice        *string        `json:"contingency_price"`
 	HybridPrice             *string        `json:"hybrid_price"`
+	AverageRating           interface{}    `json:"average_rating"`
+	Attorneys               interface{}    `json:"attorneys"`
+	FollowersCount          interface{}    `json:"followers_count"`
+	ConnectionsCount        interface{}    `json:"connections_count"`
 }
 
 func (q *Queries) FetchUserProfile(ctx context.Context, userID string) (FetchUserProfileRow, error) {
@@ -74,6 +87,10 @@ func (q *Queries) FetchUserProfile(ctx context.Context, userID string) (FetchUse
 		&i.PerHearingPrice,
 		&i.ContingencyPrice,
 		&i.HybridPrice,
+		&i.AverageRating,
+		&i.Attorneys,
+		&i.FollowersCount,
+		&i.ConnectionsCount,
 	)
 	return i, err
 }

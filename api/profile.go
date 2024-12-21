@@ -5,6 +5,7 @@ import (
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/rs/zerolog/log"
 	"mime/multipart"
 	"net/http"
@@ -104,9 +105,26 @@ func (server *Server) toggleOpenToReferral(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "success"})
 }
 
-type fetchUserProfileRes struct {
-	User  db.User    `json:"user"`
-	Price db.Pricing `json:"price"`
+type userProfile struct {
+	UserID                  string         `json:"user_id"`
+	FirstName               string         `json:"first_name"`
+	LastName                string         `json:"last_name"`
+	PracticeArea            *string        `json:"practice_area"`
+	AvatarUrl               *string        `json:"avatar_url"`
+	BannerUrl               *string        `json:"banner_url"`
+	AverageBillingPerClient *int32         `json:"average_billing_per_client"`
+	CaseResolutionRate      *int32         `json:"case_resolution_rate"`
+	OpenToReferral          bool           `json:"open_to_referral"`
+	About                   *string        `json:"about"`
+	PriceID                 *int64         `json:"price_id"`
+	ServiceType             *string        `json:"service_type"`
+	PerHourPrice            pgtype.Numeric `json:"per_hour_price"`
+	PerHearingPrice         pgtype.Numeric `json:"per_hearing_price"`
+	ContingencyPrice        *string        `json:"contingency_price"`
+	HybridPrice             *string        `json:"hybrid_price"`
+	RatingInfo              *ratingInfo    `json:"rating_info"`
+	FollowersCount          int64          `json:"followers_count"`
+	ConnectionsCount        int64          `json:"connections_count"`
 }
 
 func (server *Server) fetchUserProfile(ctx *gin.Context) {
@@ -130,7 +148,52 @@ func (server *Server) fetchUserProfile(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, profile)
+	avgRating, ok := profile.AverageRating.(float64)
+	if !ok {
+		avgRating = 0.0
+	}
+
+	attorneys, ok := profile.Attorneys.(int64)
+	if !ok {
+		attorneys = 0
+	}
+
+	followers, ok := profile.FollowersCount.(int64)
+	if !ok {
+		followers = 0
+	}
+
+	connections, ok := profile.ConnectionsCount.(int64)
+	if !ok {
+		connections = 0
+	}
+
+	userProfile := userProfile{
+		UserID:                  profile.UserID,
+		FirstName:               profile.FirstName,
+		LastName:                profile.LastName,
+		PracticeArea:            profile.PracticeArea,
+		AvatarUrl:               profile.AvatarUrl,
+		BannerUrl:               profile.BannerUrl,
+		AverageBillingPerClient: profile.AverageBillingPerClient,
+		CaseResolutionRate:      profile.CaseResolutionRate,
+		OpenToReferral:          profile.OpenToReferral,
+		About:                   profile.About,
+		PriceID:                 profile.PriceID,
+		ServiceType:             profile.ServiceType,
+		PerHourPrice:            profile.PerHourPrice,
+		PerHearingPrice:         profile.PerHearingPrice,
+		ContingencyPrice:        profile.ContingencyPrice,
+		HybridPrice:             profile.HybridPrice,
+		RatingInfo: &ratingInfo{
+			AverageRating: avgRating,
+			Attorneys:     attorneys,
+		},
+		FollowersCount:   followers,
+		ConnectionsCount: connections,
+	}
+
+	ctx.JSON(http.StatusOK, userProfile)
 }
 
 func (server *Server) updateUserBannerImage(ctx *gin.Context) {
