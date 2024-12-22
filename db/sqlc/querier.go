@@ -17,6 +17,7 @@ type Querier interface {
 	AddFirm(ctx context.Context, arg AddFirmParams) (Firm, error)
 	AddPrice(ctx context.Context, arg AddPriceParams) (Pricing, error)
 	AddReferredUserToProject(ctx context.Context, arg AddReferredUserToProjectParams) (Project, error)
+	AddReportReason(ctx context.Context, reason string) (int32, error)
 	AddReview(ctx context.Context, arg AddReviewParams) (Review, error)
 	AddSocial(ctx context.Context, arg AddSocialParams) (Social, error)
 	ApproveLicense(ctx context.Context, userID string) error
@@ -76,6 +77,7 @@ type Querier interface {
 	InitiateCompleteProject(ctx context.Context, arg InitiateCompleteProjectParams) (Project, error)
 	InviteUserToDiscussion(ctx context.Context, arg InviteUserToDiscussionParams) error
 	IsPostFeatured(ctx context.Context, postID int32) (bool, error)
+	IsPostReported(ctx context.Context, arg IsPostReportedParams) (bool, error)
 	JoinDiscussion(ctx context.Context, arg JoinDiscussionParams) error
 	LikeComment(ctx context.Context, arg LikeCommentParams) error
 	LikePost(ctx context.Context, arg LikePostParams) error
@@ -142,6 +144,7 @@ type Querier interface {
 	RejectLicense(ctx context.Context, userID string) error
 	//
 	RejectProject(ctx context.Context, arg RejectProjectParams) (Project, error)
+	ReportPost(ctx context.Context, arg ReportPostParams) error
 	SaveAboutYou(ctx context.Context, arg SaveAboutYouParams) (User, error)
 	SaveDevice(ctx context.Context, arg SaveDeviceParams) error
 	SaveLicense(ctx context.Context, arg SaveLicenseParams) (License, error)
