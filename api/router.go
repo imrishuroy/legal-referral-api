@@ -230,6 +230,10 @@ func (server *Server) setupRouter() {
 	// post stats
 	auth.GET("/posts/:post_id/stats", server.getPostStats)
 
+	// report
+	auth.POST("/report-post", server.reportPost)
+	auth.GET("/posts/:post_id/reported-status/:user_id", server.isPostReported)
+
 }
 
 func CORSMiddleware() gin.HandlerFunc {

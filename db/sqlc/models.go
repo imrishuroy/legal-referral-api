@@ -609,6 +609,19 @@ type ReferralUser struct {
 	ReferredUserID string `json:"referred_user_id"`
 }
 
+type ReportReason struct {
+	ReasonID int32  `json:"reason_id"`
+	Reason   string `json:"reason"`
+}
+
+type ReportedPost struct {
+	ReportID   int32     `json:"report_id"`
+	PostID     int32     `json:"post_id"`
+	ReportedBy string    `json:"reported_by"`
+	ReasonID   int32     `json:"reason_id"`
+	CreatedAt  time.Time `json:"created_at"`
+}
+
 type Review struct {
 	ReviewID   int64     `json:"review_id"`
 	UserID     string    `json:"user_id"`
