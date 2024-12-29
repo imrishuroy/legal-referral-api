@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"math/rand"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -423,4 +424,33 @@ func (server *Server) insertAdAtRandomPosition(feedList []feed, ad db.Ad) []feed
 	// Insert the ad at the random position
 	newFeedList := append(feedList[:randomIndex], append([]feed{{Ad: &ad, FeedType: "ad"}}, feedList[randomIndex:]...)...)
 	return newFeedList
+}
+
+func (server *Server) ignoreFeed(ctx *gin.Context) {
+	feedIdStr := ctx.Param("feed_id")
+	feedID, err := strconv.Atoi(feedIdStr)
+	if err != nil {
+		ctx.JSON(400, errorResponse(err))
+		return
+	}
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID == "" {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	arg := db.IgnoreFeedParams{
+		FeedID: int32(feedID),
+		UserID: authPayload.UID,
+	}
+
+	err = server.store.IgnoreFeed(ctx, arg)
+	if err != nil {
+		log.Printf("Error ignoring post: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error ignoring post"})
+		return
+	}
+
+	ctx.Status(http.StatusOK)
+
 }

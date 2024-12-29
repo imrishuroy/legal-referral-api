@@ -50,3 +50,8 @@ WHERE user_id = $1
 ORDER BY created_at DESC
 LIMIT $2
 OFFSET $3;
+
+-- name: IgnoreFeed :exec
+DELETE FROM news_feed
+WHERE feed_id = $1 AND user_id = $2;
+
