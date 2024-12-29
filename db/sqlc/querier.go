@@ -72,6 +72,7 @@ type Querier interface {
 	GetUserById(ctx context.Context, userID string) (User, error)
 	GetUserRatingInfo(ctx context.Context, userID string) (GetUserRatingInfoRow, error)
 	GetUserWizardStep(ctx context.Context, userID string) (int32, error)
+	IgnoreFeed(ctx context.Context, arg IgnoreFeedParams) error
 	IncrementComments(ctx context.Context, postID int32) error
 	IncrementLikes(ctx context.Context, postID int32) error
 	InitiateCompleteProject(ctx context.Context, arg InitiateCompleteProjectParams) (Project, error)

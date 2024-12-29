@@ -119,3 +119,4 @@ FROM posts
     LEFT JOIN post_statistics post_stats ON posts.post_id = post_stats.post_id
     JOIN users ON posts.owner_id = users.user_id
 WHERE posts.post_id = ANY(sqlc.slice('post_ids'));
+

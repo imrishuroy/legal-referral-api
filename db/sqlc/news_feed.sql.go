@@ -10,6 +10,21 @@ import (
 	"time"
 )
 
+const ignoreFeed = `-- name: IgnoreFeed :exec
+DELETE FROM news_feed
+WHERE feed_id = $1 AND user_id = $2
+`
+
+type IgnoreFeedParams struct {
+	FeedID int32  `json:"feed_id"`
+	UserID string `json:"user_id"`
+}
+
+func (q *Queries) IgnoreFeed(ctx context.Context, arg IgnoreFeedParams) error {
+	_, err := q.db.Exec(ctx, ignoreFeed, arg.FeedID, arg.UserID)
+	return err
+}
+
 const listNewsFeed = `-- name: ListNewsFeed :many
 SELECT
     nf.feed_id,

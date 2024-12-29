@@ -234,6 +234,8 @@ func (server *Server) setupRouter() {
 	auth.POST("/report-post", server.reportPost)
 	auth.GET("/posts/:post_id/reported-status/:user_id", server.isPostReported)
 
+	auth.DELETE("/feeds/:feed_id/ignore", server.ignoreFeed)
+
 }
 
 func CORSMiddleware() gin.HandlerFunc {
