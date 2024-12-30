@@ -17,19 +17,20 @@ import (
 )
 
 type feedPost struct {
-	OwnerID        string      `json:"owner_id"`
-	OwnerFirstName string      `json:"owner_first_name"`
-	OwnerLastName  string      `json:"owner_last_name"`
-	OwnerAvatarUrl *string     `json:"owner_avatar_url"`
-	PostID         int32       `json:"post_id"`
-	Content        *string     `json:"content"`
-	Media          []string    `json:"media"`
-	PostType       db.PostType `json:"post_type"`
-	PollID         *int32      `json:"poll_id"`
-	CreatedAt      time.Time   `json:"created_at"`
-	LikesCount     int64       `json:"likes_count"`
-	CommentsCount  int64       `json:"comments_count"`
-	IsLiked        bool        `json:"is_liked"`
+	OwnerID           string      `json:"owner_id"`
+	OwnerFirstName    string      `json:"owner_first_name"`
+	OwnerLastName     string      `json:"owner_last_name"`
+	OwnerAvatarUrl    *string     `json:"owner_avatar_url"`
+	OwnerPracticeArea *string     `json:"owner_practice_area"`
+	PostID            int32       `json:"post_id"`
+	Content           *string     `json:"content"`
+	Media             []string    `json:"media"`
+	PostType          db.PostType `json:"post_type"`
+	PollID            *int32      `json:"poll_id"`
+	CreatedAt         time.Time   `json:"created_at"`
+	LikesCount        int64       `json:"likes_count"`
+	CommentsCount     int64       `json:"comments_count"`
+	IsLiked           bool        `json:"is_liked"`
 }
 
 type feed struct {
@@ -167,19 +168,20 @@ func createFeedList(posts []post, postMetaDataMap map[int32]postMetaData, feedPo
 			FeedID:   feedPostMap[post.PostID],
 			FeedType: "post",
 			FeedPost: &feedPost{
-				OwnerID:        post.OwnerID,
-				OwnerFirstName: metaData.OwnerFirstName,
-				OwnerLastName:  metaData.OwnerLastName,
-				OwnerAvatarUrl: metaData.OwnerAvatarUrl,
-				PostID:         post.PostID,
-				Content:        post.Content,
-				Media:          post.Media,
-				PostType:       db.PostType(post.PostType),
-				PollID:         post.PollID,
-				CreatedAt:      post.CreatedAt,
-				LikesCount:     metaData.LikesCount,
-				CommentsCount:  metaData.CommentsCount,
-				IsLiked:        metaData.IsLiked,
+				OwnerID:           post.OwnerID,
+				OwnerFirstName:    metaData.OwnerFirstName,
+				OwnerLastName:     metaData.OwnerLastName,
+				OwnerAvatarUrl:    metaData.OwnerAvatarUrl,
+				OwnerPracticeArea: metaData.OwnerPracticeArea,
+				PostID:            post.PostID,
+				Content:           post.Content,
+				Media:             post.Media,
+				PostType:          db.PostType(post.PostType),
+				PollID:            post.PollID,
+				CreatedAt:         post.CreatedAt,
+				LikesCount:        metaData.LikesCount,
+				CommentsCount:     metaData.CommentsCount,
+				IsLiked:           metaData.IsLiked,
 			},
 		}
 		feedLists = append(feedLists, feed)

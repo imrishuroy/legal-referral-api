@@ -70,6 +70,7 @@ type Querier interface {
 	GetRandomAd(ctx context.Context) (Ad, error)
 	GetUserByEmail(ctx context.Context, email string) (User, error)
 	GetUserById(ctx context.Context, userID string) (User, error)
+	GetUserFollowersCount(ctx context.Context, userID string) (interface{}, error)
 	GetUserRatingInfo(ctx context.Context, userID string) (GetUserRatingInfoRow, error)
 	GetUserWizardStep(ctx context.Context, userID string) (int32, error)
 	IgnoreFeed(ctx context.Context, arg IgnoreFeedParams) error
@@ -135,6 +136,8 @@ type Querier interface {
 	ListSavedPosts(ctx context.Context, userID string) ([]ListSavedPostsRow, error)
 	ListSocials(ctx context.Context, arg ListSocialsParams) ([]Social, error)
 	ListUninvitedParticipants(ctx context.Context, discussionID int32) ([]ListUninvitedParticipantsRow, error)
+	ListUserComments(ctx context.Context, arg ListUserCommentsParams) ([]ListUserCommentsRow, error)
+	ListUserPosts(ctx context.Context, arg ListUserPostsParams) ([]ListUserPostsRow, error)
 	ListUsers(ctx context.Context, arg ListUsersParams) ([]ListUsersRow, error)
 	MarkNotificationAsRead(ctx context.Context, notificationID int32) (Notification, error)
 	MarkWizardCompleted(ctx context.Context, arg MarkWizardCompletedParams) (User, error)
