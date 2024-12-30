@@ -233,8 +233,12 @@ func (server *Server) setupRouter() {
 	// report
 	auth.POST("/report-post", server.reportPost)
 	auth.GET("/posts/:post_id/reported-status/:user_id", server.isPostReported)
-
 	auth.DELETE("/feeds/:feed_id/ignore", server.ignoreFeed)
+
+	// activity
+	auth.GET("/activity/posts/:user_id", server.listActivityPosts)
+	auth.GET("/activity/comments/:user_id", server.listActivityComments)
+	auth.GET("/users/:user_id/followers-count", server.getUserFollowersCount)
 
 }
 

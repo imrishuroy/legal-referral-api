@@ -7,11 +7,10 @@ SELECT
     users.practice_area,
     COALESCE((SELECT AVG(rating) FROM reviews WHERE user_id = users.user_id), 0.0) AS average_rating,
     COALESCE((SELECT COUNT(*) FROM reviews WHERE user_id = users.user_id), 0) AS attorneys,
-
     COALESCE((SELECT COUNT(*)
               FROM connection_invitations
               WHERE recipient_id = users.user_id
-                AND status NOT IN ('rejected', 'cancelled')), 0) AS followers_count,
+              AND status NOT IN ('rejected', 'cancelled')), 0) AS followers_count,
     COALESCE((SELECT COUNT(*)
               FROM connections
               WHERE sender_id = users.user_id OR recipient_id = users.user_id), 0) AS connections_count

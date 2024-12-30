@@ -348,18 +348,3 @@ func (server *Server) searchPosts(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, posts)
 }
-
-func s3BucketName(postType PostType) string {
-	switch postType {
-	case PostTypeImage:
-		return "post-images"
-	case PostTypeVideo:
-		return "post-videos"
-	case PostTypeAudio:
-		return "post-audios"
-	case PostTypeDocument:
-		return "post-documents"
-	default:
-		return "post-others"
-	}
-}

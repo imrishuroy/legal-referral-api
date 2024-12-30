@@ -1,5 +1,7 @@
 ### LegalReferral BE
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=imrishuroy_legal-referral-api&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=imrishuroy_legal-referral-api)
+
 create a new db migration
 
     make new_migration name=otp_schema
