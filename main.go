@@ -16,6 +16,8 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+// check deployment
+
 func main() {
 
 	log.Info().Msg("Welcome to LegalReferral")
