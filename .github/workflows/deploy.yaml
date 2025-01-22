@@ -1,4 +1,4 @@
-name: Push image to ECR
+name: Push image to AWS ECR
 
 on:
   workflow_dispatch:
@@ -11,7 +11,7 @@ on:
 
 jobs:
   deploy:
-    name: Build image and deploy to Amazon EKS
+    name: Build image and push AWS ECR
     runs-on: ubuntu-latest
 
     steps:
@@ -27,7 +27,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Login to Amazon ECR
+      - name: Login to AWS ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
@@ -37,7 +37,7 @@ jobs:
       - name: Load secrets and save to service-account-key.json
         run: aws secretsmanager get-secret-value --secret-id legalreferral-service-account-key --query SecretString --output text > service-account-key.json
 
-      - name: Build, tag, and push docker image to Amazon ECR
+      - name: Build, tag, and push docker image to AWS ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: legal-referral-lambda
