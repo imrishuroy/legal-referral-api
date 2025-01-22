@@ -1,19 +1,24 @@
 name: Deploy to production
 
 on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:  # Allows manual triggering
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to deploy'
+        required: true
+        default: 'main'
+        type: string
 
 jobs:
-
   deploy:
     name: Build image and deploy to Amazon EKS
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check repo
+      - name: Check out code
         uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.inputs.branch }}  # Use the selected branch for checkout
 
       - name: Install kubectl
         uses: azure/setup-kubectl@v3
