@@ -1,11 +1,8 @@
 package api
 
 import (
-	"context"
-	"encoding/json"
 	"errors"
 	"firebase.google.com/go/v4/auth"
-	"fmt"
 	"github.com/rs/zerolog/log"
 	"mime/multipart"
 	"net/http"
@@ -122,10 +119,11 @@ func (server *Server) createPost(ctx *gin.Context) {
 	}
 
 	// cache the post
-	redisKey := fmt.Sprintf("post:%d", post.PostID)
-	if err := server.cachePost(ctx, redisKey, post, 12*time.Hour); err != nil {
-		log.Error().Err(err).Msg("Failed to cache post")
-	}
+	//redisKey := fmt.Sprintf("post:%d", post.PostID)
+
+	//if err := server.cachePost(ctx, redisKey, post, 12*time.Hour); err != nil {
+	//	log.Error().Err(err).Msg("Failed to cache post")
+	//}
 
 	server.publishToKafka("publish-feed", req.OwnerID, string(post.PostID))
 
@@ -156,14 +154,14 @@ func (server *Server) isPostFeatured(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, featured)
 }
 
-func (server *Server) cachePost(ctx context.Context, key string, post post, expiration time.Duration) error {
-	data, err := json.Marshal(post)
-	if err != nil {
-		return fmt.Errorf("error serializing post data: %v", err)
-	}
-
-	return server.rdb.Set(ctx, key, data, expiration).Err()
-}
+//func (server *Server) cachePost(ctx context.Context, key string, post post, expiration time.Duration) error {
+//	data, err := json.Marshal(post)
+//	if err != nil {
+//		return fmt.Errorf("error serializing post data: %v", err)
+//	}
+//
+//	return server.rdb.Set(ctx, key, data, expiration).Err()
+//}
 
 func (server *Server) createPoll(ctx *gin.Context, req *createPollReq) (*db.Poll, error) {
 	if req == nil {

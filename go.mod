@@ -5,7 +5,9 @@ go 1.22.7
 require (
 	firebase.google.com/go/v4 v4.15.0
 	github.com/99designs/gqlgen v0.17.56
+	github.com/aws/aws-lambda-go v1.47.0
 	github.com/aws/aws-sdk-go v1.55.5
+	github.com/awslabs/aws-lambda-go-api-proxy v0.16.2
 	github.com/confluentinc/confluent-kafka-go/v2 v2.6.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/golang-jwt/jwt/v5 v5.2.1

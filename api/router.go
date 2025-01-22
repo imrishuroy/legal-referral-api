@@ -1,10 +1,10 @@
 package api
 
 import (
-	"github.com/99designs/gqlgen/graphql/handler"
+	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/gin-gonic/gin"
 	"github.com/imrishuroy/legal-referral/chat"
-	"github.com/imrishuroy/legal-referral/graph"
+	"github.com/rs/zerolog/log"
 )
 
 //func playgroundHandler() gin.HandlerFunc {
@@ -14,43 +14,45 @@ import (
 //	}
 //}
 
-func (server *Server) setupRouter() {
+func (server *Server) setupRouter(ginLambda *ginadapter.GinLambda) {
 	// Set Gin to release mode
 	//gin.SetMode(gin.ReleaseMode)
+	log.Info().Msg("Setting up router 1")
 	gin.SetMode(gin.ReleaseMode)
 
-	srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{
-		Store: server.store}}))
+	//srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{
+	//	Store: server.store}}))
 
 	//http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	//http.Handle("/query", srv)
 
-	server.router = gin.Default()
+	server.Router = gin.Default()
+	log.Info().Msg("Setting up routes 2")
 
 	//server.router.GET("/playground", playgroundHandler())
 
-	server.router.GET("/", server.ping).Use(CORSMiddleware())
-	server.router.GET("/health", server.ping).Use(CORSMiddleware())
-	server.router.GET("/check", server.ping).Use(CORSMiddleware())
+	server.Router.GET("/", server.ping).Use(CORSMiddleware())
+	server.Router.GET("/health", server.ping).Use(CORSMiddleware())
+	server.Router.GET("/check", server.ping).Use(CORSMiddleware())
 
 	// auth
-	server.router.POST("/api/sign-in", server.signIn)
-	server.router.POST("/api/sign-up", server.signUp)
-	server.router.POST("/api/refresh-token", server.refreshToken)
-	server.router.POST("/api/otp/send", server.sendOTP)
-	server.router.POST("/api/otp/verify", server.verifyOTP)
-	server.router.POST("/api/reset-password", server.resetPassword)
+	server.Router.POST("/api/sign-in", server.signIn)
+	server.Router.POST("/api/sign-up", server.signUp)
+	server.Router.POST("/api/refresh-token", server.refreshToken)
+	server.Router.POST("/api/otp/send", server.sendOTP)
+	server.Router.POST("/api/otp/verify", server.verifyOTP)
+	server.Router.POST("/api/reset-password", server.resetPassword)
 
-	server.router.GET("/api/users/:user_id/wizardstep", server.getUserWizardStep)
-	server.router.GET("/api/firms", server.searchFirms)
+	server.Router.GET("/api/users/:user_id/wizardstep", server.getUserWizardStep)
+	server.Router.GET("/api/firms", server.searchFirms)
 
-	server.router.POST("/api/sign-in/linkedin", server.linkedinLogin)
+	server.Router.POST("/api/sign-in/linkedin", server.linkedinLogin)
 
-	auth := server.router.Group("/api").
+	auth := server.Router.Group("/api").
 		Use(authMiddleware(server.firebaseAuth))
 
 	// GRAPHQL
-	auth.POST("/query", gin.WrapH(srv))
+	//auth.POST("/query", gin.WrapH(srv))
 
 	auth.GET("/check-token", server.ping)
 	auth.POST("/users", server.createUser)
@@ -155,8 +157,8 @@ func (server *Server) setupRouter() {
 
 	// news feed
 	auth.GET("/feeds/:user_id", server.listNewsFeed)
-	auth.GET("/v2/feeds/:user_id", server.listNewsFeedV2)
-	auth.GET("/v3/feeds/:user_id", server.listNewsFeedV3)
+	//auth.GET("/v2/feeds/:user_id", server.listNewsFeedV2)
+	//auth.GET("/v3/feeds/:user_id", server.listNewsFeedV3)
 
 	// like post
 	auth.POST("/posts/:post_id/like", server.likePost)
@@ -240,6 +242,12 @@ func (server *Server) setupRouter() {
 	auth.GET("/activity/comments/:user_id", server.listActivityComments)
 	auth.GET("/users/:user_id/followers-count", server.getUserFollowersCount)
 
+	// print ginAdapter
+	log.Info().Msg("Setting up routes 3")
+
+	log.Info().Msgf("GinAdapter: %+v", ginLambda)
+
+	ginLambda = ginadapter.New(server.Router)
 }
 
 func CORSMiddleware() gin.HandlerFunc {
