@@ -1,4 +1,4 @@
-name: Deploy to production
+name: Push image to ECR
 
 on:
   workflow_dispatch:
@@ -20,15 +20,6 @@ jobs:
         with:
           ref: ${{ github.event.inputs.branch }}  # Use the selected branch for checkout
 
-      - name: Install kubectl
-        uses: azure/setup-kubectl@v3
-        with:
-          version: 'v1.30.0'
-        id: install
-
-      - name: Install kustomize
-        run: curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash && mv kustomize /usr/local/bin/
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -49,7 +40,7 @@ jobs:
       - name: Build, tag, and push docker image to Amazon ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: legalreferral
+          ECR_REPOSITORY: legal-referral-lambda
           IMAGE_TAG: "latest"
           GITHUB_SHA: ${{ github.sha }}
         run: |
