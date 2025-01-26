@@ -44,7 +44,7 @@ type createPostReq struct {
 	EndTime   *time.Time              `form:"end_time"`
 }
 
-func (server *Server) createPost(ctx *gin.Context) {
+func (s *Server) createPost(ctx *gin.Context) {
 
 	var req createPostReq
 
@@ -67,7 +67,7 @@ func (server *Server) createPost(ctx *gin.Context) {
 
 	if req.PostType == PostTypeImage || req.PostType == PostTypeVideo || req.PostType == PostTypeDocument {
 		//urls, err := server.handleFilesUpload(req.Files, s3BucketName(req.PostType))
-		urls, err := server.handleFilesUpload(req.Files)
+		urls, err := s.handleFilesUpload(req.Files)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
@@ -86,7 +86,7 @@ func (server *Server) createPost(ctx *gin.Context) {
 			EndTime:   req.EndTime,
 		}
 
-		poll, err := server.createPoll(ctx, &createPollReq)
+		poll, err := s.createPoll(ctx, &createPollReq)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
@@ -102,7 +102,7 @@ func (server *Server) createPost(ctx *gin.Context) {
 		PollID:   pollID,
 	}
 
-	dbPost, err := server.store.CreatePost(ctx, arg)
+	dbPost, err := s.store.CreatePost(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -125,12 +125,12 @@ func (server *Server) createPost(ctx *gin.Context) {
 	//	log.Error().Err(err).Msg("Failed to cache post")
 	//}
 
-	server.publishToKafka("publish-feed", req.OwnerID, string(post.PostID))
+	s.publishToKafka("publish-feed", req.OwnerID, string(post.PostID))
 
 	ctx.JSON(http.StatusOK, "Post created successfully")
 }
 
-func (server *Server) isPostFeatured(ctx *gin.Context) {
+func (s *Server) isPostFeatured(ctx *gin.Context) {
 	postIDStr := ctx.Param("post_id")
 
 	postID, err := strconv.Atoi(postIDStr)
@@ -141,7 +141,7 @@ func (server *Server) isPostFeatured(ctx *gin.Context) {
 
 	int32PostID := int32(postID)
 
-	featured, err := server.store.IsPostFeatured(ctx, int32PostID)
+	featured, err := s.store.IsPostFeatured(ctx, int32PostID)
 	if err != nil {
 		if errors.Is(err, db.ErrRecordNotFound) {
 			ctx.JSON(http.StatusOK, false)
@@ -163,7 +163,7 @@ func (server *Server) isPostFeatured(ctx *gin.Context) {
 //	return server.rdb.Set(ctx, key, data, expiration).Err()
 //}
 
-func (server *Server) createPoll(ctx *gin.Context, req *createPollReq) (*db.Poll, error) {
+func (s *Server) createPoll(ctx *gin.Context, req *createPollReq) (*db.Poll, error) {
 	if req == nil {
 		return nil, errors.New("poll request is nil")
 	}
@@ -175,7 +175,7 @@ func (server *Server) createPoll(ctx *gin.Context, req *createPollReq) (*db.Poll
 		//EndDate: pgtype.Timestamptz{Time: *req.EndDate, Valid: req.EndDate != nil},
 	}
 
-	poll, err := server.store.CreatePoll(ctx, arg)
+	poll, err := s.store.CreatePoll(ctx, arg)
 	if err != nil {
 		return nil, err
 
@@ -183,8 +183,8 @@ func (server *Server) createPoll(ctx *gin.Context, req *createPollReq) (*db.Poll
 	return &poll, nil
 }
 
-func (server *Server) postToNewsFeed(ctx *gin.Context, userID string, postID int32) error {
-	userIDs, err := server.store.ListConnectedUserIDs(ctx, userID)
+func (s *Server) postToNewsFeed(ctx *gin.Context, userID string, postID int32) error {
+	userIDs, err := s.store.ListConnectedUserIDs(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -192,13 +192,13 @@ func (server *Server) postToNewsFeed(ctx *gin.Context, userID string, postID int
 	userIDs = append(userIDs, userID)
 	for _, id := range userIDs {
 
-		server.publishToKafka("publish-feed", id.(string), string(postID))
+		s.publishToKafka("publish-feed", id.(string), string(postID))
 
 	}
 	return nil
 }
 
-func (server *Server) postLikesAndCommentsCount(ctx *gin.Context) {
+func (s *Server) postLikesAndCommentsCount(ctx *gin.Context) {
 	postIDStr := ctx.Param("post_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -215,13 +215,13 @@ func (server *Server) postLikesAndCommentsCount(ctx *gin.Context) {
 
 	int32PostID := int32(postID)
 
-	likes, err := server.store.GetPostLikesCount(ctx, &int32PostID)
+	likes, err := s.store.GetPostLikesCount(ctx, &int32PostID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	comments, err := server.store.GetPostCommentsCount(ctx, int32(postID))
+	comments, err := s.store.GetPostCommentsCount(ctx, int32(postID))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -233,7 +233,7 @@ func (server *Server) postLikesAndCommentsCount(ctx *gin.Context) {
 	})
 }
 
-func (server *Server) isPostLiked(ctx *gin.Context) {
+func (s *Server) isPostLiked(ctx *gin.Context) {
 	postIDStr := ctx.Param("post_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -255,7 +255,7 @@ func (server *Server) isPostLiked(ctx *gin.Context) {
 		PostID: &int32PostID,
 	}
 
-	liked, err := server.store.GetPosIsLikedByCurrentUser(ctx, arg)
+	liked, err := s.store.GetPosIsLikedByCurrentUser(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -264,7 +264,7 @@ func (server *Server) isPostLiked(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, liked)
 }
 
-func (server *Server) deletePost(ctx *gin.Context) {
+func (s *Server) deletePost(ctx *gin.Context) {
 	postIDStr := ctx.Param("post_id")
 	postID, err := strconv.Atoi(postIDStr)
 	if err != nil {
@@ -285,7 +285,7 @@ func (server *Server) deletePost(ctx *gin.Context) {
 		OwnerID: authPayload.UID,
 	}
 
-	err = server.store.DeletePost(ctx, arg)
+	err = s.store.DeletePost(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -294,7 +294,7 @@ func (server *Server) deletePost(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Post deleted successfully"})
 }
 
-func (server *Server) getPost(ctx *gin.Context) {
+func (s *Server) getPost(ctx *gin.Context) {
 	postIDStr := ctx.Param("post_id")
 	postID, err := strconv.Atoi(postIDStr)
 	if err != nil {
@@ -304,7 +304,7 @@ func (server *Server) getPost(ctx *gin.Context) {
 
 	int32PostID := int32(postID)
 
-	post, err := server.store.GetPost(ctx, int32PostID)
+	post, err := s.store.GetPost(ctx, int32PostID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -319,7 +319,7 @@ type searchPostsReq struct {
 	SearchQuery string `form:"query"`
 }
 
-func (server *Server) searchPosts(ctx *gin.Context) {
+func (s *Server) searchPosts(ctx *gin.Context) {
 	var req searchPostsReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -338,7 +338,7 @@ func (server *Server) searchPosts(ctx *gin.Context) {
 		Searchquery: req.SearchQuery,
 	}
 
-	posts, err := server.store.SearchPosts(ctx, arg)
+	posts, err := s.store.SearchPosts(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

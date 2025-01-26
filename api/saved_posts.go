@@ -13,7 +13,7 @@ type savePostReq struct {
 	UserID string `json:"user_id" binding:"required"`
 }
 
-func (server *Server) savePost(ctx *gin.Context) {
+func (s *Server) savePost(ctx *gin.Context) {
 	var req savePostReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -31,7 +31,7 @@ func (server *Server) savePost(ctx *gin.Context) {
 		UserID: req.UserID,
 	}
 
-	err := server.store.SavePost(ctx, arg)
+	err := s.store.SavePost(ctx, arg)
 	if err != nil {
 
 		errorCode := db.ErrorCode(err)
@@ -47,7 +47,7 @@ func (server *Server) savePost(ctx *gin.Context) {
 
 }
 
-func (server *Server) unSavePost(ctx *gin.Context) {
+func (s *Server) unSavePost(ctx *gin.Context) {
 
 	savedPostParam := ctx.Param("saved_post_id")
 	// convert this to int32
@@ -63,7 +63,7 @@ func (server *Server) unSavePost(ctx *gin.Context) {
 		return
 	}
 
-	err = server.store.UnsavePost(ctx, int32(savedPostID))
+	err = s.store.UnsavePost(ctx, int32(savedPostID))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -72,10 +72,10 @@ func (server *Server) unSavePost(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Post unsaved successfully"})
 }
 
-func (server *Server) listSavedPosts(ctx *gin.Context) {
+func (s *Server) listSavedPosts(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
-	savedPosts, err := server.store.ListSavedPosts(ctx, userID)
+	savedPosts, err := s.store.ListSavedPosts(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

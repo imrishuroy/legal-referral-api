@@ -37,7 +37,7 @@ type createAdReq struct {
 	EndDate      *time.Time              `form:"end_date"`
 }
 
-func (server *Server) createAd(ctx *gin.Context) {
+func (s *Server) createAd(ctx *gin.Context) {
 
 	var req createAdReq
 
@@ -62,7 +62,7 @@ func (server *Server) createAd(ctx *gin.Context) {
 		//		bucketName = "post-videos"
 		//	}
 
-		urls, err := server.handleFilesUpload(req.Files)
+		urls, err := s.handleFilesUpload(req.Files)
 
 		//urls, err := server.handleFilesUpload(req.Files, bucketName)
 		if err != nil {
@@ -87,7 +87,7 @@ func (server *Server) createAd(ctx *gin.Context) {
 		EndDate:      *req.EndDate,
 	}
 
-	_, err := server.store.CreateAd(ctx, arg)
+	_, err := s.store.CreateAd(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -96,7 +96,7 @@ func (server *Server) createAd(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Ad created successfully"})
 }
 
-func (server *Server) listPlayingAds(ctx *gin.Context) {
+func (s *Server) listPlayingAds(ctx *gin.Context) {
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
@@ -104,7 +104,7 @@ func (server *Server) listPlayingAds(ctx *gin.Context) {
 		return
 	}
 
-	ads, err := server.store.ListPlayingAds(ctx)
+	ads, err := s.store.ListPlayingAds(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -113,7 +113,7 @@ func (server *Server) listPlayingAds(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, ads)
 }
 
-func (server *Server) listExpiredAds(ctx *gin.Context) {
+func (s *Server) listExpiredAds(ctx *gin.Context) {
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
@@ -121,7 +121,7 @@ func (server *Server) listExpiredAds(ctx *gin.Context) {
 		return
 	}
 
-	ads, err := server.store.ListExpiredAds(ctx)
+	ads, err := s.store.ListExpiredAds(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -130,7 +130,7 @@ func (server *Server) listExpiredAds(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, ads)
 }
 
-func (server *Server) extendAdPeriod(ctx *gin.Context) {
+func (s *Server) extendAdPeriod(ctx *gin.Context) {
 	adIDStr := ctx.Param("ad_id")
 	adID, err := strconv.Atoi(adIDStr)
 	if err != nil {
@@ -153,7 +153,7 @@ func (server *Server) extendAdPeriod(ctx *gin.Context) {
 
 	req.AdID = int32(adID)
 
-	ad, err := server.store.ExtendAdPeriod(ctx, req)
+	ad, err := s.store.ExtendAdPeriod(ctx, req)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

@@ -26,7 +26,7 @@ func (s SignupMethod) Int32() int32 {
 	return int32(s)
 }
 
-func (server *Server) createUser(ctx *gin.Context) {
+func (s *Server) CreateUser(ctx *gin.Context) {
 
 	form, err := ctx.MultipartForm()
 	if err != nil {
@@ -72,7 +72,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 		// create file name with userid and file extension
 		fileName := authPayload.UID + getFileExtension(userImageFile)
 
-		url, err := server.uploadFile(file, fileName, userImageFile.Header.Get("Content-Type"))
+		url, err := s.uploadFile(file, fileName, userImageFile.Header.Get("Content-Type"))
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error uploading file"})
 			return
@@ -100,7 +100,7 @@ func (server *Server) createUser(ctx *gin.Context) {
 		SignupMethod:   int32(userSignUpMethod),
 	}
 
-	user, err := server.store.CreateUser(ctx, arg)
+	user, err := s.store.CreateUser(ctx, arg)
 	if err != nil {
 		errCode := db.ErrorCode(err)
 		switch errCode {
@@ -119,7 +119,7 @@ type getUserByIdReq struct {
 	UserID string `uri:"user_id" binding:"required"`
 }
 
-func (server *Server) getUserById(ctx *gin.Context) {
+func (s *Server) GetUserById(ctx *gin.Context) {
 	var req getUserByIdReq
 	if err := ctx.ShouldBindUri(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
@@ -132,7 +132,7 @@ func (server *Server) getUserById(ctx *gin.Context) {
 		return
 	}
 
-	user, _ := server.store.GetUserById(ctx, req.UserID)
+	user, _ := s.store.GetUserById(ctx, req.UserID)
 
 	// if the user not found returning nil, not error
 	if user.UserID == "" {
@@ -159,7 +159,7 @@ type getUserWizardStepReq struct {
 	UserID string `uri:"user_id" binding:"required"`
 }
 
-func (server *Server) getUserWizardStep(ctx *gin.Context) {
+func (s *Server) GetUserWizardStep(ctx *gin.Context) {
 	var req getUserWizardStepReq
 	if err := ctx.ShouldBindUri(&req); err != nil {
 		log.Err(err).Msg("error binding uri")
@@ -169,7 +169,7 @@ func (server *Server) getUserWizardStep(ctx *gin.Context) {
 
 	log.Info().Msgf("user id %s", req.UserID)
 
-	step, err := server.store.GetUserWizardStep(ctx, req.UserID)
+	step, err := s.store.GetUserWizardStep(ctx, req.UserID)
 	if err != nil {
 		log.Error().Err(err).Msg("message getting user wizard step")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -183,7 +183,7 @@ type markWizardCompletedReq struct {
 	UserID string `uri:"user_id" binding:"required"`
 }
 
-func (server *Server) markWizardCompleted(ctx *gin.Context) {
+func (s *Server) markWizardCompleted(ctx *gin.Context) {
 	var req markWizardCompletedReq
 	if err := ctx.ShouldBindUri(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
@@ -195,7 +195,7 @@ func (server *Server) markWizardCompleted(ctx *gin.Context) {
 		WizardCompleted: true,
 	}
 
-	_, err := server.store.MarkWizardCompleted(ctx, markWizardCompArg)
+	_, err := s.store.MarkWizardCompleted(ctx, markWizardCompArg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -211,7 +211,7 @@ type saveAboutYouReq struct {
 	Experience       string `json:"experience"`
 }
 
-func (server *Server) saveAboutYou(ctx *gin.Context) {
+func (s *Server) saveAboutYou(ctx *gin.Context) {
 
 	var req saveAboutYouReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -234,7 +234,7 @@ func (server *Server) saveAboutYou(ctx *gin.Context) {
 		WizardCompleted:  true,
 	}
 
-	_, err := server.store.SaveAboutYou(ctx, arg)
+	_, err := s.store.SaveAboutYou(ctx, arg)
 	if err != nil {
 		log.Logger.Error().Err(err).Msg("Error updating user about you")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -252,7 +252,7 @@ type updateUserInfo struct {
 	About                   string `json:"about" binding:"required"`
 }
 
-func (server *Server) updateUserInfo(ctx *gin.Context) {
+func (s *Server) updateUserInfo(ctx *gin.Context) {
 	var req updateUserInfo
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request body")
@@ -275,7 +275,7 @@ func (server *Server) updateUserInfo(ctx *gin.Context) {
 		About:                   &req.About,
 	}
 
-	user, err := server.store.UpdateUserInfo(ctx, arg)
+	user, err := s.store.UpdateUserInfo(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -289,7 +289,7 @@ type listConnectedUsersReq struct {
 	Offset int32 `form:"offset"`
 }
 
-func (server *Server) listConnectedUsers(ctx *gin.Context) {
+func (s *Server) listConnectedUsers(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	var req listConnectedUsersReq
@@ -310,7 +310,7 @@ func (server *Server) listConnectedUsers(ctx *gin.Context) {
 		Offset: req.Offset,
 	}
 
-	users, err := server.store.ListConnectedUsers(ctx, arg)
+	users, err := s.store.ListConnectedUsers(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -324,7 +324,7 @@ type listUsersReq struct {
 	Offset int32 `form:"offset"`
 }
 
-func (server *Server) listUsers(ctx *gin.Context) {
+func (s *Server) ListUsers(ctx *gin.Context) {
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	log.Info().Msgf("auth payload listUsers %v", authPayload)
@@ -345,7 +345,7 @@ func (server *Server) listUsers(ctx *gin.Context) {
 		Offset: req.Offset,
 	}
 
-	users, err := server.store.ListUsers(ctx, arg)
+	users, err := s.store.ListUsers(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -353,7 +353,7 @@ func (server *Server) listUsers(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, users)
 }
-func (server *Server) approveLicense(ctx *gin.Context) {
+func (s *Server) approveLicense(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	// TODO: check if the user is admin
@@ -363,7 +363,7 @@ func (server *Server) approveLicense(ctx *gin.Context) {
 		return
 	}
 
-	err := server.store.ApproveLicense(ctx, userID)
+	err := s.store.ApproveLicense(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -372,7 +372,7 @@ func (server *Server) approveLicense(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "License approved successfully"})
 }
 
-func (server *Server) rejectLicense(ctx *gin.Context) {
+func (s *Server) rejectLicense(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	// TODO: check if the user is admin
@@ -382,7 +382,7 @@ func (server *Server) rejectLicense(ctx *gin.Context) {
 		return
 	}
 
-	err := server.store.RejectLicense(ctx, userID)
+	err := s.store.RejectLicense(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

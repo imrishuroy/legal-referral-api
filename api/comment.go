@@ -18,7 +18,7 @@ type commentPostReq struct {
 	ParentCommentId *int32 `json:"parent_comment_id"`
 }
 
-func (server *Server) commentPost(ctx *gin.Context) {
+func (s *Server) commentPost(ctx *gin.Context) {
 
 	var req commentPostReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -41,7 +41,7 @@ func (server *Server) commentPost(ctx *gin.Context) {
 
 	postIDStr := strconv.Itoa(req.PostId)
 
-	comment, err := server.store.CommentPost(ctx, arg)
+	comment, err := s.store.CommentPost(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -65,14 +65,14 @@ func (server *Server) commentPost(ctx *gin.Context) {
 	// Launch a goroutine to publish to Kafka
 	go func() {
 		jsonString := string(jsonData)
-		server.publishToKafka("likes", authPayload.UID, jsonString)
+		s.publishToKafka("likes", authPayload.UID, jsonString)
 	}()
 
 	ctx.JSON(http.StatusOK, comment)
 
 }
 
-func (server *Server) listComments(ctx *gin.Context) {
+func (s *Server) listComments(ctx *gin.Context) {
 
 	postIDStr := ctx.Param("post_id")
 	postID, err := strconv.Atoi(postIDStr)
@@ -93,7 +93,7 @@ func (server *Server) listComments(ctx *gin.Context) {
 		UserID: authPayload.UID,
 	}
 
-	comments, err := server.store.ListComments2(ctx, arg)
+	comments, err := s.store.ListComments2(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

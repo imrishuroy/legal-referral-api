@@ -14,7 +14,7 @@ import (
 //	}
 //}
 
-func (server *Server) setupRouter(ginLambda *ginadapter.GinLambda) {
+func (s *Server) setupRouter(ginLambda *ginadapter.GinLambda) {
 	// Set Gin to release mode
 	//gin.SetMode(gin.ReleaseMode)
 	log.Info().Msg("Setting up router 1")
@@ -26,228 +26,228 @@ func (server *Server) setupRouter(ginLambda *ginadapter.GinLambda) {
 	//http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	//http.Handle("/query", srv)
 
-	server.Router = gin.Default()
+	s.Router = gin.Default()
 	log.Info().Msg("Setting up routes 2")
 
 	//server.router.GET("/playground", playgroundHandler())
 
-	server.Router.GET("/", server.ping).Use(CORSMiddleware())
-	server.Router.GET("/health", server.ping).Use(CORSMiddleware())
-	server.Router.GET("/check", server.ping).Use(CORSMiddleware())
+	s.Router.GET("/", s.ping).Use(CORSMiddleware())
+	s.Router.GET("/health", s.ping).Use(CORSMiddleware())
+	s.Router.GET("/check", s.ping).Use(CORSMiddleware())
 
 	// auth
-	server.Router.POST("/api/sign-in", server.signIn)
-	server.Router.POST("/api/sign-up", server.signUp)
-	server.Router.POST("/api/refresh-token", server.refreshToken)
-	server.Router.POST("/api/otp/send", server.sendOTP)
-	server.Router.POST("/api/otp/verify", server.verifyOTP)
-	server.Router.POST("/api/reset-password", server.resetPassword)
+	s.Router.POST("/api/sign-in", s.SignIn)
+	s.Router.POST("/api/sign-up", s.SignUp)
+	s.Router.POST("/api/refresh-token", s.RefreshToken)
+	s.Router.POST("/api/otp/send", s.SendOTP)
+	s.Router.POST("/api/otp/verify", s.VerifyOTP)
+	s.Router.POST("/api/reset-password", s.ResetPassword)
 
-	server.Router.GET("/api/users/:user_id/wizardstep", server.getUserWizardStep)
-	server.Router.GET("/api/firms", server.searchFirms)
+	s.Router.GET("/api/users/:user_id/wizardstep", s.GetUserWizardStep)
+	s.Router.GET("/api/firms", s.SearchFirms)
 
-	server.Router.POST("/api/sign-in/linkedin", server.linkedinLogin)
+	s.Router.POST("/api/sign-in/linkedin", s.LinkedinLogin)
 
-	auth := server.Router.Group("/api").
-		Use(authMiddleware(server.firebaseAuth))
+	auth := s.Router.Group("/api").
+		Use(s.AuthMiddleware(s.FirebaseAuth))
 
 	// GRAPHQL
 	//auth.POST("/query", gin.WrapH(srv))
 
-	auth.GET("/check-token", server.ping)
-	auth.POST("/users", server.createUser)
+	auth.GET("/check-token", s.ping)
+	auth.POST("/users", s.CreateUser)
 
-	auth.GET("/users/:user_id", server.getUserById)
-	auth.POST("/license", server.saveLicense)
-	auth.POST("/license/upload", server.uploadLicense)
-	auth.POST("/about-you", server.saveAboutYou)
-	auth.GET("/users/:user_id/profile", server.fetchUserProfile)
+	auth.GET("/users/:user_id", s.GetUserById)
+	auth.POST("/license", s.SaveLicense)
+	auth.POST("/license/upload", s.uploadLicense)
+	auth.POST("/about-you", s.saveAboutYou)
+	auth.GET("/users/:user_id/profile", s.fetchUserProfile)
 
-	auth.PUT("/users/info", server.updateUserInfo)
-	auth.POST("/review", server.addReview)
+	auth.PUT("/users/info", s.updateUserInfo)
+	auth.POST("/review", s.addReview)
 
-	auth.POST("/price", server.addPrice)
-	auth.PUT("/price/:price_id", server.updatePrice)
-	auth.PUT("/users/:user_id/toggle-referral", server.toggleOpenToReferral)
-	auth.PUT("/users/:user_id/banner", server.updateUserBannerImage)
+	auth.POST("/price", s.addPrice)
+	auth.PUT("/price/:price_id", s.updatePrice)
+	auth.PUT("/users/:user_id/toggle-referral", s.toggleOpenToReferral)
+	auth.PUT("/users/:user_id/banner", s.updateUserBannerImage)
 
 	// profile/user
-	auth.PUT("/users/:user_id/avatar", server.updateUserAvatar)
+	auth.PUT("/users/:user_id/avatar", s.updateUserAvatar)
 
 	// profile/socials
-	auth.POST("/socials", server.addSocial)
-	auth.PUT("/socials/:social_id", server.updateSocial)
-	auth.GET("/socials/:entity_type/:entity_id", server.listSocials)
-	auth.DELETE("/socials/:social_id", server.deleteSocial)
+	auth.POST("/socials", s.addSocial)
+	auth.PUT("/socials/:social_id", s.updateSocial)
+	auth.GET("/socials/:entity_type/:entity_id", s.listSocials)
+	auth.DELETE("/socials/:social_id", s.deleteSocial)
 
 	// profile/experiences
-	auth.POST("/users/:user_id/experiences", server.addExperience)
-	auth.GET("/users/:user_id/experiences", server.listExperiences)
-	auth.PUT("/users/:user_id/experiences/:experience_id", server.updateExperience)
-	auth.DELETE("/users/:user_id/experiences/:experience_id", server.deleteExperience)
+	auth.POST("/users/:user_id/experiences", s.addExperience)
+	auth.GET("/users/:user_id/experiences", s.listExperiences)
+	auth.PUT("/users/:user_id/experiences/:experience_id", s.updateExperience)
+	auth.DELETE("/users/:user_id/experiences/:experience_id", s.deleteExperience)
 
 	// profile/educations
-	auth.POST("/users/:user_id/educations", server.addEducation)
-	auth.GET("/users/:user_id/educations", server.listEducations)
-	auth.PUT("/users/:user_id/educations/:education_id", server.updateEducation)
-	auth.DELETE("/users/:user_id/educations/:education_id", server.deleteEducation)
+	auth.POST("/users/:user_id/educations", s.addEducation)
+	auth.GET("/users/:user_id/educations", s.listEducations)
+	auth.PUT("/users/:user_id/educations/:education_id", s.updateEducation)
+	auth.DELETE("/users/:user_id/educations/:education_id", s.deleteEducation)
 
 	// account
-	auth.GET("/accounts/:user_id", server.getAccountInfo)
+	auth.GET("/accounts/:user_id", s.getAccountInfo)
 
 	// network
-	auth.POST("/connections/send", server.sendConnection)
-	auth.POST("/connections/:id/accept", server.acceptConnection)
-	auth.POST("/connections/:id/reject", server.rejectConnection)
-	auth.GET("/connections/invitations/:user_id", server.listConnectionInvitations)
-	auth.GET("/connections/:user_id", server.listConnections)
-	auth.GET("/recommendations/:user_id", server.listRecommendations)
-	auth.POST("/recommendations/cancel", server.cancelRecommendation)
-	auth.GET("/search/users", server.searchUsers)
+	auth.POST("/connections/send", s.sendConnection)
+	auth.POST("/connections/:id/accept", s.acceptConnection)
+	auth.POST("/connections/:id/reject", s.rejectConnection)
+	auth.GET("/connections/invitations/:user_id", s.listConnectionInvitations)
+	auth.GET("/connections/:user_id", s.listConnections)
+	auth.GET("/recommendations/:user_id", s.listRecommendations)
+	auth.POST("/recommendations/cancel", s.cancelRecommendation)
+	auth.GET("/search/users", s.searchUsers)
 	// check if user is connected to another user
-	auth.GET("/connections/:user_id/:other_user_id", server.checkConnection)
+	auth.GET("/connections/:user_id/:other_user_id", s.checkConnection)
 
 	// chat
 	auth.GET("/chat/:room_id", func(ctx *gin.Context) {
 		roomId := ctx.Param("room_id")
-		chat.ServeWS(ctx, roomId, server.hub)
+		chat.ServeWS(ctx, roomId, s.hub)
 	})
-	auth.GET("/chat/:room_id/messages", server.listMessages)
-	auth.GET("/chat/users/:user_id/rooms", server.listChatRooms)
-	auth.POST("/chat/rooms", server.createChatRoom)
+	auth.GET("/chat/:room_id/messages", s.listMessages)
+	auth.GET("/chat/users/:user_id/rooms", s.listChatRooms)
+	auth.POST("/chat/rooms", s.createChatRoom)
 
 	// referral
-	auth.POST("/referral", server.createReferral)
-	auth.GET("/referrals/:user_id/active", server.listActiveReferrals)
-	auth.GET("/referrals/users/:project_id", server.listReferredUsers)
-	auth.GET("/users/:user_id/proposals", server.listActiveProposals)
-	auth.POST("/proposals", server.createProposal)
-	auth.PUT("/proposals/:proposal_id", server.updateProposal)
-	auth.GET("users/:user_id/proposals/:project_id", server.getProposal)
-	auth.POST("/projects/award", server.awardProject)
-	auth.GET("/projects/awarded/:user_id", server.listAwardedProjects)
-	auth.PUT("/projects/:project_id/accept", server.acceptProject)
-	auth.PUT("/projects/:project_id/reject", server.rejectProject)
-	auth.GET("/projects/active/:user_id", server.listActiveProjects)
-	auth.PUT("/projects/:project_id/start", server.startProject)
-	auth.PUT("/projects/:project_id/initiate-complete", server.initiateCompleteProject)
-	auth.PUT("/projects/:project_id/cancel/initiate-complete", server.cancelInitiateCompleteProject)
-	auth.PUT("/projects/:project_id/complete", server.completeProject)
-	auth.GET("/projects/completed/:user_id", server.listCompletedProjects)
+	auth.POST("/referral", s.createReferral)
+	auth.GET("/referrals/:user_id/active", s.listActiveReferrals)
+	auth.GET("/referrals/users/:project_id", s.listReferredUsers)
+	auth.GET("/users/:user_id/proposals", s.listActiveProposals)
+	auth.POST("/proposals", s.createProposal)
+	auth.PUT("/proposals/:proposal_id", s.updateProposal)
+	auth.GET("users/:user_id/proposals/:project_id", s.getProposal)
+	auth.POST("/projects/award", s.awardProject)
+	auth.GET("/projects/awarded/:user_id", s.listAwardedProjects)
+	auth.PUT("/projects/:project_id/accept", s.acceptProject)
+	auth.PUT("/projects/:project_id/reject", s.rejectProject)
+	auth.GET("/projects/active/:user_id", s.listActiveProjects)
+	auth.PUT("/projects/:project_id/start", s.startProject)
+	auth.PUT("/projects/:project_id/initiate-complete", s.initiateCompleteProject)
+	auth.PUT("/projects/:project_id/cancel/initiate-complete", s.cancelInitiateCompleteProject)
+	auth.PUT("/projects/:project_id/complete", s.completeProject)
+	auth.GET("/projects/completed/:user_id", s.listCompletedProjects)
 
-	auth.POST("projects/review", server.createProjectReview)
-	auth.GET("projects/review/:project_id", server.getProjectReview)
+	auth.POST("projects/review", s.CreateProjectReview)
+	auth.GET("projects/review/:project_id", s.getProjectReview)
 
-	auth.GET("/users/:user_id/connected", server.listConnectedUsers)
-	auth.GET("/users", server.listUsers)
+	auth.GET("/users/:user_id/connected", s.listConnectedUsers)
+	auth.GET("/users", s.ListUsers)
 
-	auth.GET("/users/license-verified", server.listLicenseVerifiedUsers)
-	auth.GET("/users/license-unverified", server.listLicenseUnverifiedUsers)
+	auth.GET("/users/license-verified", s.listLicenseVerifiedUsers)
+	auth.GET("/users/license-unverified", s.listLicenseUnverifiedUsers)
 
 	// approve license
-	auth.PUT("/users/:user_id/approve-license", server.approveLicense)
-	auth.PUT("/users/:user_id/reject-license", server.rejectLicense)
+	auth.PUT("/users/:user_id/approve-license", s.approveLicense)
+	auth.PUT("/users/:user_id/reject-license", s.rejectLicense)
 
 	// posts
-	auth.POST("/posts", server.createPost)
-	auth.GET("/posts/:post_id", server.getPost)
-	auth.DELETE("/posts/:post_id", server.deletePost)
-	auth.GET("/search/posts", server.searchPosts)
-	auth.GET("/posts/:post_id/is-featured", server.isPostFeatured)
+	auth.POST("/posts", s.createPost)
+	auth.GET("/posts/:post_id", s.getPost)
+	auth.DELETE("/posts/:post_id", s.deletePost)
+	auth.GET("/search/posts", s.searchPosts)
+	auth.GET("/posts/:post_id/is-featured", s.isPostFeatured)
 
 	// news feed
-	auth.GET("/feeds/:user_id", server.listNewsFeed)
+	auth.GET("/feeds/:user_id", s.listNewsFeed)
 	//auth.GET("/v2/feeds/:user_id", server.listNewsFeedV2)
 	//auth.GET("/v3/feeds/:user_id", server.listNewsFeedV3)
 
 	// like post
-	auth.POST("/posts/:post_id/like", server.likePost)
-	auth.DELETE("/posts/:post_id/like", server.unlikePost)
-	auth.GET("/posts/:post_id/liked-users", server.listPostLikedUsers)
+	auth.POST("/posts/:post_id/like", s.likePost)
+	auth.DELETE("/posts/:post_id/like", s.unlikePost)
+	auth.GET("/posts/:post_id/liked-users", s.listPostLikedUsers)
 
 	// get post likes and comments count
-	auth.GET("/posts/:post_id/likes-comments-count", server.postLikesAndCommentsCount)
-	auth.GET("/posts/:post_id/is-liked", server.isPostLiked)
+	auth.GET("/posts/:post_id/likes-comments-count", s.postLikesAndCommentsCount)
+	auth.GET("/posts/:post_id/is-liked", s.isPostLiked)
 
 	// comments
-	auth.POST("/posts/:post_id/comments", server.commentPost)
-	auth.GET("/posts/:post_id/comments", server.listComments)
-	auth.POST("/comments/:comment_id/like", server.likeComment)
-	auth.DELETE("/comments/:comment_id/like", server.unlikeComment)
+	auth.POST("/posts/:post_id/comments", s.commentPost)
+	auth.GET("/posts/:post_id/comments", s.listComments)
+	auth.POST("/comments/:comment_id/like", s.likeComment)
+	auth.DELETE("/comments/:comment_id/like", s.unlikeComment)
 
 	// discussion
-	auth.POST("/discussions", server.createDiscussion)
+	auth.POST("/discussions", s.createDiscussion)
 
 	// update discussion topic
-	auth.PUT("/discussions/:discussion_id/topic", server.updateDiscussionTopic)
-	auth.POST("/discussions/:discussion_id/invite", server.inviteUserToDiscussion)
-	auth.POST("/discussions/:discussion_id/join", server.joinDiscussion)
-	auth.POST("/discussions/:discussion_id/reject", server.rejectDiscussion)
-	auth.GET("/discussions/invites/:user_id", server.listDiscussionInvites)
-	auth.GET("/discussions/active/:user_id", server.listActiveDiscussions)
-	auth.GET("/discussions/:discussion_id/participants", server.listDiscussionParticipants)
-	auth.GET("/discussions/:discussion_id/uninvited", server.listUninvitedParticipants)
+	auth.PUT("/discussions/:discussion_id/topic", s.updateDiscussionTopic)
+	auth.POST("/discussions/:discussion_id/invite", s.inviteUserToDiscussion)
+	auth.POST("/discussions/:discussion_id/join", s.joinDiscussion)
+	auth.POST("/discussions/:discussion_id/reject", s.rejectDiscussion)
+	auth.GET("/discussions/invites/:user_id", s.listDiscussionInvites)
+	auth.GET("/discussions/active/:user_id", s.listActiveDiscussions)
+	auth.GET("/discussions/:discussion_id/participants", s.listDiscussionParticipants)
+	auth.GET("/discussions/:discussion_id/uninvited", s.listUninvitedParticipants)
 
 	// discussion messages
-	auth.POST("/discussions/:discussion_id/messages", server.sendMessageToDiscussion)
-	auth.GET("/discussions/:discussion_id/messages", server.listDiscussionMessages)
+	auth.POST("/discussions/:discussion_id/messages", s.sendMessageToDiscussion)
+	auth.GET("/discussions/:discussion_id/messages", s.listDiscussionMessages)
 
 	// ads
-	auth.POST("/ads", server.createAd)
+	auth.POST("/ads", s.createAd)
 	//playing ads
-	auth.GET("/ads/playing", server.listPlayingAds)
-	auth.GET("/ads/expired", server.listExpiredAds)
+	auth.GET("/ads/playing", s.listPlayingAds)
+	auth.GET("/ads/expired", s.listExpiredAds)
 	// extend ad period
-	auth.PUT("/ads/:ad_id/extend", server.extendAdPeriod)
+	auth.PUT("/ads/:ad_id/extend", s.extendAdPeriod)
 
 	// admin
-	auth.GET("/attorneys", server.listAttorneys)
-	auth.GET("/lawyers", server.listLawyers)
+	auth.GET("/attorneys", s.listAttorneys)
+	auth.GET("/lawyers", s.listLawyers)
 
-	auth.GET("/referrals/:user_id", server.listAllReferralProjects)
-	auth.GET("/referrals/completed/:user_id", server.listCompletedReferralProjects)
-	auth.GET("/referrals/active/:user_id", server.listActiveReferralProjects)
+	auth.GET("/referrals/:user_id", s.listAllReferralProjects)
+	auth.GET("/referrals/completed/:user_id", s.listCompletedReferralProjects)
+	auth.GET("/referrals/active/:user_id", s.listActiveReferralProjects)
 
-	auth.POST("/faqs", server.createFAQ)
-	auth.GET("/faqs", server.listFAQs)
+	auth.POST("/faqs", s.createFAQ)
+	auth.GET("/faqs", s.listFAQs)
 
-	auth.POST("/firms", server.addFirm)
-	auth.GET("/firms/owner/:owner_user_id", server.listFirmsByOwner)
+	auth.POST("/firms", s.addFirm)
+	auth.GET("/firms/owner/:owner_user_id", s.listFirmsByOwner)
 
 	// save post
-	auth.POST("/saved-posts", server.savePost)
-	auth.DELETE("/saved-posts/:saved_post_id", server.unSavePost)
-	auth.GET("/saved-posts/:user_id", server.listSavedPosts)
+	auth.POST("/saved-posts", s.savePost)
+	auth.DELETE("/saved-posts/:saved_post_id", s.unSavePost)
+	auth.GET("/saved-posts/:user_id", s.listSavedPosts)
 
 	// feature posts
-	auth.POST("/feature-posts", server.featurePost)
-	auth.DELETE("/feature-posts/:post_id", server.unFeaturePost)
-	auth.GET("/feature-posts/:user_id", server.listFeaturePosts)
+	auth.POST("/feature-posts", s.featurePost)
+	auth.DELETE("/feature-posts/:post_id", s.unFeaturePost)
+	auth.GET("/feature-posts/:user_id", s.listFeaturePosts)
 
 	// notifications
-	auth.POST("/device-details", server.saveDevice)
-	auth.POST("/notifications", server.createNotification)
-	auth.GET("/notifications/:user_id", server.listNotifications)
+	auth.POST("/device-details", s.saveDevice)
+	auth.POST("/notifications", s.createNotification)
+	auth.GET("/notifications/:user_id", s.listNotifications)
 
 	// post stats
-	auth.GET("/posts/:post_id/stats", server.getPostStats)
+	auth.GET("/posts/:post_id/stats", s.getPostStats)
 
 	// report
-	auth.POST("/report-post", server.reportPost)
-	auth.GET("/posts/:post_id/reported-status/:user_id", server.isPostReported)
-	auth.DELETE("/feeds/:feed_id/ignore", server.ignoreFeed)
+	auth.POST("/report-post", s.reportPost)
+	auth.GET("/posts/:post_id/reported-status/:user_id", s.isPostReported)
+	auth.DELETE("/feeds/:feed_id/ignore", s.ignoreFeed)
 
 	// activity
-	auth.GET("/activity/posts/:user_id", server.listActivityPosts)
-	auth.GET("/activity/comments/:user_id", server.listActivityComments)
-	auth.GET("/users/:user_id/followers-count", server.getUserFollowersCount)
+	auth.GET("/activity/posts/:user_id", s.listActivityPosts)
+	auth.GET("/activity/comments/:user_id", s.listActivityComments)
+	auth.GET("/users/:user_id/followers-count", s.getUserFollowersCount)
 
 	// print ginAdapter
 	log.Info().Msg("Setting up routes 3")
 
 	log.Info().Msgf("GinAdapter: %+v", ginLambda)
 
-	ginLambda = ginadapter.New(server.Router)
+	ginLambda = ginadapter.New(s.Router)
 }
 
 func CORSMiddleware() gin.HandlerFunc {

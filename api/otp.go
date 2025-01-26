@@ -13,7 +13,7 @@ type sendOTPRequest struct {
 	Channel string `json:"channel"`
 }
 
-func (server *Server) sendOTP(ctx *gin.Context) {
+func (s *Server) SendOTP(ctx *gin.Context) {
 	var req sendOTPRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -66,7 +66,7 @@ type verifyOTPRequest struct {
 	Channel string `json:"channel"`
 }
 
-func (server *Server) verifyOTP(ctx *gin.Context) {
+func (s *Server) VerifyOTP(ctx *gin.Context) {
 	var req verifyOTPRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -93,7 +93,7 @@ func (server *Server) verifyOTP(ctx *gin.Context) {
 				Mobile:         &req.To,
 				MobileVerified: true,
 			}
-			_, err := server.store.UpdateMobileVerificationStatus(ctx, mobileUpdateArg)
+			_, err := s.store.UpdateMobileVerificationStatus(ctx, mobileUpdateArg)
 			if err != nil {
 				ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 				return

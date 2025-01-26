@@ -14,12 +14,12 @@ import (
 	"github.com/imrishuroy/legal-referral/util"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
-	"net/http"
 )
 
 // TODO: CHANGE THE ROUTER LIKE THIS https://github.com/build-on-aws/golang-gin-app-on-aws-lambda/blob/main/function/main.go
 
 var ginLambda *ginadapter.GinLambda
+var server *api.Server
 
 func init() {
 
@@ -73,45 +73,47 @@ func init() {
 
 	// api server setup
 	//server, err := api.NewServer(config, store, hub, producer, rdb)
-	_, err = api.NewServer(config, store, hub, producer, ginLambda)
+	server, err = api.NewServer(config, store, hub, producer, ginLambda)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create server:")
 	}
 
 	log.Info().Msg("Server created")
 
-	//server.Router = gin.Default()
+}
 
-	//server.router.GET("/playground", playgroundHandler())
+func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	return ginLambda.ProxyWithContext(ctx, request)
+}
 
-	//r.GET("/", server.ping).Use(CORSMiddleware())
-	//server.Router.GET("/health", server.ping).Use(CORSMiddleware())
-	//server.Router.GET("/check", server.ping).Use(CORSMiddleware())
-	//
-	//// auth
-	//server.Router.POST("/api/sign-in", server.signIn)
-	//server.Router.POST("/api/sign-up", server.signUp)
-	//server.Router.POST("/api/refresh-token", server.refreshToken)
-	//server.Router.POST("/api/otp/send", server.sendOTP)
-	//server.Router.POST("/api/otp/verify", server.verifyOTP)
-	//server.Router.POST("/api/reset-password", server.resetPassword)
-	//
-	//server.Router.GET("/api/users/:user_id/wizardstep", server.getUserWizardStep)
-	//server.Router.GET("/api/firms", server.searchFirms)
-	//
-	//server.Router.POST("/api/sign-in/linkedin", server.linkedinLogin)
-	//
-	//auth := server.Router.Group("/api").
-	//	Use(authMiddleware(server.firebaseAuth))
-	//
-	//// GRAPHQL
-	////auth.POST("/query", gin.WrapH(srv))
-	//
-	//auth.GET("/check-token", server.ping)
-	//auth.POST("/users", server.createUser)
-	//
-	//auth.GET("/users/:user_id", server.getUserById)
-	//auth.POST("/license", server.saveLicense)
+func ping(ctx *gin.Context) {
+	ctx.JSON(200, "OK")
+}
+
+func main() {
+
+	r := gin.Default()
+	gin.SetMode(gin.ReleaseMode)
+
+	r.GET("/ping", ping)
+
+	// auth routes
+	r.POST("/api/sign-in", server.SignIn)
+	r.POST("/api/sign-up", server.SignUp)
+	r.POST("/api/refresh-token", server.RefreshToken)
+	r.POST("/api/otp/send", server.SendOTP)
+	r.POST("/api/otp/verify", server.VerifyOTP)
+	r.POST("/api/reset-password", server.ResetPassword)
+	r.GET("/api/users/:user_id/wizardstep", server.GetUserWizardStep)
+	r.GET("/api/firms", server.SearchFirms)
+	r.POST("/api/sign-in/linkedin", server.LinkedinLogin)
+
+	auth := r.Group("/api").
+		Use(server.AuthMiddleware(server.FirebaseAuth))
+
+	auth.POST("/users", server.CreateUser)
+	auth.GET("/users/:user_id", server.GetUserById)
+	auth.POST("/license", server.SaveLicense)
 	//auth.POST("/license/upload", server.uploadLicense)
 	//auth.POST("/about-you", server.saveAboutYou)
 	//auth.GET("/users/:user_id/profile", server.fetchUserProfile)
@@ -192,7 +194,7 @@ func init() {
 	//auth.GET("projects/review/:project_id", server.getProjectReview)
 	//
 	//auth.GET("/users/:user_id/connected", server.listConnectedUsers)
-	//auth.GET("/users", server.listUsers)
+	auth.GET("/users", server.ListUsers)
 	//
 	//auth.GET("/users/license-verified", server.listLicenseVerifiedUsers)
 	//auth.GET("/users/license-unverified", server.listLicenseUnverifiedUsers)
@@ -308,20 +310,10 @@ func init() {
 	//if err != nil {
 	//	log.Fatal().Err(err).Msg("cannot create server:")
 	//}
-}
 
-func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	return ginLambda.ProxyWithContext(ctx, request)
-}
-
-func main() {
-
-	r := gin.Default()
-
-	r.GET("/ping", func(c *gin.Context) {
-		log.Info().Msg("ping fun invoked")
-		c.String(http.StatusOK, "pong")
-	})
+	//// GRAPHQL
+	////auth.POST("/query", gin.WrapH(srv))
+	//
 
 	ginLambda = ginadapter.New(r)
 	lambda.Start(Handler)
@@ -359,3 +351,19 @@ func main() {
 //		return client
 //	}
 //}
+
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, DELETE")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
+}

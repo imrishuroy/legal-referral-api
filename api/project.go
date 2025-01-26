@@ -19,7 +19,7 @@ type createReferralReq struct {
 	CaseDescription           string   `json:"case_description"`
 }
 
-func (server *Server) createReferral(ctx *gin.Context) {
+func (s *Server) createReferral(ctx *gin.Context) {
 	var req createReferralReq
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -43,7 +43,7 @@ func (server *Server) createReferral(ctx *gin.Context) {
 		CaseDescription:           req.CaseDescription,
 	}
 
-	project, err := server.store.CreateReferral(ctx, arg)
+	project, err := s.store.CreateReferral(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -58,7 +58,7 @@ func (server *Server) createReferral(ctx *gin.Context) {
 			ProjectID:      project.ProjectID,
 			ReferredUserID: &referredUserID,
 		}
-		_, err := server.store.AddReferredUserToProject(ctx, arg)
+		_, err := s.store.AddReferredUserToProject(ctx, arg)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
@@ -68,14 +68,14 @@ func (server *Server) createReferral(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, "Referral created")
 }
 
-func (server *Server) listActiveReferrals(ctx *gin.Context) {
+func (s *Server) listActiveReferrals(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID != userID {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 		return
 	}
-	projects, err := server.store.ListActiveReferrals(ctx, userID)
+	projects, err := s.store.ListActiveReferrals(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -83,7 +83,7 @@ func (server *Server) listActiveReferrals(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, projects)
 }
 
-func (server *Server) listReferredUsers(ctx *gin.Context) {
+func (s *Server) listReferredUsers(ctx *gin.Context) {
 	projectIDStr := ctx.Param("project_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -97,7 +97,7 @@ func (server *Server) listReferredUsers(ctx *gin.Context) {
 		return
 	}
 
-	users, err := server.store.ListReferredUsers2(ctx, int32(projectID))
+	users, err := s.store.ListReferredUsers2(ctx, int32(projectID))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -127,7 +127,7 @@ type project struct {
 	projectUser      `json:"user"`
 }
 
-func (server *Server) listActiveProposals(ctx *gin.Context) {
+func (s *Server) listActiveProposals(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -136,7 +136,7 @@ func (server *Server) listActiveProposals(ctx *gin.Context) {
 		return
 	}
 
-	projects, err := server.store.ListActiveProposals(ctx, userID)
+	projects, err := s.store.ListActiveProposals(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -173,7 +173,7 @@ func (server *Server) listActiveProposals(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, projectList)
 }
 
-func (server *Server) awardProject(ctx *gin.Context) {
+func (s *Server) awardProject(ctx *gin.Context) {
 	var req db.AwardProjectParams
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -186,7 +186,7 @@ func (server *Server) awardProject(ctx *gin.Context) {
 		return
 	}
 
-	status, err := server.store.GetProjectStatus(ctx, req.ProjectID)
+	status, err := s.store.GetProjectStatus(ctx, req.ProjectID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -197,7 +197,7 @@ func (server *Server) awardProject(ctx *gin.Context) {
 		return
 	}
 
-	project, err := server.store.AwardProject(ctx, req)
+	project, err := s.store.AwardProject(ctx, req)
 
 	if err != nil {
 		if db.ErrorCode(err) == db.UniqueViolation {
@@ -211,7 +211,7 @@ func (server *Server) awardProject(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, project)
 }
 
-func (server *Server) listAwardedProjects(ctx *gin.Context) {
+func (s *Server) listAwardedProjects(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -220,7 +220,7 @@ func (server *Server) listAwardedProjects(ctx *gin.Context) {
 		return
 	}
 
-	projects, err := server.store.ListAwardedProjects(ctx, userID)
+	projects, err := s.store.ListAwardedProjects(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -259,7 +259,7 @@ func (server *Server) listAwardedProjects(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, projectList)
 }
 
-func (server *Server) acceptProject(ctx *gin.Context) {
+func (s *Server) acceptProject(ctx *gin.Context) {
 	projectIdParam := ctx.Param("project_id")
 	projectID, err := strconv.Atoi(projectIdParam)
 	if err != nil {
@@ -278,7 +278,7 @@ func (server *Server) acceptProject(ctx *gin.Context) {
 		UserID:    authPayload.UID,
 	}
 
-	project, err := server.store.AcceptProject(ctx, arg)
+	project, err := s.store.AcceptProject(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -287,7 +287,7 @@ func (server *Server) acceptProject(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, project)
 }
 
-func (server *Server) rejectProject(ctx *gin.Context) {
+func (s *Server) rejectProject(ctx *gin.Context) {
 	projectIdParam := ctx.Param("project_id")
 	projectID, err := strconv.Atoi(projectIdParam)
 	if err != nil {
@@ -306,7 +306,7 @@ func (server *Server) rejectProject(ctx *gin.Context) {
 		UserID:    authPayload.UID,
 	}
 
-	project, err := server.store.RejectProject(ctx, arg)
+	project, err := s.store.RejectProject(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -315,7 +315,7 @@ func (server *Server) rejectProject(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, project)
 }
 
-func (server *Server) listActiveProjects(ctx *gin.Context) {
+func (s *Server) listActiveProjects(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 	role := ctx.Query("role")
 
@@ -331,7 +331,7 @@ func (server *Server) listActiveProjects(ctx *gin.Context) {
 	}
 
 	if role == "referrer" {
-		projects, err := server.store.ListReferrerActiveProjects(ctx, userID)
+		projects, err := s.store.ListReferrerActiveProjects(ctx, userID)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
@@ -373,7 +373,7 @@ func (server *Server) listActiveProjects(ctx *gin.Context) {
 
 		ctx.JSON(http.StatusOK, projectList)
 	} else {
-		projects, err := server.store.ListReferredActiveProjects(ctx, userID)
+		projects, err := s.store.ListReferredActiveProjects(ctx, userID)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
@@ -417,7 +417,7 @@ func (server *Server) listActiveProjects(ctx *gin.Context) {
 
 }
 
-func (server *Server) startProject(ctx *gin.Context) {
+func (s *Server) startProject(ctx *gin.Context) {
 	projectIdParam := ctx.Param("project_id")
 	projectID, err := strconv.Atoi(projectIdParam)
 	if err != nil {
@@ -436,7 +436,7 @@ func (server *Server) startProject(ctx *gin.Context) {
 		UserID:    authPayload.UID,
 	}
 
-	project, err := server.store.StartProject(ctx, arg)
+	project, err := s.store.StartProject(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -445,7 +445,7 @@ func (server *Server) startProject(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, project)
 }
 
-func (server *Server) initiateCompleteProject(ctx *gin.Context) {
+func (s *Server) initiateCompleteProject(ctx *gin.Context) {
 	projectIdParam := ctx.Param("project_id")
 	projectID, err := strconv.Atoi(projectIdParam)
 	if err != nil {
@@ -464,7 +464,7 @@ func (server *Server) initiateCompleteProject(ctx *gin.Context) {
 		UserID:    authPayload.UID,
 	}
 
-	project, err := server.store.InitiateCompleteProject(ctx, arg)
+	project, err := s.store.InitiateCompleteProject(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -473,7 +473,7 @@ func (server *Server) initiateCompleteProject(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, project)
 }
 
-func (server *Server) cancelInitiateCompleteProject(ctx *gin.Context) {
+func (s *Server) cancelInitiateCompleteProject(ctx *gin.Context) {
 	projectIdParam := ctx.Param("project_id")
 	projectID, err := strconv.Atoi(projectIdParam)
 	if err != nil {
@@ -492,7 +492,7 @@ func (server *Server) cancelInitiateCompleteProject(ctx *gin.Context) {
 		UserID:    authPayload.UID,
 	}
 
-	project, err := server.store.CancelCompleteProjectInitiation(ctx, arg)
+	project, err := s.store.CancelCompleteProjectInitiation(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -501,7 +501,7 @@ func (server *Server) cancelInitiateCompleteProject(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, project)
 }
 
-func (server *Server) completeProject(ctx *gin.Context) {
+func (s *Server) completeProject(ctx *gin.Context) {
 	projectIdParam := ctx.Param("project_id")
 	projectID, err := strconv.Atoi(projectIdParam)
 	if err != nil {
@@ -520,7 +520,7 @@ func (server *Server) completeProject(ctx *gin.Context) {
 		UserID:    authPayload.UID,
 	}
 
-	project, err := server.store.CompleteProject(ctx, arg)
+	project, err := s.store.CompleteProject(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -529,7 +529,7 @@ func (server *Server) completeProject(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, project)
 }
 
-func (server *Server) listCompletedProjects(ctx *gin.Context) {
+func (s *Server) listCompletedProjects(ctx *gin.Context) {
 
 	userID := ctx.Param("user_id")
 	role := ctx.Query("role")
@@ -546,7 +546,7 @@ func (server *Server) listCompletedProjects(ctx *gin.Context) {
 	}
 
 	if role == "referrer" {
-		projects, err := server.store.ListReferrerCompletedProjects(ctx, userID)
+		projects, err := s.store.ListReferrerCompletedProjects(ctx, userID)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
@@ -591,7 +591,7 @@ func (server *Server) listCompletedProjects(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, projectList)
 
 	} else {
-		projects, err := server.store.ListReferredCompletedProjects(ctx, userID)
+		projects, err := s.store.ListReferredCompletedProjects(ctx, userID)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return

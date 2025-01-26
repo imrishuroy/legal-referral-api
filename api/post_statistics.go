@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func (server *Server) getPostStats(ctx *gin.Context) {
+func (s *Server) getPostStats(ctx *gin.Context) {
 	postIDStr := ctx.Param("post_id")
 	postID, err := strconv.Atoi(postIDStr)
 	if err != nil {
@@ -21,7 +21,7 @@ func (server *Server) getPostStats(ctx *gin.Context) {
 		return
 	}
 
-	postStatistics, err := server.store.GetPostStats(ctx, int32(postID))
+	postStatistics, err := s.store.GetPostStats(ctx, int32(postID))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

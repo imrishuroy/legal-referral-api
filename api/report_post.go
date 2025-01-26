@@ -15,7 +15,7 @@ type reportPostReq struct {
 	Reason     string `json:"reason" binding:"required"`
 }
 
-func (server *Server) reportPost(ctx *gin.Context) {
+func (s *Server) reportPost(ctx *gin.Context) {
 
 	var req reportPostReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -29,7 +29,7 @@ func (server *Server) reportPost(ctx *gin.Context) {
 		return
 	}
 
-	reasonID, err := server.store.AddReportReason(ctx, req.Reason)
+	reasonID, err := s.store.AddReportReason(ctx, req.Reason)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -41,7 +41,7 @@ func (server *Server) reportPost(ctx *gin.Context) {
 		ReasonID:   reasonID,
 	}
 
-	err = server.store.ReportPost(ctx, arg)
+	err = s.store.ReportPost(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -53,7 +53,7 @@ func (server *Server) reportPost(ctx *gin.Context) {
 type getReportedPostsReq struct {
 }
 
-func (server *Server) isPostReported(ctx *gin.Context) {
+func (s *Server) isPostReported(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 	postIDStr := ctx.Param("post_id")
 	postID, err := strconv.Atoi(postIDStr)
@@ -73,7 +73,7 @@ func (server *Server) isPostReported(ctx *gin.Context) {
 		PostID:     int32(postID),
 	}
 
-	isReported, err := server.store.IsPostReported(ctx, arg)
+	isReported, err := s.store.IsPostReported(ctx, arg)
 	if err != nil {
 		if errors.Is(err, db.ErrRecordNotFound) {
 			ctx.JSON(http.StatusOK, false)

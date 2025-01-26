@@ -37,7 +37,7 @@ type Server struct {
 	config       util.Config
 	store        db.Store
 	Router       *gin.Engine
-	firebaseAuth *auth.Client
+	FirebaseAuth *auth.Client
 	twilioClient *twilio.RestClient
 	awsSession   *session.Session
 	svc          *s3.S3
@@ -90,7 +90,7 @@ func NewServer(config util.Config, store db.Store, hub *chat.Hub, producer *kafk
 	server := &Server{
 		config:       config,
 		store:        store,
-		firebaseAuth: firebaseAuth,
+		FirebaseAuth: firebaseAuth,
 		twilioClient: twilioClient,
 		awsSession:   awsSession,
 		svc:          svc,
@@ -120,6 +120,6 @@ func errorResponse(err error) gin.H {
 	return gin.H{"message": err.Error()}
 }
 
-func (server *Server) ping(ctx *gin.Context) {
+func (s *Server) ping(ctx *gin.Context) {
 	ctx.JSON(200, "OK")
 }

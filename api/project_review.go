@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func (server *Server) createProjectReview(ctx *gin.Context) {
+func (s *Server) CreateProjectReview(ctx *gin.Context) {
 	var req *db.CreateProjectReviewParams
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -28,7 +28,7 @@ func (server *Server) createProjectReview(ctx *gin.Context) {
 		Rating:    req.Rating,
 	}
 
-	review, err := server.store.CreateProjectReview(ctx, arg)
+	review, err := s.store.CreateProjectReview(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -37,7 +37,7 @@ func (server *Server) createProjectReview(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, review)
 }
 
-func (server *Server) getProjectReview(ctx *gin.Context) {
+func (s *Server) getProjectReview(ctx *gin.Context) {
 	projectIdParam := ctx.Param("project_id")
 	if projectIdParam == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "project_id is required"})
@@ -61,7 +61,7 @@ func (server *Server) getProjectReview(ctx *gin.Context) {
 		UserID:    authPayload.UID,
 	}
 
-	review, err := server.store.GetProjectReview(ctx, arg)
+	review, err := s.store.GetProjectReview(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

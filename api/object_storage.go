@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func (server *Server) handleFilesUpload(files []*multipart.FileHeader) ([]string, error) {
+func (s *Server) handleFilesUpload(files []*multipart.FileHeader) ([]string, error) {
 	if len(files) == 0 {
 		return nil, errors.New("no file uploaded")
 	}
@@ -32,7 +32,7 @@ func (server *Server) handleFilesUpload(files []*multipart.FileHeader) ([]string
 		go func(file *multipart.FileHeader) {
 			defer wg.Done()
 
-			url, err := server.uploadFileHandler(file)
+			url, err := s.uploadFileHandler(file)
 			if err != nil {
 				errChan <- err
 				return
@@ -76,7 +76,7 @@ func (server *Server) handleFilesUpload(files []*multipart.FileHeader) ([]string
 //	return urls, nil
 //}
 
-func (server *Server) uploadFileHandler(file *multipart.FileHeader) (string, error) {
+func (s *Server) uploadFileHandler(file *multipart.FileHeader) (string, error) {
 	fileName := generateUniqueFilename() + getFileExtension(file)
 	multiPartFile, err := file.Open()
 	if err != nil {
@@ -89,16 +89,16 @@ func (server *Server) uploadFileHandler(file *multipart.FileHeader) (string, err
 		}
 	}(multiPartFile)
 
-	return server.uploadFile(multiPartFile, fileName, file.Header.Get("Content-Type"))
+	return s.uploadFile(multiPartFile, fileName, file.Header.Get("Content-Type"))
 }
 
-func (server *Server) uploadFile(file multipart.File, fileName string, contentType string) (string, error) {
+func (s *Server) uploadFile(file multipart.File, fileName string, contentType string) (string, error) {
 
-	bucketName := server.config.AWSBucketName
+	bucketName := s.config.AWSBucketName
 	log.Info().Msgf("Uploading file to bucket: %s", bucketName)
 
 	// Upload the file to S3
-	_, err := server.svc.PutObject(&s3.PutObjectInput{
+	_, err := s.svc.PutObject(&s3.PutObjectInput{
 		Bucket:               aws.String(bucketName),
 		Key:                  aws.String(fileName),
 		Body:                 file,

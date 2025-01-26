@@ -15,7 +15,7 @@ type likePostReq struct {
 	CurrentUserID string `json:"current_user_id" binding:"required"`
 }
 
-func (server *Server) likePost(ctx *gin.Context) {
+func (s *Server) likePost(ctx *gin.Context) {
 	var req likePostReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
@@ -42,7 +42,7 @@ func (server *Server) likePost(ctx *gin.Context) {
 	}
 
 	alreadyLiked := false
-	err = server.store.LikePost(ctx, arg)
+	err = s.store.LikePost(ctx, arg)
 	if err != nil {
 		if db.ErrorCode(err) != db.UniqueViolation {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -73,12 +73,12 @@ func (server *Server) likePost(ctx *gin.Context) {
 		// Launch a goroutine to publish to Kafka
 		go func() {
 			jsonString := string(jsonData)
-			server.publishToKafka("likes", authPayload.UID, jsonString)
+			s.publishToKafka("likes", authPayload.UID, jsonString)
 		}()
 	}
 }
 
-func (server *Server) unlikePost(ctx *gin.Context) {
+func (s *Server) unlikePost(ctx *gin.Context) {
 	postIDStr := ctx.Param("post_id")
 	postID, err := strconv.Atoi(postIDStr)
 	if err != nil {
@@ -98,7 +98,7 @@ func (server *Server) unlikePost(ctx *gin.Context) {
 		PostID: &postID32,
 	}
 
-	err = server.store.UnlikePost(ctx, arg)
+	err = s.store.UnlikePost(ctx, arg)
 	if err != nil {
 		if db.ErrorCode(err) != db.UniqueViolation {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -107,7 +107,7 @@ func (server *Server) unlikePost(ctx *gin.Context) {
 	}
 
 	// Decrement likes
-	err = server.store.DecrementLikes(ctx, postID32)
+	err = s.store.DecrementLikes(ctx, postID32)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -115,7 +115,7 @@ func (server *Server) unlikePost(ctx *gin.Context) {
 
 }
 
-func (server *Server) listPostLikedUsers(ctx *gin.Context) {
+func (s *Server) listPostLikedUsers(ctx *gin.Context) {
 	postIDStr := ctx.Param("post_id")
 	postID, err := strconv.Atoi(postIDStr)
 	if err != nil {
@@ -135,7 +135,7 @@ func (server *Server) listPostLikedUsers(ctx *gin.Context) {
 		UserID: authPayload.UID,
 	}
 
-	users, err := server.store.ListPostLikedUsers2(ctx, arg)
+	users, err := s.store.ListPostLikedUsers2(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -144,7 +144,7 @@ func (server *Server) listPostLikedUsers(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, users)
 }
 
-func (server *Server) likeComment(ctx *gin.Context) {
+func (s *Server) likeComment(ctx *gin.Context) {
 	commentIDStr := ctx.Param("comment_id")
 	commentID, err := strconv.Atoi(commentIDStr)
 	if err != nil {
@@ -164,14 +164,14 @@ func (server *Server) likeComment(ctx *gin.Context) {
 		CommentID: &commentID32,
 	}
 
-	err = server.store.LikeComment(ctx, arg)
+	err = s.store.LikeComment(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 }
 
-func (server *Server) unlikeComment(ctx *gin.Context) {
+func (s *Server) unlikeComment(ctx *gin.Context) {
 	commentIDStr := ctx.Param("comment_id")
 	commentID, err := strconv.Atoi(commentIDStr)
 	if err != nil {
@@ -191,7 +191,7 @@ func (server *Server) unlikeComment(ctx *gin.Context) {
 		CommentID: &commentID32,
 	}
 
-	err = server.store.UnlikeComment(ctx, arg)
+	err = s.store.UnlikeComment(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

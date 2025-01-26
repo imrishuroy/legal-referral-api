@@ -12,7 +12,7 @@ type listRecommendationsReq struct {
 	Limit  int32 `form:"limit" binding:"required"`
 }
 
-func (server *Server) listRecommendations(ctx *gin.Context) {
+func (s *Server) listRecommendations(ctx *gin.Context) {
 	var req listRecommendationsReq
 
 	if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -33,7 +33,7 @@ func (server *Server) listRecommendations(ctx *gin.Context) {
 		Limit:  req.Limit,
 	}
 
-	recommendations, err := server.store.ListRecommendations2(ctx, arg)
+	recommendations, err := s.store.ListRecommendations2(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -46,7 +46,7 @@ type cancelRecommendationReq struct {
 	RecommendedUserID string `json:"recommended_user_id" binding:"required"`
 }
 
-func (server *Server) cancelRecommendation(ctx *gin.Context) {
+func (s *Server) cancelRecommendation(ctx *gin.Context) {
 	var req cancelRecommendationReq
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -65,7 +65,7 @@ func (server *Server) cancelRecommendation(ctx *gin.Context) {
 		RecommendedUserID: req.RecommendedUserID,
 	}
 
-	if err := server.store.CancelRecommendation(ctx, arg); err != nil {
+	if err := s.store.CancelRecommendation(ctx, arg); err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}

@@ -22,7 +22,7 @@ type addUpdateEducationReq struct {
 	Skills       []string    `json:"skills" binding:"required"`
 }
 
-func (server *Server) addEducation(ctx *gin.Context) {
+func (s *Server) addEducation(ctx *gin.Context) {
 	var req addUpdateEducationReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request body")
@@ -54,7 +54,7 @@ func (server *Server) addEducation(ctx *gin.Context) {
 		return
 	}
 
-	education, err := server.store.AddEducation(ctx, arg)
+	education, err := s.store.AddEducation(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -63,14 +63,14 @@ func (server *Server) addEducation(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, education)
 }
 
-func (server *Server) listEducations(ctx *gin.Context) {
+func (s *Server) listEducations(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 	if userID == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid user id"})
 		return
 	}
 
-	educations, err := server.store.ListEducations(ctx, userID)
+	educations, err := s.store.ListEducations(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -79,7 +79,7 @@ func (server *Server) listEducations(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, educations)
 }
 
-func (server *Server) updateEducation(ctx *gin.Context) {
+func (s *Server) updateEducation(ctx *gin.Context) {
 
 	var req addUpdateEducationReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -121,7 +121,7 @@ func (server *Server) updateEducation(ctx *gin.Context) {
 		return
 	}
 
-	education, err := server.store.UpdateEducation(ctx, arg)
+	education, err := s.store.UpdateEducation(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -131,7 +131,7 @@ func (server *Server) updateEducation(ctx *gin.Context) {
 
 }
 
-func (server *Server) deleteEducation(ctx *gin.Context) {
+func (s *Server) deleteEducation(ctx *gin.Context) {
 	educationIDParam := ctx.Param("education_id")
 	educationID, err := strconv.ParseInt(educationIDParam, 10, 64)
 	if err != nil {
@@ -147,7 +147,7 @@ func (server *Server) deleteEducation(ctx *gin.Context) {
 		return
 	}
 
-	err = server.store.DeleteEducation(ctx, educationID)
+	err = s.store.DeleteEducation(ctx, educationID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

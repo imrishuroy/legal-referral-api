@@ -17,7 +17,7 @@ type saveLicenseRequest struct {
 	IssueState    string      `json:"issue_state" binding:"required"`
 }
 
-func (server *Server) saveLicense(ctx *gin.Context) {
+func (s *Server) SaveLicense(ctx *gin.Context) {
 	var req saveLicenseRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Failed to bind JSON")
@@ -39,7 +39,7 @@ func (server *Server) saveLicense(ctx *gin.Context) {
 		IssueState:    req.IssueState,
 	}
 
-	license, err := server.store.SaveLicense(ctx, arg)
+	license, err := s.store.SaveLicense(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -51,7 +51,7 @@ func (server *Server) saveLicense(ctx *gin.Context) {
 		WizardStep: 1,
 	}
 
-	_, err = server.store.UpdateUserWizardStep(ctx, wizardStepArg)
+	_, err = s.store.UpdateUserWizardStep(ctx, wizardStepArg)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -61,7 +61,7 @@ func (server *Server) saveLicense(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, license)
 }
 
-func (server *Server) uploadLicense(ctx *gin.Context) {
+func (s *Server) uploadLicense(ctx *gin.Context) {
 
 	form, err := ctx.MultipartForm()
 	if err != nil {
@@ -94,7 +94,7 @@ func (server *Server) uploadLicense(ctx *gin.Context) {
 	}
 
 	fileName := generateUniqueFilename() + getFileExtension(files[0])
-	url, err := server.uploadFile(file, fileName, files[0].Header.Get("Content-Type"))
+	url, err := s.uploadFile(file, fileName, files[0].Header.Get("Content-Type"))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error uploading file"})
 		return
@@ -104,7 +104,7 @@ func (server *Server) uploadLicense(ctx *gin.Context) {
 		UserID:     authPayload.UID,
 		LicenseUrl: &url,
 	}
-	_, err = server.store.UploadLicense(ctx, uploadLicenseArg)
+	_, err = s.store.UploadLicense(ctx, uploadLicenseArg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -116,7 +116,7 @@ func (server *Server) uploadLicense(ctx *gin.Context) {
 		WizardStep: 2,
 	}
 
-	_, err = server.store.UpdateUserWizardStep(ctx, wizardStepArg)
+	_, err = s.store.UpdateUserWizardStep(ctx, wizardStepArg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
