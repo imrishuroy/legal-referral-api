@@ -21,7 +21,7 @@ func (s *Server) createFAQ(ctx *gin.Context) {
 		return
 	}
 
-	faq, err := s.store.CreateFAQ(ctx, req)
+	faq, err := s.Store.CreateFAQ(ctx, req)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -37,7 +37,7 @@ func (s *Server) listFAQs(ctx *gin.Context) {
 		return
 	}
 
-	faqList, err := s.store.ListFAQs(ctx)
+	faqList, err := s.Store.ListFAQs(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

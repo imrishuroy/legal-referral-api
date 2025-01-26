@@ -25,7 +25,7 @@ func (s *Server) listLicenseVerifiedUsers(ctx *gin.Context) {
 		Offset: (req.Offset - 1) * req.Limit,
 	}
 
-	users, err := s.store.ListLicenseVerifiedUsers(ctx, arg)
+	users, err := s.Store.ListLicenseVerifiedUsers(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -52,7 +52,7 @@ func (s *Server) listLicenseUnverifiedUsers(ctx *gin.Context) {
 		Offset: (req.Offset - 1) * req.Limit,
 	}
 
-	users, err := s.store.ListLicenseUnVerifiedUsers(ctx, arg)
+	users, err := s.Store.ListLicenseUnVerifiedUsers(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -84,7 +84,7 @@ func (s *Server) listAttorneys(ctx *gin.Context) {
 		Offset: req.Offset,
 	}
 
-	users, err := s.store.ListAttorneys(ctx, arg)
+	users, err := s.Store.ListAttorneys(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -103,7 +103,7 @@ func (s *Server) listLawyers(ctx *gin.Context) {
 		return
 	}
 
-	lawyers, err := s.store.ListLawyers(ctx)
+	lawyers, err := s.Store.ListLawyers(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -123,7 +123,7 @@ func (s *Server) listAllReferralProjects(ctx *gin.Context) {
 		return
 	}
 
-	referrals, err := s.store.ListAllReferralProjects(ctx, userId)
+	referrals, err := s.Store.ListAllReferralProjects(ctx, userId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -141,7 +141,7 @@ func (s *Server) listCompletedReferralProjects(ctx *gin.Context) {
 		return
 	}
 
-	referrals, err := s.store.ListCompletedReferralProjects(ctx, userId)
+	referrals, err := s.Store.ListCompletedReferralProjects(ctx, userId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -159,7 +159,7 @@ func (s *Server) listActiveReferralProjects(ctx *gin.Context) {
 		return
 	}
 
-	referrals, err := s.store.ListActiveReferralProjects(ctx, userId)
+	referrals, err := s.Store.ListActiveReferralProjects(ctx, userId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

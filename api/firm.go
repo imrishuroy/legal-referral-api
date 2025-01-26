@@ -59,7 +59,7 @@ func (s *Server) addFirm(ctx *gin.Context) {
 		About:       req.About,
 	}
 
-	firm, err := s.store.AddFirm(ctx, arg)
+	firm, err := s.Store.AddFirm(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -88,7 +88,7 @@ func (s *Server) SearchFirms(ctx *gin.Context) {
 		Query:  req.SearchQuery,
 	}
 
-	firms, err := s.store.ListFirms(ctx, arg)
+	firms, err := s.Store.ListFirms(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -116,7 +116,7 @@ func (s *Server) listFirmsByOwner(ctx *gin.Context) {
 		return
 	}
 
-	firms, err := s.store.ListFirmsByOwner(ctx, "YLFPbwsDBqOpMNdP3C04GC6iEdW2")
+	firms, err := s.Store.ListFirmsByOwner(ctx, "YLFPbwsDBqOpMNdP3C04GC6iEdW2")
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

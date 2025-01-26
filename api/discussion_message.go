@@ -35,7 +35,7 @@ func (s *Server) sendMessageToDiscussion(ctx *gin.Context) {
 		return
 	}
 
-	message, err := s.store.SendMessageToDiscussion(ctx, req)
+	message, err := s.Store.SendMessageToDiscussion(ctx, req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -76,7 +76,7 @@ func (s *Server) listDiscussionMessages(ctx *gin.Context) {
 		Limit:        req.Limit,
 	}
 
-	messages, err := s.store.ListDiscussionMessages(ctx, arg)
+	messages, err := s.Store.ListDiscussionMessages(ctx, arg)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))

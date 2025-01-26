@@ -20,7 +20,7 @@ func (s *Server) listChatRooms(ctx *gin.Context) {
 		return
 	}
 
-	chatRooms, err := s.store.ListChatRooms(ctx, userID)
+	chatRooms, err := s.Store.ListChatRooms(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": errorResponse(err)})
 		return
@@ -59,12 +59,12 @@ func (s *Server) createChatRoom(ctx *gin.Context) {
 		User1ID: req.User1ID,
 	}
 
-	chatRoom, err := s.store.GetChatRoom(ctx, getChatRoomArg)
+	chatRoom, err := s.Store.GetChatRoom(ctx, getChatRoomArg)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get chat room")
 		if strings.Contains(err.Error(), "no rows in result set") {
 
-			chatRoom, err := s.store.CreateChatRoom(ctx, arg)
+			chatRoom, err := s.Store.CreateChatRoom(ctx, arg)
 			if err != nil {
 				log.Error().Err(err).Msg("Failed to create chat room")
 				ctx.JSON(http.StatusInternalServerError, errorResponse(err))

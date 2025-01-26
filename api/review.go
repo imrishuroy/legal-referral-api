@@ -33,7 +33,7 @@ func (s *Server) addReview(ctx *gin.Context) {
 		Rating:     req.Ratting,
 	}
 
-	review, err := s.store.AddReview(ctx, arg)
+	review, err := s.Store.AddReview(ctx, arg)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))

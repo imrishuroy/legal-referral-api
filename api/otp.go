@@ -93,7 +93,7 @@ func (s *Server) VerifyOTP(ctx *gin.Context) {
 				Mobile:         &req.To,
 				MobileVerified: true,
 			}
-			_, err := s.store.UpdateMobileVerificationStatus(ctx, mobileUpdateArg)
+			_, err := s.Store.UpdateMobileVerificationStatus(ctx, mobileUpdateArg)
 			if err != nil {
 				ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 				return
@@ -137,7 +137,7 @@ func (s *Server) VerifyOTP(ctx *gin.Context) {
 	//				Mobile:         &req.To,
 	//				MobileVerified: true,
 	//			}
-	//			_, err := server.store.UpdateMobileVerificationStatus(ctx, mobileUpdateArg)
+	//			_, err := server.Store.UpdateMobileVerificationStatus(ctx, mobileUpdateArg)
 	//			if err != nil {
 	//				ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 	//				return
@@ -151,7 +151,7 @@ func (s *Server) VerifyOTP(ctx *gin.Context) {
 	//			UserID:        req.UserId,
 	//			EmailVerified: true,
 	//		}
-	//		_, err := server.store.UpdateEmailVerificationStatus(ctx, emailUpdateArg)
+	//		_, err := server.Store.UpdateEmailVerificationStatus(ctx, emailUpdateArg)
 	//		if err != nil {
 	//			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 	//			return

@@ -61,7 +61,7 @@ func (s *Server) addExperience(ctx *gin.Context) {
 		return
 	}
 
-	expRes, err := s.store.AddExperience(ctx, arg)
+	expRes, err := s.Store.AddExperience(ctx, arg)
 	if err != nil {
 		log.Error().Err(err).Msg("Error adding experience")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -69,7 +69,7 @@ func (s *Server) addExperience(ctx *gin.Context) {
 	}
 
 	// get the firm details
-	firm, err := s.store.GetFirm(ctx, expRes.FirmID)
+	firm, err := s.Store.GetFirm(ctx, expRes.FirmID)
 	if err != nil {
 		log.Error().Err(err).Msg("Error getting firm details")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -102,7 +102,7 @@ func (s *Server) listExperiences(ctx *gin.Context) {
 		return
 	}
 
-	experiences, err := s.store.ListExperiences(ctx, userID)
+	experiences, err := s.Store.ListExperiences(ctx, userID)
 	if err != nil {
 		log.Error().Err(err).Msg("Error listing experiences")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -158,7 +158,7 @@ func (s *Server) updateExperience(ctx *gin.Context) {
 		return
 	}
 
-	expRes, err := s.store.UpdateExperience(ctx, arg)
+	expRes, err := s.Store.UpdateExperience(ctx, arg)
 
 	if err != nil {
 		log.Error().Err(err).Msg("Error updating experience")
@@ -167,7 +167,7 @@ func (s *Server) updateExperience(ctx *gin.Context) {
 	}
 
 	// get the firm details
-	firm, err := s.store.GetFirm(ctx, expRes.FirmID)
+	firm, err := s.Store.GetFirm(ctx, expRes.FirmID)
 	if err != nil {
 		log.Error().Err(err).Msg("Error getting firm details")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -202,7 +202,7 @@ func (s *Server) deleteExperience(ctx *gin.Context) {
 		return
 	}
 
-	err = s.store.DeleteExperience(ctx, experienceID)
+	err = s.Store.DeleteExperience(ctx, experienceID)
 	if err != nil {
 		log.Error().Err(err).Msg("Error deleting experience")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))

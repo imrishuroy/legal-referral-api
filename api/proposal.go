@@ -22,7 +22,7 @@ func (s *Server) createProposal(ctx *gin.Context) {
 		return
 	}
 
-	proposal, err := s.store.CreateProposal(ctx, *req)
+	proposal, err := s.Store.CreateProposal(ctx, *req)
 	if err != nil {
 		ctx.JSON(400, errorResponse(err))
 		return
@@ -43,7 +43,7 @@ func (s *Server) updateProposal(ctx *gin.Context) {
 		return
 	}
 
-	proposal, err := s.store.UpdateProposal(ctx, *req)
+	proposal, err := s.Store.UpdateProposal(ctx, *req)
 	if err != nil {
 		ctx.JSON(400, errorResponse(err))
 		return
@@ -67,7 +67,7 @@ func (s *Server) getProposal(ctx *gin.Context) {
 		UserID:    userID,
 	}
 
-	proposal, err := s.store.GetProposal(ctx, arg)
+	proposal, err := s.Store.GetProposal(ctx, arg)
 	if err != nil {
 
 		if errors.Is(err, db.ErrRecordNotFound) {

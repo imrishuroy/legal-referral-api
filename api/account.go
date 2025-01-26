@@ -31,7 +31,7 @@ func (s *Server) getAccountInfo(ctx *gin.Context) {
 		return
 	}
 
-	acInfo, err := s.store.GetAccountInfo(ctx, userID)
+	acInfo, err := s.Store.GetAccountInfo(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

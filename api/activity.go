@@ -33,7 +33,7 @@ func (s *Server) listActivityPosts(ctx *gin.Context) {
 		Limit:   req.Limit,
 	}
 
-	posts, err := s.store.ListUserPosts(ctx, arg)
+	posts, err := s.Store.ListUserPosts(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -69,7 +69,7 @@ func (s *Server) listActivityComments(ctx *gin.Context) {
 		Limit:  req.Limit,
 	}
 
-	comments, err := s.store.ListUserComments(ctx, arg)
+	comments, err := s.Store.ListUserComments(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -87,7 +87,7 @@ func (s *Server) getUserFollowersCount(ctx *gin.Context) {
 		return
 	}
 
-	count, err := s.store.GetUserFollowersCount(ctx, userID)
+	count, err := s.Store.GetUserFollowersCount(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

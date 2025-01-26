@@ -31,7 +31,7 @@ func (s *Server) featurePost(ctx *gin.Context) {
 		UserID: req.UserID,
 	}
 
-	err := s.store.FeaturePost(ctx, arg)
+	err := s.Store.FeaturePost(ctx, arg)
 	if err != nil {
 
 		errorCode := db.ErrorCode(err)
@@ -77,7 +77,7 @@ func (s *Server) unFeaturePost(ctx *gin.Context) {
 		UserID: authPayload.UID,
 	}
 
-	err = s.store.UnFeaturePost(ctx, arg)
+	err = s.Store.UnFeaturePost(ctx, arg)
 
 	if err != nil {
 		ctx.JSON(500, errorResponse(err))
@@ -97,7 +97,7 @@ func (s *Server) listFeaturePosts(ctx *gin.Context) {
 		return
 	}
 
-	posts, err := s.store.ListFeaturedPosts(ctx)
+	posts, err := s.Store.ListFeaturedPosts(ctx)
 	if err != nil {
 		ctx.JSON(500, errorResponse(err))
 		return

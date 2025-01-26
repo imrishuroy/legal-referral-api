@@ -21,7 +21,7 @@ func (s *Server) setupRouter(ginLambda *ginadapter.GinLambda) {
 	gin.SetMode(gin.ReleaseMode)
 
 	//srv := handler.NewDefaultServer(graph.NewExecutableSchema(graph.Config{Resolvers: &graph.Resolver{
-	//	Store: server.store}}))
+	//	Store: server.Store}}))
 
 	//http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	//http.Handle("/query", srv)

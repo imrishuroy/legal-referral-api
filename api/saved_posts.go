@@ -31,7 +31,7 @@ func (s *Server) savePost(ctx *gin.Context) {
 		UserID: req.UserID,
 	}
 
-	err := s.store.SavePost(ctx, arg)
+	err := s.Store.SavePost(ctx, arg)
 	if err != nil {
 
 		errorCode := db.ErrorCode(err)
@@ -63,7 +63,7 @@ func (s *Server) unSavePost(ctx *gin.Context) {
 		return
 	}
 
-	err = s.store.UnsavePost(ctx, int32(savedPostID))
+	err = s.Store.UnsavePost(ctx, int32(savedPostID))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -75,7 +75,7 @@ func (s *Server) unSavePost(ctx *gin.Context) {
 func (s *Server) listSavedPosts(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
-	savedPosts, err := s.store.ListSavedPosts(ctx, userID)
+	savedPosts, err := s.Store.ListSavedPosts(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

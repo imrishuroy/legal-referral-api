@@ -43,7 +43,7 @@ func (s *Server) createReferral(ctx *gin.Context) {
 		CaseDescription:           req.CaseDescription,
 	}
 
-	project, err := s.store.CreateReferral(ctx, arg)
+	project, err := s.Store.CreateReferral(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -58,7 +58,7 @@ func (s *Server) createReferral(ctx *gin.Context) {
 			ProjectID:      project.ProjectID,
 			ReferredUserID: &referredUserID,
 		}
-		_, err := s.store.AddReferredUserToProject(ctx, arg)
+		_, err := s.Store.AddReferredUserToProject(ctx, arg)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
@@ -75,7 +75,7 @@ func (s *Server) listActiveReferrals(ctx *gin.Context) {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 		return
 	}
-	projects, err := s.store.ListActiveReferrals(ctx, userID)
+	projects, err := s.Store.ListActiveReferrals(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -97,7 +97,7 @@ func (s *Server) listReferredUsers(ctx *gin.Context) {
 		return
 	}
 
-	users, err := s.store.ListReferredUsers2(ctx, int32(projectID))
+	users, err := s.Store.ListReferredUsers2(ctx, int32(projectID))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -136,7 +136,7 @@ func (s *Server) listActiveProposals(ctx *gin.Context) {
 		return
 	}
 
-	projects, err := s.store.ListActiveProposals(ctx, userID)
+	projects, err := s.Store.ListActiveProposals(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -186,7 +186,7 @@ func (s *Server) awardProject(ctx *gin.Context) {
 		return
 	}
 
-	status, err := s.store.GetProjectStatus(ctx, req.ProjectID)
+	status, err := s.Store.GetProjectStatus(ctx, req.ProjectID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -197,7 +197,7 @@ func (s *Server) awardProject(ctx *gin.Context) {
 		return
 	}
 
-	project, err := s.store.AwardProject(ctx, req)
+	project, err := s.Store.AwardProject(ctx, req)
 
 	if err != nil {
 		if db.ErrorCode(err) == db.UniqueViolation {
@@ -220,7 +220,7 @@ func (s *Server) listAwardedProjects(ctx *gin.Context) {
 		return
 	}
 
-	projects, err := s.store.ListAwardedProjects(ctx, userID)
+	projects, err := s.Store.ListAwardedProjects(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -278,7 +278,7 @@ func (s *Server) acceptProject(ctx *gin.Context) {
 		UserID:    authPayload.UID,
 	}
 
-	project, err := s.store.AcceptProject(ctx, arg)
+	project, err := s.Store.AcceptProject(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -306,7 +306,7 @@ func (s *Server) rejectProject(ctx *gin.Context) {
 		UserID:    authPayload.UID,
 	}
 
-	project, err := s.store.RejectProject(ctx, arg)
+	project, err := s.Store.RejectProject(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -331,7 +331,7 @@ func (s *Server) listActiveProjects(ctx *gin.Context) {
 	}
 
 	if role == "referrer" {
-		projects, err := s.store.ListReferrerActiveProjects(ctx, userID)
+		projects, err := s.Store.ListReferrerActiveProjects(ctx, userID)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
@@ -373,7 +373,7 @@ func (s *Server) listActiveProjects(ctx *gin.Context) {
 
 		ctx.JSON(http.StatusOK, projectList)
 	} else {
-		projects, err := s.store.ListReferredActiveProjects(ctx, userID)
+		projects, err := s.Store.ListReferredActiveProjects(ctx, userID)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
@@ -436,7 +436,7 @@ func (s *Server) startProject(ctx *gin.Context) {
 		UserID:    authPayload.UID,
 	}
 
-	project, err := s.store.StartProject(ctx, arg)
+	project, err := s.Store.StartProject(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -464,7 +464,7 @@ func (s *Server) initiateCompleteProject(ctx *gin.Context) {
 		UserID:    authPayload.UID,
 	}
 
-	project, err := s.store.InitiateCompleteProject(ctx, arg)
+	project, err := s.Store.InitiateCompleteProject(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -492,7 +492,7 @@ func (s *Server) cancelInitiateCompleteProject(ctx *gin.Context) {
 		UserID:    authPayload.UID,
 	}
 
-	project, err := s.store.CancelCompleteProjectInitiation(ctx, arg)
+	project, err := s.Store.CancelCompleteProjectInitiation(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -520,7 +520,7 @@ func (s *Server) completeProject(ctx *gin.Context) {
 		UserID:    authPayload.UID,
 	}
 
-	project, err := s.store.CompleteProject(ctx, arg)
+	project, err := s.Store.CompleteProject(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -546,7 +546,7 @@ func (s *Server) listCompletedProjects(ctx *gin.Context) {
 	}
 
 	if role == "referrer" {
-		projects, err := s.store.ListReferrerCompletedProjects(ctx, userID)
+		projects, err := s.Store.ListReferrerCompletedProjects(ctx, userID)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
@@ -591,7 +591,7 @@ func (s *Server) listCompletedProjects(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, projectList)
 
 	} else {
-		projects, err := s.store.ListReferredCompletedProjects(ctx, userID)
+		projects, err := s.Store.ListReferredCompletedProjects(ctx, userID)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return

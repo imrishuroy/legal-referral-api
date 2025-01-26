@@ -42,7 +42,7 @@ func (s *Server) likePost(ctx *gin.Context) {
 	}
 
 	alreadyLiked := false
-	err = s.store.LikePost(ctx, arg)
+	err = s.Store.LikePost(ctx, arg)
 	if err != nil {
 		if db.ErrorCode(err) != db.UniqueViolation {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -98,7 +98,7 @@ func (s *Server) unlikePost(ctx *gin.Context) {
 		PostID: &postID32,
 	}
 
-	err = s.store.UnlikePost(ctx, arg)
+	err = s.Store.UnlikePost(ctx, arg)
 	if err != nil {
 		if db.ErrorCode(err) != db.UniqueViolation {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -107,7 +107,7 @@ func (s *Server) unlikePost(ctx *gin.Context) {
 	}
 
 	// Decrement likes
-	err = s.store.DecrementLikes(ctx, postID32)
+	err = s.Store.DecrementLikes(ctx, postID32)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -135,7 +135,7 @@ func (s *Server) listPostLikedUsers(ctx *gin.Context) {
 		UserID: authPayload.UID,
 	}
 
-	users, err := s.store.ListPostLikedUsers2(ctx, arg)
+	users, err := s.Store.ListPostLikedUsers2(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -164,7 +164,7 @@ func (s *Server) likeComment(ctx *gin.Context) {
 		CommentID: &commentID32,
 	}
 
-	err = s.store.LikeComment(ctx, arg)
+	err = s.Store.LikeComment(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -191,7 +191,7 @@ func (s *Server) unlikeComment(ctx *gin.Context) {
 		CommentID: &commentID32,
 	}
 
-	err = s.store.UnlikeComment(ctx, arg)
+	err = s.Store.UnlikeComment(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

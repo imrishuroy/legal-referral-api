@@ -29,7 +29,7 @@ func (s *Server) reportPost(ctx *gin.Context) {
 		return
 	}
 
-	reasonID, err := s.store.AddReportReason(ctx, req.Reason)
+	reasonID, err := s.Store.AddReportReason(ctx, req.Reason)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -41,7 +41,7 @@ func (s *Server) reportPost(ctx *gin.Context) {
 		ReasonID:   reasonID,
 	}
 
-	err = s.store.ReportPost(ctx, arg)
+	err = s.Store.ReportPost(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -73,7 +73,7 @@ func (s *Server) isPostReported(ctx *gin.Context) {
 		PostID:     int32(postID),
 	}
 
-	isReported, err := s.store.IsPostReported(ctx, arg)
+	isReported, err := s.Store.IsPostReported(ctx, arg)
 	if err != nil {
 		if errors.Is(err, db.ErrRecordNotFound) {
 			ctx.JSON(http.StatusOK, false)

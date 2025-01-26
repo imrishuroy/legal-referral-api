@@ -33,7 +33,7 @@ func (s *Server) listRecommendations(ctx *gin.Context) {
 		Limit:  req.Limit,
 	}
 
-	recommendations, err := s.store.ListRecommendations2(ctx, arg)
+	recommendations, err := s.Store.ListRecommendations2(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -65,7 +65,7 @@ func (s *Server) cancelRecommendation(ctx *gin.Context) {
 		RecommendedUserID: req.RecommendedUserID,
 	}
 
-	if err := s.store.CancelRecommendation(ctx, arg); err != nil {
+	if err := s.Store.CancelRecommendation(ctx, arg); err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}

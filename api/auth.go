@@ -83,8 +83,11 @@ func (s *Server) SignIn(ctx *gin.Context) {
 		return
 	}
 
+	// print the store object
+	log.Info().Msgf("Store object: %v", s.Store)
+
 	// Retrieve user data from the database
-	user, err := s.store.GetUserById(ctx, res.LocalId)
+	user, err := s.Store.GetUserById(ctx, res.LocalId)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to retrieve user")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -223,7 +226,7 @@ func (s *Server) SignUp(ctx *gin.Context) {
 		AvatarUrl:      &userImageUrl,
 	}
 
-	user, err := s.store.CreateUser(ctx, arg)
+	user, err := s.Store.CreateUser(ctx, arg)
 
 	// Create and return the authentication response
 	authResponse := authResponse{

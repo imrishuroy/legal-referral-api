@@ -41,7 +41,7 @@ func (s *Server) addPrice(ctx *gin.Context) {
 		HybridPrice:      req.HybridPrice,
 	}
 
-	price, err := s.store.AddPrice(ctx, priceArg)
+	price, err := s.Store.AddPrice(ctx, priceArg)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to add price")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -90,7 +90,7 @@ func (s *Server) updatePrice(ctx *gin.Context) {
 		HybridPrice:      req.HybridPrice,
 	}
 
-	price, err := s.store.UpdatePrice(ctx, priceArg)
+	price, err := s.Store.UpdatePrice(ctx, priceArg)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to update price")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))

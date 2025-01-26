@@ -35,7 +35,7 @@ func (s *Server) addSocial(ctx *gin.Context) {
 		Link:       req.Link,
 	}
 
-	social, err := s.store.AddSocial(ctx, arg)
+	social, err := s.Store.AddSocial(ctx, arg)
 	if err != nil {
 		// check if error the duplicate key error is returned
 		if !errors.Is(err, db.ErrUniqueViolation) {
@@ -81,7 +81,7 @@ func (s *Server) updateSocial(ctx *gin.Context) {
 		Link:     req.Link,
 	}
 
-	social, err := s.store.UpdateSocial(ctx, arg)
+	social, err := s.Store.UpdateSocial(ctx, arg)
 	if err != nil {
 		if !errors.Is(err, db.ErrUniqueViolation) {
 			ctx.JSON(http.StatusBadRequest, gin.H{"message": "Social link already exists"})
@@ -111,7 +111,7 @@ func (s *Server) listSocials(ctx *gin.Context) {
 		EntityType: entityType,
 	}
 
-	socials, err := s.store.ListSocials(ctx, arg)
+	socials, err := s.Store.ListSocials(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -135,7 +135,7 @@ func (s *Server) deleteSocial(ctx *gin.Context) {
 		return
 	}
 
-	err = s.store.DeleteSocial(ctx, socialID)
+	err = s.Store.DeleteSocial(ctx, socialID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

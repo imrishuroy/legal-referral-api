@@ -54,7 +54,7 @@ func (s *Server) addEducation(ctx *gin.Context) {
 		return
 	}
 
-	education, err := s.store.AddEducation(ctx, arg)
+	education, err := s.Store.AddEducation(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -70,7 +70,7 @@ func (s *Server) listEducations(ctx *gin.Context) {
 		return
 	}
 
-	educations, err := s.store.ListEducations(ctx, userID)
+	educations, err := s.Store.ListEducations(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -121,7 +121,7 @@ func (s *Server) updateEducation(ctx *gin.Context) {
 		return
 	}
 
-	education, err := s.store.UpdateEducation(ctx, arg)
+	education, err := s.Store.UpdateEducation(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -147,7 +147,7 @@ func (s *Server) deleteEducation(ctx *gin.Context) {
 		return
 	}
 
-	err = s.store.DeleteEducation(ctx, educationID)
+	err = s.Store.DeleteEducation(ctx, educationID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

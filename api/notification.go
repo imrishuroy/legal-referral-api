@@ -39,7 +39,7 @@ func (s *Server) createNotification(ctx *gin.Context) {
 		Message:          req.Message,
 	}
 
-	notification, err := s.store.CreateNotification(ctx, args)
+	notification, err := s.Store.CreateNotification(ctx, args)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -76,7 +76,7 @@ func (s *Server) listNotifications(ctx *gin.Context) {
 		Offset: req.Offset,
 	}
 
-	notifications, err := s.store.ListNotifications(ctx, arg)
+	notifications, err := s.Store.ListNotifications(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

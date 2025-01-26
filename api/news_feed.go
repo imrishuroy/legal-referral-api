@@ -83,7 +83,7 @@ type postMetaData struct {
 //		Offset: maxOffset(0, (req.Offset-1)*req.Limit),
 //	}
 //
-//	newsFeed, err := server.store.ListNewsFeedV3(ctx, arg)
+//	newsFeed, err := server.Store.ListNewsFeedV3(ctx, arg)
 //	if err != nil {
 //		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching feed posts"})
 //		return
@@ -105,7 +105,7 @@ type postMetaData struct {
 //	}
 //
 //	if len(postsToFetchFromDB) > 0 {
-//		postsFromDB, err := server.store.ListPosts(ctx, postsToFetchFromDB)
+//		postsFromDB, err := server.Store.ListPosts(ctx, postsToFetchFromDB)
 //		if err != nil {
 //			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching missing posts from database"})
 //			return
@@ -138,7 +138,7 @@ type postMetaData struct {
 //
 //	postMetaDataMap := make(map[int32]postMetaData)
 //
-//	metaData, err := server.store.PostsMetaData(ctx, postMetaArg)
+//	metaData, err := server.Store.PostsMetaData(ctx, postMetaArg)
 //	for _, md := range metaData {
 //		postMetaDataMap[md.PostID] = postMetaData{
 //			PostID:            md.PostID,
@@ -262,7 +262,7 @@ func extractPostIDs(posts []post) []int32 {
 //		Offset: maxOffset(0, (req.Offset-1)*req.Limit),
 //	}
 //
-//	feedPosts, err := server.store.ListNewsFeed(ctx, arg)
+//	feedPosts, err := server.Store.ListNewsFeed(ctx, arg)
 //	if err != nil {
 //		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching feed posts"})
 //		return
@@ -385,7 +385,7 @@ func (s *Server) listNewsFeed(ctx *gin.Context) {
 	}
 
 	// Fetch the feed posts from the database
-	feedPosts, err := s.store.ListNewsFeed(ctx, arg)
+	feedPosts, err := s.Store.ListNewsFeed(ctx, arg)
 	if err != nil {
 		log.Printf("Error fetching feed posts: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching feed posts"})
@@ -400,7 +400,7 @@ func (s *Server) listNewsFeed(ctx *gin.Context) {
 	}
 
 	// Fetch a random ad
-	randomAd, err := s.store.GetRandomAd(ctx)
+	randomAd, err := s.Store.GetRandomAd(ctx)
 	if err != nil && !errors.Is(err, db.ErrRecordNotFound) {
 		log.Printf("Error fetching ads: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching ads"})
@@ -444,7 +444,7 @@ func (s *Server) ignoreFeed(ctx *gin.Context) {
 		UserID: authPayload.UID,
 	}
 
-	err = s.store.IgnoreFeed(ctx, arg)
+	err = s.Store.IgnoreFeed(ctx, arg)
 	if err != nil {
 		log.Printf("Error ignoring post: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error ignoring post"})

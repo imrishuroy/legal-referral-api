@@ -35,7 +35,7 @@ import (
 
 type Server struct {
 	config       util.Config
-	store        db.Store
+	Store        db.Store
 	Router       *gin.Engine
 	FirebaseAuth *auth.Client
 	twilioClient *twilio.RestClient
@@ -46,7 +46,7 @@ type Server struct {
 	producer *kafka.Producer
 }
 
-//func NewServer(config util.Config, store db.Store, hub *chat.Hub, producer *kafka.Producer, rdb RedisClient) (*Server, error) {
+//func NewServer(config util.Config, Store db.Store, hub *chat.Hub, producer *kafka.Producer, rdb RedisClient) (*Server, error) {
 
 func NewServer(config util.Config, store db.Store, hub *chat.Hub, producer *kafka.Producer, ginLambda *ginadapter.GinLambda) (*Server, error) {
 
@@ -89,7 +89,7 @@ func NewServer(config util.Config, store db.Store, hub *chat.Hub, producer *kafk
 
 	server := &Server{
 		config:       config,
-		store:        store,
+		Store:        store,
 		FirebaseAuth: firebaseAuth,
 		twilioClient: twilioClient,
 		awsSession:   awsSession,

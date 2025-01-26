@@ -34,7 +34,7 @@ func (s *Server) createDiscussion(ctx *gin.Context) {
 		Topic:    req.Topic,
 	}
 
-	discussion, err := s.store.CreateDiscussion(ctx, arg)
+	discussion, err := s.Store.CreateDiscussion(ctx, arg)
 	if err != nil {
 		ctx.JSON(400, errorResponse(err))
 		return
@@ -48,7 +48,7 @@ func (s *Server) createDiscussion(ctx *gin.Context) {
 			InvitedUserID: invitedUserID,
 		}
 
-		err = s.store.InviteUserToDiscussion(ctx, arg)
+		err = s.Store.InviteUserToDiscussion(ctx, arg)
 		if err != nil {
 			errorCode := db.ErrorCode(err)
 			if errorCode == db.UniqueViolation {
@@ -78,7 +78,7 @@ func (s *Server) updateDiscussionTopic(ctx *gin.Context) {
 		return
 	}
 
-	err := s.store.UpdateDiscussionTopic(ctx, req)
+	err := s.Store.UpdateDiscussionTopic(ctx, req)
 	if err != nil {
 		ctx.JSON(400, errorResponse(err))
 		return
@@ -118,7 +118,7 @@ func (s *Server) inviteUserToDiscussion(ctx *gin.Context) {
 		InvitedUserID: req.InvitedUserID,
 	}
 
-	err = s.store.InviteUserToDiscussion(ctx, arg)
+	err = s.Store.InviteUserToDiscussion(ctx, arg)
 	if err != nil {
 		errorCode := db.ErrorCode(err)
 		if errorCode == db.UniqueViolation {
@@ -151,7 +151,7 @@ func (s *Server) joinDiscussion(ctx *gin.Context) {
 		InvitedUserID: authPayload.UID,
 	}
 
-	err = s.store.JoinDiscussion(ctx, arg)
+	err = s.Store.JoinDiscussion(ctx, arg)
 	if err != nil {
 		errorCode := db.ErrorCode(err)
 		if errorCode == db.UniqueViolation {
@@ -185,7 +185,7 @@ func (s *Server) rejectDiscussion(ctx *gin.Context) {
 		InvitedUserID: authPayload.UID,
 	}
 
-	err = s.store.RejectDiscussion(ctx, arg)
+	err = s.Store.RejectDiscussion(ctx, arg)
 	if err != nil {
 		ctx.JSON(400, errorResponse(err))
 		return
@@ -202,7 +202,7 @@ func (s *Server) listDiscussionInvites(ctx *gin.Context) {
 		return
 	}
 
-	invites, err := s.store.ListDiscussionInvites(ctx, userID)
+	invites, err := s.Store.ListDiscussionInvites(ctx, userID)
 	if err != nil {
 		ctx.JSON(400, errorResponse(err))
 		return
@@ -220,7 +220,7 @@ func (s *Server) listActiveDiscussions(ctx *gin.Context) {
 		return
 	}
 
-	discussions, err := s.store.ListActiveDiscussions(ctx, userID)
+	discussions, err := s.Store.ListActiveDiscussions(ctx, userID)
 	if err != nil {
 		ctx.JSON(400, errorResponse(err))
 		return
@@ -243,7 +243,7 @@ func (s *Server) listDiscussionParticipants(ctx *gin.Context) {
 		return
 	}
 
-	participants, err := s.store.ListDiscussionParticipants(ctx, int32(discussionID))
+	participants, err := s.Store.ListDiscussionParticipants(ctx, int32(discussionID))
 	if err != nil {
 		ctx.JSON(400, errorResponse(err))
 		return
@@ -266,7 +266,7 @@ func (s *Server) listUninvitedParticipants(ctx *gin.Context) {
 		return
 	}
 
-	participants, err := s.store.ListUninvitedParticipants(ctx, int32(discussionID))
+	participants, err := s.Store.ListUninvitedParticipants(ctx, int32(discussionID))
 	if err != nil {
 		ctx.JSON(400, errorResponse(err))
 		return
@@ -306,7 +306,7 @@ func (s *Server) inviteUsersToDiscussion(ctx *gin.Context) {
 			InvitedUserID: invitedUserID,
 		}
 
-		err = s.store.InviteUserToDiscussion(ctx, arg)
+		err = s.Store.InviteUserToDiscussion(ctx, arg)
 		if err != nil {
 			errorCode := db.ErrorCode(err)
 			if errorCode == db.UniqueViolation {

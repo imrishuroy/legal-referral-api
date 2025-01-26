@@ -24,7 +24,7 @@ func (s *Server) saveDevice(ctx *gin.Context) {
 		UserID:      req.UserID,
 	}
 
-	err := s.store.SaveDevice(ctx, arg)
+	err := s.Store.SaveDevice(ctx, arg)
 	if err != nil {
 		ctx.JSON(500, gin.H{"error": err.Error()})
 		return

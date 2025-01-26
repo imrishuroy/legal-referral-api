@@ -41,7 +41,7 @@ func (s *Server) commentPost(ctx *gin.Context) {
 
 	postIDStr := strconv.Itoa(req.PostId)
 
-	comment, err := s.store.CommentPost(ctx, arg)
+	comment, err := s.Store.CommentPost(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -93,7 +93,7 @@ func (s *Server) listComments(ctx *gin.Context) {
 		UserID: authPayload.UID,
 	}
 
-	comments, err := s.store.ListComments2(ctx, arg)
+	comments, err := s.Store.ListComments2(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

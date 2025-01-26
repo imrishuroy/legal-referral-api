@@ -87,7 +87,7 @@ func (s *Server) createAd(ctx *gin.Context) {
 		EndDate:      *req.EndDate,
 	}
 
-	_, err := s.store.CreateAd(ctx, arg)
+	_, err := s.Store.CreateAd(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -104,7 +104,7 @@ func (s *Server) listPlayingAds(ctx *gin.Context) {
 		return
 	}
 
-	ads, err := s.store.ListPlayingAds(ctx)
+	ads, err := s.Store.ListPlayingAds(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -121,7 +121,7 @@ func (s *Server) listExpiredAds(ctx *gin.Context) {
 		return
 	}
 
-	ads, err := s.store.ListExpiredAds(ctx)
+	ads, err := s.Store.ListExpiredAds(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -153,7 +153,7 @@ func (s *Server) extendAdPeriod(ctx *gin.Context) {
 
 	req.AdID = int32(adID)
 
-	ad, err := s.store.ExtendAdPeriod(ctx, req)
+	ad, err := s.Store.ExtendAdPeriod(ctx, req)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

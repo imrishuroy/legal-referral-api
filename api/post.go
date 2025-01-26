@@ -102,7 +102,7 @@ func (s *Server) createPost(ctx *gin.Context) {
 		PollID:   pollID,
 	}
 
-	dbPost, err := s.store.CreatePost(ctx, arg)
+	dbPost, err := s.Store.CreatePost(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -141,7 +141,7 @@ func (s *Server) isPostFeatured(ctx *gin.Context) {
 
 	int32PostID := int32(postID)
 
-	featured, err := s.store.IsPostFeatured(ctx, int32PostID)
+	featured, err := s.Store.IsPostFeatured(ctx, int32PostID)
 	if err != nil {
 		if errors.Is(err, db.ErrRecordNotFound) {
 			ctx.JSON(http.StatusOK, false)
@@ -175,7 +175,7 @@ func (s *Server) createPoll(ctx *gin.Context, req *createPollReq) (*db.Poll, err
 		//EndDate: pgtype.Timestamptz{Time: *req.EndDate, Valid: req.EndDate != nil},
 	}
 
-	poll, err := s.store.CreatePoll(ctx, arg)
+	poll, err := s.Store.CreatePoll(ctx, arg)
 	if err != nil {
 		return nil, err
 
@@ -184,7 +184,7 @@ func (s *Server) createPoll(ctx *gin.Context, req *createPollReq) (*db.Poll, err
 }
 
 func (s *Server) postToNewsFeed(ctx *gin.Context, userID string, postID int32) error {
-	userIDs, err := s.store.ListConnectedUserIDs(ctx, userID)
+	userIDs, err := s.Store.ListConnectedUserIDs(ctx, userID)
 	if err != nil {
 		return err
 	}
@@ -215,13 +215,13 @@ func (s *Server) postLikesAndCommentsCount(ctx *gin.Context) {
 
 	int32PostID := int32(postID)
 
-	likes, err := s.store.GetPostLikesCount(ctx, &int32PostID)
+	likes, err := s.Store.GetPostLikesCount(ctx, &int32PostID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 
-	comments, err := s.store.GetPostCommentsCount(ctx, int32(postID))
+	comments, err := s.Store.GetPostCommentsCount(ctx, int32(postID))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -255,7 +255,7 @@ func (s *Server) isPostLiked(ctx *gin.Context) {
 		PostID: &int32PostID,
 	}
 
-	liked, err := s.store.GetPosIsLikedByCurrentUser(ctx, arg)
+	liked, err := s.Store.GetPosIsLikedByCurrentUser(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -285,7 +285,7 @@ func (s *Server) deletePost(ctx *gin.Context) {
 		OwnerID: authPayload.UID,
 	}
 
-	err = s.store.DeletePost(ctx, arg)
+	err = s.Store.DeletePost(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -304,7 +304,7 @@ func (s *Server) getPost(ctx *gin.Context) {
 
 	int32PostID := int32(postID)
 
-	post, err := s.store.GetPost(ctx, int32PostID)
+	post, err := s.Store.GetPost(ctx, int32PostID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -338,7 +338,7 @@ func (s *Server) searchPosts(ctx *gin.Context) {
 		Searchquery: req.SearchQuery,
 	}
 
-	posts, err := s.store.SearchPosts(ctx, arg)
+	posts, err := s.Store.SearchPosts(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

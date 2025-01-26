@@ -48,7 +48,7 @@ func (s *Server) listMessages(ctx *gin.Context) {
 		Limit:  req.Limit,
 	}
 
-	messages, err := s.store.ListMessages(ctx, arg)
+	messages, err := s.Store.ListMessages(ctx, arg)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))

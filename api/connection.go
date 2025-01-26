@@ -52,7 +52,7 @@ func (s *Server) sendConnection(ctx *gin.Context) {
 		RecipientID: req.RecipientID,
 	}
 
-	connID, err := s.store.SendConnection(ctx, arg)
+	connID, err := s.Store.SendConnection(ctx, arg)
 	if err != nil {
 		errorCode := db.ErrorCode(err)
 		if errorCode == db.UniqueViolation {
@@ -83,7 +83,7 @@ func (s *Server) acceptConnection(ctx *gin.Context) {
 		ID: int32(connID),
 	}
 
-	conn, err := s.store.AcceptConnectionTx(ctx, arg)
+	conn, err := s.Store.AcceptConnectionTx(ctx, arg)
 	if err != nil {
 		errorCode := db.ErrorCode(err)
 		if errorCode == db.UniqueViolation {
@@ -112,7 +112,7 @@ func (s *Server) rejectConnection(ctx *gin.Context) {
 		return
 	}
 
-	err = s.store.RejectConnection(ctx, int32(id))
+	err = s.Store.RejectConnection(ctx, int32(id))
 	if err != nil {
 		errorCode := db.ErrorCode(err)
 		if errorCode == db.UniqueViolation {
@@ -160,7 +160,7 @@ func (s *Server) listConnectionInvitations(ctx *gin.Context) {
 		Offset:      (req.Offset - 1) * req.Limit,
 	}
 
-	connections, err := s.store.ListConnectionInvitations(ctx, arg)
+	connections, err := s.Store.ListConnectionInvitations(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -196,7 +196,7 @@ func (s *Server) listConnections(ctx *gin.Context) {
 		Offset: (req.Offset - 1) * req.Limit,
 	}
 
-	connections, err := s.store.ListConnections(ctx, arg)
+	connections, err := s.Store.ListConnections(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -220,7 +220,7 @@ func (s *Server) checkConnection(ctx *gin.Context) {
 		OtherUserID: otherUserId,
 	}
 
-	conn, err := s.store.CheckConnectionStatus(ctx, arg)
+	conn, err := s.Store.CheckConnectionStatus(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

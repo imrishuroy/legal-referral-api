@@ -28,7 +28,7 @@ func (s *Server) CreateProjectReview(ctx *gin.Context) {
 		Rating:    req.Rating,
 	}
 
-	review, err := s.store.CreateProjectReview(ctx, arg)
+	review, err := s.Store.CreateProjectReview(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -61,7 +61,7 @@ func (s *Server) getProjectReview(ctx *gin.Context) {
 		UserID:    authPayload.UID,
 	}
 
-	review, err := s.store.GetProjectReview(ctx, arg)
+	review, err := s.Store.GetProjectReview(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

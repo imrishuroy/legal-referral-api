@@ -39,7 +39,7 @@ func (s *Server) SaveLicense(ctx *gin.Context) {
 		IssueState:    req.IssueState,
 	}
 
-	license, err := s.store.SaveLicense(ctx, arg)
+	license, err := s.Store.SaveLicense(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -51,7 +51,7 @@ func (s *Server) SaveLicense(ctx *gin.Context) {
 		WizardStep: 1,
 	}
 
-	_, err = s.store.UpdateUserWizardStep(ctx, wizardStepArg)
+	_, err = s.Store.UpdateUserWizardStep(ctx, wizardStepArg)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -104,7 +104,7 @@ func (s *Server) uploadLicense(ctx *gin.Context) {
 		UserID:     authPayload.UID,
 		LicenseUrl: &url,
 	}
-	_, err = s.store.UploadLicense(ctx, uploadLicenseArg)
+	_, err = s.Store.UploadLicense(ctx, uploadLicenseArg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -116,7 +116,7 @@ func (s *Server) uploadLicense(ctx *gin.Context) {
 		WizardStep: 2,
 	}
 
-	_, err = s.store.UpdateUserWizardStep(ctx, wizardStepArg)
+	_, err = s.Store.UpdateUserWizardStep(ctx, wizardStepArg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

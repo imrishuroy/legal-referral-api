@@ -57,7 +57,7 @@ func (s *Server) updateUserAvatar(ctx *gin.Context) {
 		AvatarUrl: &url,
 	}
 
-	err = s.store.UpdateUserAvatar(ctx, arg)
+	err = s.Store.UpdateUserAvatar(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -95,7 +95,7 @@ func (s *Server) toggleOpenToReferral(ctx *gin.Context) {
 		OpenToReferral: req.OpenToReferral,
 	}
 
-	err := s.store.ToggleOpenToRefferal(ctx, arg)
+	err := s.Store.ToggleOpenToRefferal(ctx, arg)
 	if err != nil {
 		log.Err(err).Msg("error changing open to referral")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -137,7 +137,7 @@ func (s *Server) fetchUserProfile(ctx *gin.Context) {
 		return
 	}
 
-	profile, err := s.store.FetchUserProfile(ctx, userID)
+	profile, err := s.Store.FetchUserProfile(ctx, userID)
 	log.Error().Err(err).Msg("error fetching user profile")
 	if err != nil {
 		if errors.Is(err, db.ErrRecordNotFound) {
@@ -243,7 +243,7 @@ func (s *Server) updateUserBannerImage(ctx *gin.Context) {
 		BannerUrl: &url,
 	}
 
-	err = s.store.UpdateUserBannerImage(ctx, arg)
+	err = s.Store.UpdateUserBannerImage(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

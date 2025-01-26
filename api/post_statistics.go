@@ -21,7 +21,7 @@ func (s *Server) getPostStats(ctx *gin.Context) {
 		return
 	}
 
-	postStatistics, err := s.store.GetPostStats(ctx, int32(postID))
+	postStatistics, err := s.Store.GetPostStats(ctx, int32(postID))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

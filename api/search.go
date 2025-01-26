@@ -29,7 +29,7 @@ func (s *Server) searchUsers(ctx *gin.Context) {
 
 	switch req.Filter {
 	case "All":
-		users, err := s.store.SearchAllUsers(ctx, req.Query)
+		users, err := s.Store.SearchAllUsers(ctx, req.Query)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
@@ -42,7 +42,7 @@ func (s *Server) searchUsers(ctx *gin.Context) {
 			CurrentUserID: authPayload.UID,
 			Query:         req.Query,
 		}
-		users, err := s.store.Search1stDegreeConnections(ctx, args)
+		users, err := s.Store.Search1stDegreeConnections(ctx, args)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
@@ -55,7 +55,7 @@ func (s *Server) searchUsers(ctx *gin.Context) {
 			CurrentUserID: authPayload.UID,
 			Query:         req.Query,
 		}
-		users, err := s.store.Search2ndDegreeConnections(ctx, args)
+		users, err := s.Store.Search2ndDegreeConnections(ctx, args)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return

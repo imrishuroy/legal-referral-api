@@ -100,7 +100,7 @@ func (s *Server) CreateUser(ctx *gin.Context) {
 		SignupMethod:   int32(userSignUpMethod),
 	}
 
-	user, err := s.store.CreateUser(ctx, arg)
+	user, err := s.Store.CreateUser(ctx, arg)
 	if err != nil {
 		errCode := db.ErrorCode(err)
 		switch errCode {
@@ -132,7 +132,7 @@ func (s *Server) GetUserById(ctx *gin.Context) {
 		return
 	}
 
-	user, _ := s.store.GetUserById(ctx, req.UserID)
+	user, _ := s.Store.GetUserById(ctx, req.UserID)
 
 	// if the user not found returning nil, not error
 	if user.UserID == "" {
@@ -169,7 +169,7 @@ func (s *Server) GetUserWizardStep(ctx *gin.Context) {
 
 	log.Info().Msgf("user id %s", req.UserID)
 
-	step, err := s.store.GetUserWizardStep(ctx, req.UserID)
+	step, err := s.Store.GetUserWizardStep(ctx, req.UserID)
 	if err != nil {
 		log.Error().Err(err).Msg("message getting user wizard step")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -195,7 +195,7 @@ func (s *Server) markWizardCompleted(ctx *gin.Context) {
 		WizardCompleted: true,
 	}
 
-	_, err := s.store.MarkWizardCompleted(ctx, markWizardCompArg)
+	_, err := s.Store.MarkWizardCompleted(ctx, markWizardCompArg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -234,7 +234,7 @@ func (s *Server) saveAboutYou(ctx *gin.Context) {
 		WizardCompleted:  true,
 	}
 
-	_, err := s.store.SaveAboutYou(ctx, arg)
+	_, err := s.Store.SaveAboutYou(ctx, arg)
 	if err != nil {
 		log.Logger.Error().Err(err).Msg("Error updating user about you")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -275,7 +275,7 @@ func (s *Server) updateUserInfo(ctx *gin.Context) {
 		About:                   &req.About,
 	}
 
-	user, err := s.store.UpdateUserInfo(ctx, arg)
+	user, err := s.Store.UpdateUserInfo(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -310,7 +310,7 @@ func (s *Server) listConnectedUsers(ctx *gin.Context) {
 		Offset: req.Offset,
 	}
 
-	users, err := s.store.ListConnectedUsers(ctx, arg)
+	users, err := s.Store.ListConnectedUsers(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -345,7 +345,7 @@ func (s *Server) ListUsers(ctx *gin.Context) {
 		Offset: req.Offset,
 	}
 
-	users, err := s.store.ListUsers(ctx, arg)
+	users, err := s.Store.ListUsers(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -363,7 +363,7 @@ func (s *Server) approveLicense(ctx *gin.Context) {
 		return
 	}
 
-	err := s.store.ApproveLicense(ctx, userID)
+	err := s.Store.ApproveLicense(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -382,7 +382,7 @@ func (s *Server) rejectLicense(ctx *gin.Context) {
 		return
 	}
 
-	err := s.store.RejectLicense(ctx, userID)
+	err := s.Store.RejectLicense(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
