@@ -88,6 +88,13 @@ func (s *Server) SearchFirms(ctx *gin.Context) {
 		Query:  req.SearchQuery,
 	}
 
+	/// check if the store object is nil
+	log.Info().Msgf("Store object ------: %+v", s.Store)
+	// check if the context object is nil
+	log.Info().Msgf("Context object -------: %+v", ctx)
+	// check if the arg object is nil s == nil
+	log.Info().Msgf("store object is null -------- : %+v", s.Store == nil)
+
 	firms, err := s.Store.ListFirms(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
