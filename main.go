@@ -20,6 +20,7 @@ import (
 
 var ginLambda *ginadapter.GinLambda
 var server *api.Server
+var pool *pgxpool.Pool
 
 func init() {
 
@@ -57,7 +58,7 @@ func init() {
 	dbConfig.MinConns = 2
 
 	// Create the connection pool
-	pool, err := pgxpool.NewWithConfig(context.Background(), dbConfig)
+	pool, err = pgxpool.NewWithConfig(context.Background(), dbConfig)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create connection pool")
 	}
@@ -134,6 +135,8 @@ func ping(ctx *gin.Context) {
 }
 
 func main() {
+
+	defer pool.Close()
 
 	r := gin.Default()
 	gin.SetMode(gin.ReleaseMode)
