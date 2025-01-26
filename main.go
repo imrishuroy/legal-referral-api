@@ -79,7 +79,7 @@ func init() {
 
 	//fmt.Println("Connection Pool: ", connPool)
 
-	defer pool.Close()
+	//defer pool.Close()
 
 	store := db.NewStore(pool)
 
