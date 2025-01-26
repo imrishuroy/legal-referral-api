@@ -97,6 +97,7 @@ func (s *Server) SearchFirms(ctx *gin.Context) {
 
 	firms, err := s.Store.ListFirms(ctx, arg)
 	if err != nil {
+		log.Err(err).Msg("error fetching firms")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
