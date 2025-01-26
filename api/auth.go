@@ -44,12 +44,16 @@ func (s *Server) SignIn(ctx *gin.Context) {
 		return
 	}
 
+	log.Info().Msgf("Sign In Req: %+v", req)
+
 	req.ReturnSecureToken = true
 
 	if req.Email == "" || req.Password == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Email and Password are required"})
 		return
 	}
+
+	log.Info().Msgf("Sign In Req 2")
 
 	authURL := "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + s.config.FirebaseAuthKey
 
@@ -62,6 +66,7 @@ func (s *Server) SignIn(ctx *gin.Context) {
 	}
 	defer closeResponseBody(resp.Body)
 
+	log.Info().Msgf("Sign In Req 3")
 	// Handle error cases based on status code
 	if resp.StatusCode != http.StatusOK {
 		body, err := io.ReadAll(resp.Body)
