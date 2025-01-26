@@ -30,15 +30,58 @@ func init() {
 		log.Fatal().Err(err).Msg("cannot load config : " + err.Error())
 	}
 
-	// db connection
-	connPool, err := pgxpool.New(context.Background(), config.DBSource)
+	// Load connection details from environment variables
+	proxyEndpoint := "legal-referral-db-proxy.proxy-ct2smiqa0pnv.us-east-1.rds.amazonaws.com"
+	//dbHost := config.DBHost
+	dbUser := config.DBUser         // Database username
+	dbPassword := config.DBPassword // Database password
+	dbName := config.DBName         // Database name
 
-	if err != nil {
-		fmt.Println("cannot connect to db:", err)
+	if dbUser == "" || dbPassword == "" || dbName == "" {
+		log.Fatal().Msg("Missing required environment variables")
 	}
-	defer connPool.Close()
 
-	store := db.NewStore(connPool)
+	// Construct the connection string
+	dbURL := fmt.Sprintf("postgres://%s:%s@%s:5432/%s?sslmode=verify-full", dbUser, dbPassword, proxyEndpoint, dbName)
+
+	log.Info().Msg("DB URL: " + dbURL)
+
+	// Parse the pool config
+	dbConfig, err := pgxpool.ParseConfig(dbURL)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot parse db config")
+	}
+
+	// Configure pool settings (optional)
+	dbConfig.MaxConns = 10
+	dbConfig.MinConns = 2
+
+	// Create the connection pool
+	pool, err := pgxpool.NewWithConfig(context.Background(), dbConfig)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot create connection pool")
+	}
+	//defer pool.Close()
+
+	// Test the connection
+	if err := pool.Ping(context.Background()); err != nil {
+		log.Fatal().Err(err).Msg("cannot connect to database")
+	}
+
+	log.Info().Msg("Connected to the database")
+
+	// db connection
+	//connPool, err := pgxpool.New(context.Background(), config.DBSource)
+
+	//if err != nil {
+	//	fmt.Println("cannot connect to db:", err)
+	//}
+
+	//fmt.Println("Connection Pool: ", connPool)
+
+	defer pool.Close()
+
+	store := db.NewStore(pool)
 
 	hub := chat.NewHub(store)
 	go hub.Run()
