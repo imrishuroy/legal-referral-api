@@ -61,7 +61,7 @@ func (s *Server) setupRouter(ginLambda *ginadapter.GinLambda) {
 	auth.POST("/license", s.SaveLicense)
 	auth.POST("/license/upload", s.uploadLicense)
 	auth.POST("/about-you", s.saveAboutYou)
-	auth.GET("/users/:user_id/profile", s.fetchUserProfile)
+	auth.GET("/users/:user_id/profile", s.FetchUserProfile)
 
 	auth.PUT("/users/info", s.updateUserInfo)
 	auth.POST("/review", s.addReview)
@@ -93,7 +93,7 @@ func (s *Server) setupRouter(ginLambda *ginadapter.GinLambda) {
 	auth.DELETE("/users/:user_id/educations/:education_id", s.deleteEducation)
 
 	// account
-	auth.GET("/accounts/:user_id", s.getAccountInfo)
+	auth.GET("/accounts/:user_id", s.GetAccountInfo)
 
 	// network
 	auth.POST("/connections/send", s.sendConnection)
