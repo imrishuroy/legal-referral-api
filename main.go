@@ -16,8 +16,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// TODO: CHANGE THE ROUTER LIKE THIS https://github.com/build-on-aws/golang-gin-app-on-aws-lambda/blob/main/function/main.go
-
 var ginLambda *ginadapter.GinLambda
 var server *api.Server
 var pool *pgxpool.Pool
@@ -31,12 +29,10 @@ func init() {
 		log.Fatal().Err(err).Msg("cannot load config : " + err.Error())
 	}
 
-	// Load connection details from environment variables
-	proxyEndpoint := "legal-referral-db-proxy.proxy-ct2smiqa0pnv.us-east-1.rds.amazonaws.com"
-	//dbHost := config.DBHost
-	dbUser := config.DBUser         // Database username
-	dbPassword := config.DBPassword // Database password
-	dbName := config.DBName         // Database name
+	proxyEndpoint := config.DBProxyURL
+	dbUser := config.DBUser
+	dbPassword := config.DBPassword
+	dbName := config.DBName
 
 	if dbUser == "" || dbPassword == "" || dbName == "" {
 		log.Fatal().Msg("Missing required environment variables")
@@ -68,19 +64,7 @@ func init() {
 	if err := pool.Ping(context.Background()); err != nil {
 		log.Fatal().Err(err).Msg("cannot connect to database")
 	}
-
 	log.Info().Msg("Connected to the database")
-
-	// db connection
-	//connPool, err := pgxpool.New(context.Background(), config.DBSource)
-
-	//if err != nil {
-	//	fmt.Println("cannot connect to db:", err)
-	//}
-
-	//fmt.Println("Connection Pool: ", connPool)
-
-	//defer pool.Close()
 
 	store := db.NewStore(pool)
 
@@ -127,6 +111,8 @@ func init() {
 }
 
 func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	// Defer closing the database connection for the duration of this Lambda invocation
+	defer pool.Close()
 	return ginLambda.ProxyWithContext(ctx, request)
 }
 
@@ -136,7 +122,7 @@ func ping(ctx *gin.Context) {
 
 func main() {
 
-	defer pool.Close()
+	//defer pool.Close()
 
 	r := gin.Default()
 	gin.SetMode(gin.ReleaseMode)
