@@ -127,7 +127,7 @@ type userProfile struct {
 	ConnectionsCount        int64          `json:"connections_count"`
 }
 
-func (s *Server) fetchUserProfile(ctx *gin.Context) {
+func (s *Server) FetchUserProfile(ctx *gin.Context) {
 
 	userID := ctx.Param("user_id")
 

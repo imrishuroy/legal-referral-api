@@ -120,22 +120,32 @@ type getUserByIdReq struct {
 }
 
 func (s *Server) GetUserById(ctx *gin.Context) {
+	log.Info().Msg("Get USER API called")
 	var req getUserByIdReq
 	if err := ctx.ShouldBindUri(&req); err != nil {
+		log.Err(err).Msg("get user api error binding uri")
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
 		return
 	}
 
+	log.Info().Msgf("user id %s", req.UserID)
+
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID != req.UserID {
+		log.Info().Msgf("auth payload %v", authPayload)
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
 		return
 	}
 
+	log.Info().Msgf("auth payload %v", authPayload)
+
 	user, _ := s.Store.GetUserById(ctx, req.UserID)
+
+	log.Info().Msgf("user %v", user)
 
 	// if the user not found returning nil, not error
 	if user.UserID == "" {
+
 		ctx.JSON(http.StatusOK, nil)
 		return
 	}

@@ -22,7 +22,7 @@ type accountInfo struct {
 	ConnectionsCount int64       `json:"connections_count"`
 }
 
-func (s *Server) getAccountInfo(ctx *gin.Context) {
+func (s *Server) GetAccountInfo(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)

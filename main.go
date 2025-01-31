@@ -232,7 +232,7 @@ func main() {
 	auth.POST("/license", server.SaveLicense)
 	//auth.POST("/license/upload", server.uploadLicense)
 	//auth.POST("/about-you", server.saveAboutYou)
-	//auth.GET("/users/:user_id/profile", server.fetchUserProfile)
+	auth.GET("/users/:user_id/profile", server.FetchUserProfile)
 	//
 	//auth.PUT("/users/info", server.updateUserInfo)
 	//auth.POST("/review", server.addReview)
@@ -264,7 +264,7 @@ func main() {
 	//auth.DELETE("/users/:user_id/educations/:education_id", server.deleteEducation)
 	//
 	//// account
-	//auth.GET("/accounts/:user_id", server.getAccountInfo)
+	auth.GET("/accounts/:user_id", server.GetAccountInfo)
 	//
 	//// network
 	//auth.POST("/connections/send", server.sendConnection)
