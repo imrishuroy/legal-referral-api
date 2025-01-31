@@ -17,10 +17,110 @@ import (
 )
 
 var ginLambda *ginadapter.GinLambda
-var server *api.Server
-var pool *pgxpool.Pool
 
-func init() {
+//var server *api.Server
+//var pool *pgxpool.Pool
+
+//func init() {
+//
+//log.Info().Msg("Welcome to LegalReferral")
+//
+//config, err := util.LoadConfig(".")
+//if err != nil {
+//	log.Fatal().Err(err).Msg("cannot load config : " + err.Error())
+//}
+//
+//proxyEndpoint := config.DBProxyURL
+//dbUser := config.DBUser
+//dbPassword := config.DBPassword
+//dbName := config.DBName
+//
+//if dbUser == "" || dbPassword == "" || dbName == "" {
+//	log.Fatal().Msg("Missing required environment variables")
+//}
+//
+//// Construct the connection string
+//dbURL := fmt.Sprintf("postgres://%s:%s@%s:5432/%s?sslmode=verify-full", dbUser, dbPassword, proxyEndpoint, dbName)
+//
+//log.Info().Msg("DB URL: " + dbURL)
+//
+//// Parse the pool config
+//dbConfig, err := pgxpool.ParseConfig(dbURL)
+//if err != nil {
+//	log.Fatal().Err(err).Msg("cannot parse db config")
+//}
+//
+//// Configure pool settings (optional)
+////dbConfig.MaxConns = 10
+////dbConfig.MinConns = 2
+//
+//// Create the connection pool
+//pool, err = pgxpool.NewWithConfig(context.Background(), dbConfig)
+//if err != nil {
+//	log.Fatal().Err(err).Msg("cannot create connection pool")
+//}
+////defer pool.Close()
+//
+//// Test the connection
+//if err := pool.Ping(context.Background()); err != nil {
+//	log.Fatal().Err(err).Msg("cannot connect to database")
+//}
+//log.Info().Msg("Connected to the database")
+//
+//store := db.NewStore(pool)
+//
+//hub := chat.NewHub(store)
+//go hub.Run()
+//
+////setup producer
+//conf := kafka.ConfigMap{
+//	// User-specific properties that you must set
+//	"bootstrap.servers": config.BootStrapServers,
+//	"sasl.username":     config.SASLUsername,
+//	"sasl.password":     config.SASLPassword,
+//
+//	// Fixed properties
+//	"security.protocol": "SASL_SSL",
+//	"sasl.mechanisms":   "PLAIN",
+//	"acks":              "all"}
+//
+//producer, err := kafka.NewProducer(&conf)
+//if err != nil {
+//	log.Error().Err(err).Msg("cannot create producer")
+//}
+//
+////ctx := context.Background()
+//
+////rdb := GetRedisClient(config)
+//
+////pong, err := rdb.Ping(ctx).Result()
+////if err != nil {
+////	log.Error().Err(err).Msg("cannot connect to redis")
+////} else {
+////	log.Info().Msg("Connected to Redis with TLS: " + pong)
+////}
+//
+//// api server setup
+////server, err := api.NewServer(config, store, hub, producer, rdb)
+//server, err = api.NewServer(config, store, hub, producer, ginLambda)
+//if err != nil {
+//	log.Fatal().Err(err).Msg("cannot create server:")
+//}
+//
+//log.Info().Msg("Server created")
+
+//}
+
+func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	// Defer closing the database connection for the duration of this Lambda invocation
+	return ginLambda.ProxyWithContext(ctx, request)
+}
+
+func ping(ctx *gin.Context) {
+	ctx.JSON(200, "OK")
+}
+
+func main() {
 
 	log.Info().Msg("Welcome to LegalReferral")
 
@@ -50,15 +150,15 @@ func init() {
 	}
 
 	// Configure pool settings (optional)
-	dbConfig.MaxConns = 10
-	dbConfig.MinConns = 2
+	//dbConfig.MaxConns = 10
+	//dbConfig.MinConns = 2
 
 	// Create the connection pool
-	pool, err = pgxpool.NewWithConfig(context.Background(), dbConfig)
+	pool, err := pgxpool.NewWithConfig(context.Background(), dbConfig)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create connection pool")
 	}
-	//defer pool.Close()
+	defer pool.Close()
 
 	// Test the connection
 	if err := pool.Ping(context.Background()); err != nil {
@@ -101,28 +201,12 @@ func init() {
 
 	// api server setup
 	//server, err := api.NewServer(config, store, hub, producer, rdb)
-	server, err = api.NewServer(config, store, hub, producer, ginLambda)
+	server, err := api.NewServer(config, store, hub, producer, ginLambda)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create server:")
 	}
 
 	log.Info().Msg("Server created")
-
-}
-
-func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	// Defer closing the database connection for the duration of this Lambda invocation
-	defer pool.Close()
-	return ginLambda.ProxyWithContext(ctx, request)
-}
-
-func ping(ctx *gin.Context) {
-	ctx.JSON(200, "OK")
-}
-
-func main() {
-
-	//defer pool.Close()
 
 	r := gin.Default()
 	gin.SetMode(gin.ReleaseMode)
