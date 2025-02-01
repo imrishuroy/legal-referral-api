@@ -129,36 +129,45 @@ func main() {
 		log.Fatal().Err(err).Msg("cannot load config : " + err.Error())
 	}
 
-	proxyEndpoint := config.DBProxyURL
-	dbUser := config.DBUser
-	dbPassword := config.DBPassword
-	dbName := config.DBName
+	// db connection
+	pool, err := pgxpool.New(context.Background(), config.DBSource)
 
-	if dbUser == "" || dbPassword == "" || dbName == "" {
-		log.Fatal().Msg("Missing required environment variables")
-	}
-
-	// Construct the connection string
-	dbURL := fmt.Sprintf("postgres://%s:%s@%s:5432/%s?sslmode=verify-full", dbUser, dbPassword, proxyEndpoint, dbName)
-
-	log.Info().Msg("DB URL: " + dbURL)
-
-	// Parse the pool config
-	dbConfig, err := pgxpool.ParseConfig(dbURL)
 	if err != nil {
-		log.Fatal().Err(err).Msg("cannot parse db config")
-	}
-
-	// Configure pool settings (optional)
-	//dbConfig.MaxConns = 10
-	//dbConfig.MinConns = 2
-
-	// Create the connection pool
-	pool, err := pgxpool.NewWithConfig(context.Background(), dbConfig)
-	if err != nil {
-		log.Fatal().Err(err).Msg("cannot create connection pool")
+		fmt.Println("cannot connect to db:", err)
 	}
 	defer pool.Close()
+
+	// proxy db connection
+	//proxyEndpoint := config.DBProxyURL
+	//dbUser := config.DBUser
+	//dbPassword := config.DBPassword
+	//dbName := config.DBName
+	//
+	//if dbUser == "" || dbPassword == "" || dbName == "" {
+	//	log.Fatal().Msg("Missing required environment variables")
+	//}
+	//
+	//// Construct the connection string
+	//dbURL := fmt.Sprintf("postgres://%s:%s@%s:5432/%s?sslmode=verify-full", dbUser, dbPassword, proxyEndpoint, dbName)
+	//
+	//log.Info().Msg("DB URL: " + dbURL)
+	//
+	//// Parse the pool config
+	//dbConfig, err := pgxpool.ParseConfig(dbURL)
+	//if err != nil {
+	//	log.Fatal().Err(err).Msg("cannot parse db config")
+	//}
+	//
+	//// Configure pool settings (optional)
+	////dbConfig.MaxConns = 10
+	////dbConfig.MinConns = 2
+	//
+	//// Create the connection pool
+	//pool, err := pgxpool.NewWithConfig(context.Background(), dbConfig)
+	//if err != nil {
+	//	log.Fatal().Err(err).Msg("cannot create connection pool")
+	//}
+	//defer pool.Close()
 
 	// Test the connection
 	if err := pool.Ping(context.Background()); err != nil {
@@ -264,7 +273,7 @@ func main() {
 	//auth.DELETE("/users/:user_id/educations/:education_id", server.deleteEducation)
 	//
 	//// account
-	auth.GET("/accounts/:user_id", server.GetAccountInfo)
+	//auth.GET("/accounts/:user_id", server.GetAccountInfo)
 	//
 	//// network
 	//auth.POST("/connections/send", server.sendConnection)
