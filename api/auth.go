@@ -213,7 +213,7 @@ func (s *Server) SignUp(ctx *gin.Context) {
 		// create file name with userid and file extension
 		fileName := res.LocalId + getFileExtension(userImageFile)
 
-		imageUrl, err := s.uploadFile(file, fileName, userImageFile.Header.Get("Content-Type"))
+		imageUrl, err := s.uploadFile(ctx, file, fileName, userImageFile.Header.Get("Content-Type"))
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error uploading file"})
 			return

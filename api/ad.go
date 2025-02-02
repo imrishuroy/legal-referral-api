@@ -62,7 +62,7 @@ func (s *Server) createAd(ctx *gin.Context) {
 		//		bucketName = "post-videos"
 		//	}
 
-		urls, err := s.handleFilesUpload(req.Files)
+		urls, err := s.handleFilesUpload(ctx, req.Files)
 
 		//urls, err := server.handleFilesUpload(req.Files, bucketName)
 		if err != nil {

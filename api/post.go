@@ -67,7 +67,7 @@ func (s *Server) createPost(ctx *gin.Context) {
 
 	if req.PostType == PostTypeImage || req.PostType == PostTypeVideo || req.PostType == PostTypeDocument {
 		//urls, err := server.handleFilesUpload(req.Files, s3BucketName(req.PostType))
-		urls, err := s.handleFilesUpload(req.Files)
+		urls, err := s.handleFilesUpload(ctx, req.Files)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
