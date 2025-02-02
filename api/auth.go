@@ -37,16 +37,12 @@ type authResponse struct {
 	ExpiresIn    string  `json:"expires_in"`
 }
 
-// TODO: comment the db call for now, and return the user object from the request
-
 func (s *Server) SignIn(ctx *gin.Context) {
 	var req signInReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
 		return
 	}
-
-	log.Info().Msgf("Sign In Req: %+v", req)
 
 	req.ReturnSecureToken = true
 
@@ -55,20 +51,16 @@ func (s *Server) SignIn(ctx *gin.Context) {
 		return
 	}
 
-	log.Info().Msgf("Sign In Req 2")
-
 	authURL := "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + s.config.FirebaseAuthKey
 
 	// Marshal the request and make the API call
 	resp, err := makePostRequest(authURL, req)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to make sign-in request")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
 	defer closeResponseBody(resp.Body)
 
-	log.Info().Msgf("Sign In Req 3")
 	// Handle error cases based on status code
 	if resp.StatusCode != http.StatusOK {
 		body, err := io.ReadAll(resp.Body)
@@ -89,9 +81,6 @@ func (s *Server) SignIn(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
-
-	// print the store object
-	log.Info().Msgf("Store object: %v", s.Store)
 
 	//Retrieve user data from the database
 	user, err := s.Store.GetUserById(ctx, res.LocalId)
@@ -498,11 +487,11 @@ func handleFirebaseError(ctx *gin.Context, body []byte) {
 	// Handle specific error messages
 	switch firebaseError.Error.Message {
 	case "EMAIL_EXISTS":
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Email already exists"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Email already exists"})
 	case "INVALID_LOGIN_CREDENTIALS":
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid login credentials"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid login credentials"})
 	default:
 		// Generic error handling for any other errors
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": firebaseError.Error.Message})
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": firebaseError.Error.Message})
 	}
 }
