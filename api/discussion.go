@@ -14,7 +14,7 @@ type createDiscussionRequest struct {
 	InvitedUsersIDs []string `json:"invited_users_ids"`
 }
 
-func (s *Server) createDiscussion(ctx *gin.Context) {
+func (s *Server) CreateDiscussion(ctx *gin.Context) {
 
 	var req *createDiscussionRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -63,7 +63,7 @@ func (s *Server) createDiscussion(ctx *gin.Context) {
 
 }
 
-func (s *Server) updateDiscussionTopic(ctx *gin.Context) {
+func (s *Server) UpdateDiscussionTopic(ctx *gin.Context) {
 
 	var req db.UpdateDiscussionTopicParams
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -92,7 +92,7 @@ type inviteUserToDiscussionRequest struct {
 	InvitedUserID string `json:"invited_user_id"`
 }
 
-func (s *Server) inviteUserToDiscussion(ctx *gin.Context) {
+func (s *Server) InviteUserToDiscussion(ctx *gin.Context) {
 	discussionIDStr := ctx.Param("discussion_id")
 	discussionID, err := strconv.Atoi(discussionIDStr)
 	if err != nil {
@@ -132,7 +132,7 @@ func (s *Server) inviteUserToDiscussion(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "Invited"})
 }
 
-func (s *Server) joinDiscussion(ctx *gin.Context) {
+func (s *Server) JoinDiscussion(ctx *gin.Context) {
 	discussionIDStr := ctx.Param("discussion_id")
 	discussionID, err := strconv.Atoi(discussionIDStr)
 	if err != nil {
@@ -165,7 +165,7 @@ func (s *Server) joinDiscussion(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "Joined"})
 }
 
-func (s *Server) rejectDiscussion(ctx *gin.Context) {
+func (s *Server) RejectDiscussion(ctx *gin.Context) {
 
 	discussionIDStr := ctx.Param("discussion_id")
 	discussionID, err := strconv.Atoi(discussionIDStr)
@@ -193,7 +193,7 @@ func (s *Server) rejectDiscussion(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "Rejected"})
 }
 
-func (s *Server) listDiscussionInvites(ctx *gin.Context) {
+func (s *Server) ListDiscussionInvites(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -211,7 +211,7 @@ func (s *Server) listDiscussionInvites(ctx *gin.Context) {
 	ctx.JSON(200, invites)
 }
 
-func (s *Server) listActiveDiscussions(ctx *gin.Context) {
+func (s *Server) ListActiveDiscussions(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -229,7 +229,7 @@ func (s *Server) listActiveDiscussions(ctx *gin.Context) {
 	ctx.JSON(200, discussions)
 }
 
-func (s *Server) listDiscussionParticipants(ctx *gin.Context) {
+func (s *Server) ListDiscussionParticipants(ctx *gin.Context) {
 	discussionIDStr := ctx.Param("discussion_id")
 	discussionID, err := strconv.Atoi(discussionIDStr)
 	if err != nil {
@@ -252,7 +252,7 @@ func (s *Server) listDiscussionParticipants(ctx *gin.Context) {
 	ctx.JSON(200, participants)
 }
 
-func (s *Server) listUninvitedParticipants(ctx *gin.Context) {
+func (s *Server) ListUninvitedParticipants(ctx *gin.Context) {
 	discussionIDStr := ctx.Param("discussion_id")
 	discussionID, err := strconv.Atoi(discussionIDStr)
 	if err != nil {

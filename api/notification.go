@@ -16,7 +16,7 @@ type createNotificationReq struct {
 	Message          string `json:"message" binding:"required"`
 }
 
-func (s *Server) createNotification(ctx *gin.Context) {
+func (s *Server) CreateNotification(ctx *gin.Context) {
 
 	var req createNotificationReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -54,7 +54,7 @@ type listNotificationsReq struct {
 	Offset int32 `form:"offset"`
 }
 
-func (s *Server) listNotifications(ctx *gin.Context) {
+func (s *Server) ListNotifications(ctx *gin.Context) {
 
 	var req listNotificationsReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {

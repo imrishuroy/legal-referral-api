@@ -6,7 +6,7 @@ require (
 	firebase.google.com/go/v4 v4.15.0
 	github.com/99designs/gqlgen v0.17.56
 	github.com/aws/aws-lambda-go v1.47.0
-	github.com/aws/aws-sdk-go v1.55.5
+	github.com/aws/aws-sdk-go v1.55.6
 	github.com/aws/aws-sdk-go-v2/config v1.29.4
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.75.2
 	github.com/awslabs/aws-lambda-go-api-proxy v0.16.2

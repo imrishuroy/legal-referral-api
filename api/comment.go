@@ -18,7 +18,7 @@ type commentPostReq struct {
 	ParentCommentId *int32 `json:"parent_comment_id"`
 }
 
-func (s *Server) commentPost(ctx *gin.Context) {
+func (s *Server) CommentPost(ctx *gin.Context) {
 
 	var req commentPostReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -72,7 +72,7 @@ func (s *Server) commentPost(ctx *gin.Context) {
 
 }
 
-func (s *Server) listComments(ctx *gin.Context) {
+func (s *Server) ListComments(ctx *gin.Context) {
 
 	postIDStr := ctx.Param("post_id")
 	postID, err := strconv.Atoi(postIDStr)

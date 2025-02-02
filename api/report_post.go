@@ -15,7 +15,7 @@ type reportPostReq struct {
 	Reason     string `json:"reason" binding:"required"`
 }
 
-func (s *Server) reportPost(ctx *gin.Context) {
+func (s *Server) ReportPost(ctx *gin.Context) {
 
 	var req reportPostReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -53,7 +53,7 @@ func (s *Server) reportPost(ctx *gin.Context) {
 type getReportedPostsReq struct {
 }
 
-func (s *Server) isPostReported(ctx *gin.Context) {
+func (s *Server) IsPostReported(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 	postIDStr := ctx.Param("post_id")
 	postID, err := strconv.Atoi(postIDStr)

@@ -22,7 +22,7 @@ type addUpdateEducationReq struct {
 	Skills       []string    `json:"skills" binding:"required"`
 }
 
-func (s *Server) addEducation(ctx *gin.Context) {
+func (s *Server) AddEducation(ctx *gin.Context) {
 	var req addUpdateEducationReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request body")
@@ -79,7 +79,7 @@ func (s *Server) ListEducations(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, educations)
 }
 
-func (s *Server) updateEducation(ctx *gin.Context) {
+func (s *Server) UpdateEducation(ctx *gin.Context) {
 
 	var req addUpdateEducationReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -131,7 +131,7 @@ func (s *Server) updateEducation(ctx *gin.Context) {
 
 }
 
-func (s *Server) deleteEducation(ctx *gin.Context) {
+func (s *Server) DeleteEducation(ctx *gin.Context) {
 	educationIDParam := ctx.Param("education_id")
 	educationID, err := strconv.ParseInt(educationIDParam, 10, 64)
 	if err != nil {

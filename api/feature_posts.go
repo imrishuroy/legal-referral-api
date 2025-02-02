@@ -13,7 +13,7 @@ type featurePostReq struct {
 	UserID string `json:"user_id"`
 }
 
-func (s *Server) featurePost(ctx *gin.Context) {
+func (s *Server) FeaturePost(ctx *gin.Context) {
 	var req featurePostReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(400, errorResponse(err))
@@ -51,7 +51,7 @@ type unFeaturePostReq struct {
 	UserID string `json:"user_id"`
 }
 
-func (s *Server) unFeaturePost(ctx *gin.Context) {
+func (s *Server) UnFeaturePost(ctx *gin.Context) {
 	postIdStr := ctx.Param("post_id")
 
 	postID, err := strconv.Atoi(postIdStr)
@@ -87,7 +87,7 @@ func (s *Server) unFeaturePost(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "success"})
 }
 
-func (s *Server) listFeaturePosts(ctx *gin.Context) {
+func (s *Server) ListFeaturePosts(ctx *gin.Context) {
 
 	userID := ctx.Param("user_id")
 

@@ -7,7 +7,7 @@ import (
 	"strconv"
 )
 
-func (s *Server) getPostStats(ctx *gin.Context) {
+func (s *Server) GetPostStats(ctx *gin.Context) {
 	postIDStr := ctx.Param("post_id")
 	postID, err := strconv.Atoi(postIDStr)
 	if err != nil {

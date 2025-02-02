@@ -50,7 +50,7 @@ type Server struct {
 	//SVC          *s3.S3
 	S3Client *s3.Client
 	//rdb          RedisClient
-	hub      *chat.Hub
+	Hub      *chat.Hub
 	producer *kafka.Producer
 }
 
@@ -120,7 +120,7 @@ func NewServer(con util.Config, store db.Store, hub *chat.Hub, producer *kafka.P
 		//SVC:          svc,
 		//rdb:          rdb,
 		S3Client: s3Client,
-		hub:      hub,
+		Hub:      hub,
 		producer: producer,
 	}
 

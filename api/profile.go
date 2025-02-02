@@ -75,7 +75,7 @@ type toggleOpenToReferralReq struct {
 	OpenToReferral bool `json:"open_to_referral"`
 }
 
-func (s *Server) toggleOpenToReferral(ctx *gin.Context) {
+func (s *Server) ToggleOpenToReferral(ctx *gin.Context) {
 
 	var req toggleOpenToReferralReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -198,7 +198,7 @@ func (s *Server) FetchUserProfile(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, userProfile)
 }
 
-func (s *Server) updateUserBannerImage(ctx *gin.Context) {
+func (s *Server) UpdateUserBannerImage(ctx *gin.Context) {
 
 	form, err := ctx.MultipartForm()
 	if err != nil {

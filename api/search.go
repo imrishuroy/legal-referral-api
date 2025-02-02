@@ -14,7 +14,7 @@ type searchUserRequest struct {
 	Offset int32  `form:"offset" binding:"required"`
 }
 
-func (s *Server) searchUsers(ctx *gin.Context) {
+func (s *Server) SearchUsers(ctx *gin.Context) {
 	var req searchUserRequest
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))

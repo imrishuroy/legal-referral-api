@@ -37,7 +37,7 @@ type createAdReq struct {
 	EndDate      *time.Time              `form:"end_date"`
 }
 
-func (s *Server) createAd(ctx *gin.Context) {
+func (s *Server) CreateAd(ctx *gin.Context) {
 
 	var req createAdReq
 
@@ -96,7 +96,7 @@ func (s *Server) createAd(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Ad created successfully"})
 }
 
-func (s *Server) listPlayingAds(ctx *gin.Context) {
+func (s *Server) ListPlayingAds(ctx *gin.Context) {
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
@@ -113,7 +113,7 @@ func (s *Server) listPlayingAds(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, ads)
 }
 
-func (s *Server) listExpiredAds(ctx *gin.Context) {
+func (s *Server) ListExpiredAds(ctx *gin.Context) {
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
@@ -130,7 +130,7 @@ func (s *Server) listExpiredAds(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, ads)
 }
 
-func (s *Server) extendAdPeriod(ctx *gin.Context) {
+func (s *Server) ExtendAdPeriod(ctx *gin.Context) {
 	adIDStr := ctx.Param("ad_id")
 	adID, err := strconv.Atoi(adIDStr)
 	if err != nil {

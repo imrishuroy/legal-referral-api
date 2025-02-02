@@ -61,7 +61,7 @@ func (s *Server) SaveLicense(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, license)
 }
 
-func (s *Server) uploadLicense(ctx *gin.Context) {
+func (s *Server) UploadLicense(ctx *gin.Context) {
 
 	form, err := ctx.MultipartForm()
 	if err != nil {

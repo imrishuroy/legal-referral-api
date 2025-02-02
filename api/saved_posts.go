@@ -13,7 +13,7 @@ type savePostReq struct {
 	UserID string `json:"user_id" binding:"required"`
 }
 
-func (s *Server) savePost(ctx *gin.Context) {
+func (s *Server) SavePost(ctx *gin.Context) {
 	var req savePostReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -47,7 +47,7 @@ func (s *Server) savePost(ctx *gin.Context) {
 
 }
 
-func (s *Server) unSavePost(ctx *gin.Context) {
+func (s *Server) UnSavePost(ctx *gin.Context) {
 
 	savedPostParam := ctx.Param("saved_post_id")
 	// convert this to int32
@@ -72,7 +72,7 @@ func (s *Server) unSavePost(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Post unsaved successfully"})
 }
 
-func (s *Server) listSavedPosts(ctx *gin.Context) {
+func (s *Server) ListSavedPosts(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	savedPosts, err := s.Store.ListSavedPosts(ctx, userID)

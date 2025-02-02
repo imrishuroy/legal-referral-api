@@ -24,7 +24,7 @@ type addFirmReq struct {
 	About       string                  `form:"about" binding:"required"`
 }
 
-func (s *Server) addFirm(ctx *gin.Context) {
+func (s *Server) AddFirm(ctx *gin.Context) {
 
 	var req addFirmReq
 
@@ -109,7 +109,7 @@ type listFirmsByOwnerReq struct {
 	OwnerUserID string `uri:"owner_user_id" binding:"required"`
 }
 
-func (s *Server) listFirmsByOwner(ctx *gin.Context) {
+func (s *Server) ListFirmsByOwner(ctx *gin.Context) {
 
 	var req listFirmsByOwnerReq
 	if err := ctx.ShouldBindUri(&req); err != nil {

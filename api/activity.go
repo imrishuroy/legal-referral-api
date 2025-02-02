@@ -12,7 +12,7 @@ type listActivityPostsReq struct {
 	Limit  int32 `form:"limit" binding:"required"`
 }
 
-func (s *Server) listActivityPosts(ctx *gin.Context) {
+func (s *Server) ListActivityPosts(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -47,7 +47,7 @@ type listUserCommentsReq struct {
 	Limit  int32 `form:"limit" binding:"required"`
 }
 
-func (s *Server) listActivityComments(ctx *gin.Context) {
+func (s *Server) ListActivityComments(ctx *gin.Context) {
 
 	userID := ctx.Param("user_id")
 
@@ -78,7 +78,7 @@ func (s *Server) listActivityComments(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, comments)
 }
 
-func (s *Server) getUserFollowersCount(ctx *gin.Context) {
+func (s *Server) GetUserFollowersCount(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)

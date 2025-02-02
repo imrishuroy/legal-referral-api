@@ -221,7 +221,7 @@ type saveAboutYouReq struct {
 	Experience       string `json:"experience"`
 }
 
-func (s *Server) saveAboutYou(ctx *gin.Context) {
+func (s *Server) SaveAboutYou(ctx *gin.Context) {
 
 	var req saveAboutYouReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -262,7 +262,7 @@ type updateUserInfo struct {
 	About                   string `json:"about" binding:"required"`
 }
 
-func (s *Server) updateUserInfo(ctx *gin.Context) {
+func (s *Server) UpdateUserInfo(ctx *gin.Context) {
 	var req updateUserInfo
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request body")
@@ -299,7 +299,7 @@ type listConnectedUsersReq struct {
 	Offset int32 `form:"offset"`
 }
 
-func (s *Server) listConnectedUsers(ctx *gin.Context) {
+func (s *Server) ListConnectedUsers(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	var req listConnectedUsersReq
@@ -363,7 +363,7 @@ func (s *Server) ListUsers(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, users)
 }
-func (s *Server) approveLicense(ctx *gin.Context) {
+func (s *Server) ApproveLicense(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	// TODO: check if the user is admin
@@ -382,7 +382,7 @@ func (s *Server) approveLicense(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "License approved successfully"})
 }
 
-func (s *Server) rejectLicense(ctx *gin.Context) {
+func (s *Server) RejectLicense(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	// TODO: check if the user is admin

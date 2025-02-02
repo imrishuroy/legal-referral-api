@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func (s *Server) createFAQ(ctx *gin.Context) {
+func (s *Server) CreateFAQ(ctx *gin.Context) {
 
 	var req db.CreateFAQParams
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -30,7 +30,7 @@ func (s *Server) createFAQ(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, faq)
 }
 
-func (s *Server) listFAQs(ctx *gin.Context) {
+func (s *Server) ListFAQs(ctx *gin.Context) {
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})

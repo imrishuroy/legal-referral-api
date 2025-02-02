@@ -18,101 +18,7 @@ import (
 
 var ginLambda *ginadapter.GinLambda
 
-//var server *api.Server
-//var pool *pgxpool.Pool
-
-//func init() {
-//
-//log.Info().Msg("Welcome to LegalReferral")
-//
-//config, err := util.LoadConfig(".")
-//if err != nil {
-//	log.Fatal().Err(err).Msg("cannot load config : " + err.Error())
-//}
-//
-//proxyEndpoint := config.DBProxyURL
-//dbUser := config.DBUser
-//dbPassword := config.DBPassword
-//dbName := config.DBName
-//
-//if dbUser == "" || dbPassword == "" || dbName == "" {
-//	log.Fatal().Msg("Missing required environment variables")
-//}
-//
-//// Construct the connection string
-//dbURL := fmt.Sprintf("postgres://%s:%s@%s:5432/%s?sslmode=verify-full", dbUser, dbPassword, proxyEndpoint, dbName)
-//
-//log.Info().Msg("DB URL: " + dbURL)
-//
-//// Parse the pool config
-//dbConfig, err := pgxpool.ParseConfig(dbURL)
-//if err != nil {
-//	log.Fatal().Err(err).Msg("cannot parse db config")
-//}
-//
-//// Configure pool settings (optional)
-////dbConfig.MaxConns = 10
-////dbConfig.MinConns = 2
-//
-//// Create the connection pool
-//pool, err = pgxpool.NewWithConfig(context.Background(), dbConfig)
-//if err != nil {
-//	log.Fatal().Err(err).Msg("cannot create connection pool")
-//}
-////defer pool.Close()
-//
-//// Test the connection
-//if err := pool.Ping(context.Background()); err != nil {
-//	log.Fatal().Err(err).Msg("cannot connect to database")
-//}
-//log.Info().Msg("Connected to the database")
-//
-//store := db.NewStore(pool)
-//
-//hub := chat.NewHub(store)
-//go hub.Run()
-//
-////setup producer
-//conf := kafka.ConfigMap{
-//	// User-specific properties that you must set
-//	"bootstrap.servers": config.BootStrapServers,
-//	"sasl.username":     config.SASLUsername,
-//	"sasl.password":     config.SASLPassword,
-//
-//	// Fixed properties
-//	"security.protocol": "SASL_SSL",
-//	"sasl.mechanisms":   "PLAIN",
-//	"acks":              "all"}
-//
-//producer, err := kafka.NewProducer(&conf)
-//if err != nil {
-//	log.Error().Err(err).Msg("cannot create producer")
-//}
-//
-////ctx := context.Background()
-//
-////rdb := GetRedisClient(config)
-//
-////pong, err := rdb.Ping(ctx).Result()
-////if err != nil {
-////	log.Error().Err(err).Msg("cannot connect to redis")
-////} else {
-////	log.Info().Msg("Connected to Redis with TLS: " + pong)
-////}
-//
-//// api server setup
-////server, err := api.NewServer(config, store, hub, producer, rdb)
-//server, err = api.NewServer(config, store, hub, producer, ginLambda)
-//if err != nil {
-//	log.Fatal().Err(err).Msg("cannot create server:")
-//}
-//
-//log.Info().Msg("Server created")
-
-//}
-
 func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	// Defer closing the database connection for the duration of this Lambda invocation
 	return ginLambda.ProxyWithContext(ctx, request)
 }
 
@@ -122,7 +28,7 @@ func ping(ctx *gin.Context) {
 
 func main() {
 
-	log.Info().Msg("Welcome to LegalReferral")
+	log.Info().Msg("Welcome to Legal Referral API")
 
 	config, err := util.LoadConfig(".")
 	if err != nil {
@@ -137,43 +43,10 @@ func main() {
 	}
 	defer pool.Close()
 
-	// proxy db connection
-	//proxyEndpoint := config.DBProxyURL
-	//dbUser := config.DBUser
-	//dbPassword := config.DBPassword
-	//dbName := config.DBName
-	//
-	//if dbUser == "" || dbPassword == "" || dbName == "" {
-	//	log.Fatal().Msg("Missing required environment variables")
-	//}
-	//
-	//// Construct the connection string
-	//dbURL := fmt.Sprintf("postgres://%s:%s@%s:5432/%s?sslmode=verify-full", dbUser, dbPassword, proxyEndpoint, dbName)
-	//
-	//log.Info().Msg("DB URL: " + dbURL)
-	//
-	//// Parse the pool config
-	//dbConfig, err := pgxpool.ParseConfig(dbURL)
-	//if err != nil {
-	//	log.Fatal().Err(err).Msg("cannot parse db config")
-	//}
-	//
-	//// Configure pool settings (optional)
-	////dbConfig.MaxConns = 10
-	////dbConfig.MinConns = 2
-	//
-	//// Create the connection pool
-	//pool, err := pgxpool.NewWithConfig(context.Background(), dbConfig)
-	//if err != nil {
-	//	log.Fatal().Err(err).Msg("cannot create connection pool")
-	//}
-	//defer pool.Close()
-
 	// Test the connection
 	if err := pool.Ping(context.Background()); err != nil {
 		log.Fatal().Err(err).Msg("cannot connect to database")
 	}
-	log.Info().Msg("Connected to the database")
 
 	store := db.NewStore(pool)
 
@@ -197,8 +70,6 @@ func main() {
 		log.Error().Err(err).Msg("cannot create producer")
 	}
 
-	//ctx := context.Background()
-
 	//rdb := GetRedisClient(config)
 
 	//pong, err := rdb.Ping(ctx).Result()
@@ -209,7 +80,6 @@ func main() {
 	//}
 
 	// api server setup
-	//server, err := api.NewServer(config, store, hub, producer, rdb)
 	server, err := api.NewServer(config, store, hub, producer, ginLambda)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create server:")
@@ -239,195 +109,185 @@ func main() {
 	auth.POST("/users", server.CreateUser)
 	auth.GET("/users/:user_id", server.GetUserById)
 	auth.POST("/license", server.SaveLicense)
-	//auth.POST("/license/upload", server.uploadLicense)
-	//auth.POST("/about-you", server.saveAboutYou)
+	auth.POST("/license/upload", server.UploadLicense)
+	auth.POST("/about-you", server.SaveAboutYou)
 	auth.GET("/users/:user_id/profile", server.FetchUserProfile)
-	//
-	//auth.PUT("/users/info", server.updateUserInfo)
-	//auth.POST("/review", server.addReview)
-	//
-	//auth.POST("/price", server.addPrice)
-	//auth.PUT("/price/:price_id", server.updatePrice)
-	//auth.PUT("/users/:user_id/toggle-referral", server.toggleOpenToReferral)
-	//auth.PUT("/users/:user_id/banner", server.updateUserBannerImage)
-	//
+	auth.PUT("/users/info", server.UpdateUserInfo)
+	auth.POST("/review", server.AddReview)
+
+	auth.POST("/price", server.AddPrice)
+	auth.PUT("/price/:price_id", server.UpdatePrice)
+	auth.PUT("/users/:user_id/toggle-referral", server.ToggleOpenToReferral)
+	auth.PUT("/users/:user_id/banner", server.UpdateUserBannerImage)
+
 	//// profile/user
 	auth.PUT("/users/:user_id/avatar", server.UpdateUserAvatar)
-	//
+
 	//// profile/socials
-	//auth.POST("/socials", server.addSocial)
-	//auth.PUT("/socials/:social_id", server.updateSocial)
-	//auth.GET("/socials/:entity_type/:entity_id", server.listSocials)
-	//auth.DELETE("/socials/:social_id", server.deleteSocial)
-	//
+	auth.POST("/socials", server.AddSocial)
+	auth.PUT("/socials/:social_id", server.UpdateSocial)
+	auth.GET("/socials/:entity_type/:entity_id", server.ListSocials)
+	auth.DELETE("/socials/:social_id", server.DeleteSocial)
+
 	//// profile/experiences
-	//auth.POST("/users/:user_id/experiences", server.addExperience)
+	auth.POST("/users/:user_id/experiences", server.AddExperience)
 	auth.GET("/users/:user_id/experiences", server.ListExperiences)
-	//auth.PUT("/users/:user_id/experiences/:experience_id", server.updateExperience)
-	//auth.DELETE("/users/:user_id/experiences/:experience_id", server.deleteExperience)
-	//
+	auth.PUT("/users/:user_id/experiences/:experience_id", server.UpdateExperience)
+	auth.DELETE("/users/:user_id/experiences/:experience_id", server.DeleteExperience)
+
 	//// profile/educations
-	//auth.POST("/users/:user_id/educations", server.addEducation)
+	auth.POST("/users/:user_id/educations", server.AddEducation)
 	auth.GET("/users/:user_id/educations", server.ListEducations)
-	//auth.PUT("/users/:user_id/educations/:education_id", server.updateEducation)
-	//auth.DELETE("/users/:user_id/educations/:education_id", server.deleteEducation)
-	//
+	auth.PUT("/users/:user_id/educations/:education_id", server.UpdateEducation)
+	auth.DELETE("/users/:user_id/educations/:education_id", server.DeleteEducation)
+
 	//// account
 	auth.GET("/accounts/:user_id", server.GetAccountInfo)
-	//
+
 	//// network
-	//auth.POST("/connections/send", server.sendConnection)
-	//auth.POST("/connections/:id/accept", server.acceptConnection)
-	//auth.POST("/connections/:id/reject", server.rejectConnection)
-	//auth.GET("/connections/invitations/:user_id", server.listConnectionInvitations)
-	//auth.GET("/connections/:user_id", server.listConnections)
-	//auth.GET("/recommendations/:user_id", server.listRecommendations)
-	//auth.POST("/recommendations/cancel", server.cancelRecommendation)
-	//auth.GET("/search/users", server.searchUsers)
-	//// check if user is connected to another user
-	//auth.GET("/connections/:user_id/:other_user_id", server.checkConnection)
-	//
+	auth.POST("/connections/send", server.SendConnection)
+	auth.POST("/connections/:id/accept", server.AcceptConnection)
+	auth.POST("/connections/:id/reject", server.RejectConnection)
+	auth.GET("/connections/invitations/:user_id", server.ListConnectionInvitations)
+	auth.GET("/connections/:user_id", server.ListConnections)
+	auth.GET("/recommendations/:user_id", server.ListRecommendations)
+	auth.POST("/recommendations/cancel", server.CancelRecommendation)
+	auth.GET("/search/users", server.SearchUsers)
+	// check if user is connected to another user
+	auth.GET("/connections/:user_id/:other_user_id", server.CheckConnection)
+
 	//// chat
-	//auth.GET("/chat/:room_id", func(ctx *gin.Context) {
-	//	roomId := ctx.Param("room_id")
-	//	chat.ServeWS(ctx, roomId, server.hub)
-	//})
-	//auth.GET("/chat/:room_id/messages", server.listMessages)
-	//auth.GET("/chat/users/:user_id/rooms", server.listChatRooms)
-	//auth.POST("/chat/rooms", server.createChatRoom)
-	//
+	auth.GET("/chat/:room_id", func(ctx *gin.Context) {
+		roomId := ctx.Param("room_id")
+		chat.ServeWS(ctx, roomId, server.Hub)
+	})
+	auth.GET("/chat/:room_id/messages", server.ListMessages)
+	auth.GET("/chat/users/:user_id/rooms", server.ListChatRooms)
+	auth.POST("/chat/rooms", server.CreateChatRoom)
+
 	//// referral
-	//auth.POST("/referral", server.createReferral)
-	//auth.GET("/referrals/:user_id/active", server.listActiveReferrals)
-	//auth.GET("/referrals/users/:project_id", server.listReferredUsers)
-	//auth.GET("/users/:user_id/proposals", server.listActiveProposals)
-	//auth.POST("/proposals", server.createProposal)
-	//auth.PUT("/proposals/:proposal_id", server.updateProposal)
-	//auth.GET("users/:user_id/proposals/:project_id", server.getProposal)
-	//auth.POST("/projects/award", server.awardProject)
-	//auth.GET("/projects/awarded/:user_id", server.listAwardedProjects)
-	//auth.PUT("/projects/:project_id/accept", server.acceptProject)
-	//auth.PUT("/projects/:project_id/reject", server.rejectProject)
-	//auth.GET("/projects/active/:user_id", server.listActiveProjects)
-	//auth.PUT("/projects/:project_id/start", server.startProject)
-	//auth.PUT("/projects/:project_id/initiate-complete", server.initiateCompleteProject)
-	//auth.PUT("/projects/:project_id/cancel/initiate-complete", server.cancelInitiateCompleteProject)
-	//auth.PUT("/projects/:project_id/complete", server.completeProject)
-	//auth.GET("/projects/completed/:user_id", server.listCompletedProjects)
+	auth.POST("/referral", server.CreateReferral)
+	auth.GET("/referrals/:user_id/active", server.ListActiveReferrals)
+	auth.GET("/referrals/users/:project_id", server.ListReferredUsers)
+	auth.GET("/users/:user_id/proposals", server.ListActiveProposals)
+	auth.POST("/proposals", server.CreateProposal)
+	auth.PUT("/proposals/:proposal_id", server.UpdateProposal)
+	auth.GET("users/:user_id/proposals/:project_id", server.GetProposal)
+	auth.POST("/projects/award", server.AwardProject)
+	auth.GET("/projects/awarded/:user_id", server.ListAwardedProjects)
+	auth.PUT("/projects/:project_id/accept", server.AcceptProject)
+	auth.PUT("/projects/:project_id/reject", server.RejectProject)
+	auth.GET("/projects/active/:user_id", server.ListActiveProjects)
+	auth.PUT("/projects/:project_id/start", server.StartProject)
+	auth.PUT("/projects/:project_id/initiate-complete", server.InitiateCompleteProject)
+	auth.PUT("/projects/:project_id/cancel/initiate-complete", server.CancelInitiateCompleteProject)
+	auth.PUT("/projects/:project_id/complete", server.CompleteProject)
+	auth.GET("/projects/completed/:user_id", server.ListCompletedProjects)
+	auth.POST("projects/review", server.CreateProjectReview)
+	auth.GET("projects/review/:project_id", server.GetProjectReview)
 	//
-	//auth.POST("projects/review", server.createProjectReview)
-	//auth.GET("projects/review/:project_id", server.getProjectReview)
-	//
-	//auth.GET("/users/:user_id/connected", server.listConnectedUsers)
+	auth.GET("/users/:user_id/connected", server.ListConnectedUsers)
 	auth.GET("/users", server.ListUsers)
-	//
 	auth.GET("/users/license-verified", server.ListLicenseVerifiedUsers)
 	auth.GET("/users/license-unverified", server.ListLicenseUnverifiedUsers)
-	//
+
 	//// approve license
-	//auth.PUT("/users/:user_id/approve-license", server.approveLicense)
-	//auth.PUT("/users/:user_id/reject-license", server.rejectLicense)
-	//
+	auth.PUT("/users/:user_id/approve-license", server.ApproveLicense)
+	auth.PUT("/users/:user_id/reject-license", server.RejectLicense)
+
 	//// posts
-	//auth.POST("/posts", server.createPost)
-	//auth.GET("/posts/:post_id", server.getPost)
-	//auth.DELETE("/posts/:post_id", server.deletePost)
-	//auth.GET("/search/posts", server.searchPosts)
-	//auth.GET("/posts/:post_id/is-featured", server.isPostFeatured)
-	//
+	auth.POST("/posts", server.CreatePost)
+	auth.GET("/posts/:post_id", server.GetPost)
+	auth.DELETE("/posts/:post_id", server.DeletePost)
+	auth.GET("/search/posts", server.SearchPosts)
+	auth.GET("/posts/:post_id/is-featured", server.IsPostFeatured)
+
 	//// news feed
 	auth.GET("/feeds/:user_id", server.ListNewsFeed)
 	////auth.GET("/v2/feeds/:user_id", server.listNewsFeedV2)
 	////auth.GET("/v3/feeds/:user_id", server.listNewsFeedV3)
-	//
-	//// like post
-	//auth.POST("/posts/:post_id/like", server.likePost)
-	//auth.DELETE("/posts/:post_id/like", server.unlikePost)
-	//auth.GET("/posts/:post_id/liked-users", server.listPostLikedUsers)
-	//
-	//// get post likes and comments count
-	//auth.GET("/posts/:post_id/likes-comments-count", server.postLikesAndCommentsCount)
-	//auth.GET("/posts/:post_id/is-liked", server.isPostLiked)
-	//
-	//// comments
-	//auth.POST("/posts/:post_id/comments", server.commentPost)
-	//auth.GET("/posts/:post_id/comments", server.listComments)
-	//auth.POST("/comments/:comment_id/like", server.likeComment)
-	//auth.DELETE("/comments/:comment_id/like", server.unlikeComment)
-	//
-	//// discussion
-	//auth.POST("/discussions", server.createDiscussion)
-	//
-	//// update discussion topic
-	//auth.PUT("/discussions/:discussion_id/topic", server.updateDiscussionTopic)
-	//auth.POST("/discussions/:discussion_id/invite", server.inviteUserToDiscussion)
-	//auth.POST("/discussions/:discussion_id/join", server.joinDiscussion)
-	//auth.POST("/discussions/:discussion_id/reject", server.rejectDiscussion)
-	//auth.GET("/discussions/invites/:user_id", server.listDiscussionInvites)
-	//auth.GET("/discussions/active/:user_id", server.listActiveDiscussions)
-	//auth.GET("/discussions/:discussion_id/participants", server.listDiscussionParticipants)
-	//auth.GET("/discussions/:discussion_id/uninvited", server.listUninvitedParticipants)
-	//
-	//// discussion messages
-	//auth.POST("/discussions/:discussion_id/messages", server.sendMessageToDiscussion)
-	//auth.GET("/discussions/:discussion_id/messages", server.listDiscussionMessages)
-	//
-	//// ads
-	//auth.POST("/ads", server.createAd)
-	////playing ads
-	//auth.GET("/ads/playing", server.listPlayingAds)
-	//auth.GET("/ads/expired", server.listExpiredAds)
-	//// extend ad period
-	//auth.PUT("/ads/:ad_id/extend", server.extendAdPeriod)
-	//
-	//// admin
-	//auth.GET("/attorneys", server.listAttorneys)
-	//auth.GET("/lawyers", server.listLawyers)
-	//
-	//auth.GET("/referrals/:user_id", server.listAllReferralProjects)
-	//auth.GET("/referrals/completed/:user_id", server.listCompletedReferralProjects)
-	//auth.GET("/referrals/active/:user_id", server.listActiveReferralProjects)
-	//
-	//auth.POST("/faqs", server.createFAQ)
-	//auth.GET("/faqs", server.listFAQs)
-	//
-	//auth.POST("/firms", server.addFirm)
-	//auth.GET("/firms/owner/:owner_user_id", server.listFirmsByOwner)
-	//
-	//// save post
-	//auth.POST("/saved-posts", server.savePost)
-	//auth.DELETE("/saved-posts/:saved_post_id", server.unSavePost)
-	//auth.GET("/saved-posts/:user_id", server.listSavedPosts)
-	//
-	//// feature posts
-	//auth.POST("/feature-posts", server.featurePost)
-	//auth.DELETE("/feature-posts/:post_id", server.unFeaturePost)
-	//auth.GET("/feature-posts/:user_id", server.listFeaturePosts)
-	//
-	//// notifications
-	//auth.POST("/device-details", server.saveDevice)
-	//auth.POST("/notifications", server.createNotification)
-	//auth.GET("/notifications/:user_id", server.listNotifications)
-	//
-	//// post stats
-	//auth.GET("/posts/:post_id/stats", server.getPostStats)
-	//
-	//// report
-	//auth.POST("/report-post", server.reportPost)
-	//auth.GET("/posts/:post_id/reported-status/:user_id", server.isPostReported)
-	//auth.DELETE("/feeds/:feed_id/ignore", server.ignoreFeed)
-	//
-	//// activity
-	//auth.GET("/activity/posts/:user_id", server.listActivityPosts)
-	//auth.GET("/activity/comments/:user_id", server.listActivityComments)
-	//auth.GET("/users/:user_id/followers-count", server.getUserFollowersCount)
-	//
-	//// print ginAdapter
-	//log.Info().Msg("Setting up routes 3")
-	//
-	//log.Info().Msgf("GinAdapter: %+v", ginLambda)
 
-	//go server.CreateConsumer(context.Background())
+	//// like post
+	auth.POST("/posts/:post_id/like", server.LikePost)
+	auth.DELETE("/posts/:post_id/like", server.UnlikePost)
+	auth.GET("/posts/:post_id/liked-users", server.ListPostLikedUsers)
+
+	//// get post likes and comments count
+	auth.GET("/posts/:post_id/likes-comments-count", server.PostLikesAndCommentsCount)
+	auth.GET("/posts/:post_id/is-liked", server.IsPostLiked)
+
+	//// comments
+	auth.POST("/posts/:post_id/comments", server.CommentPost)
+	auth.GET("/posts/:post_id/comments", server.ListComments)
+	auth.POST("/comments/:comment_id/like", server.LikeComment)
+	auth.DELETE("/comments/:comment_id/like", server.UnlikeComment)
+
+	//// discussion
+	auth.POST("/discussions", server.CreateDiscussion)
+
+	//// update discussion topic
+	auth.PUT("/discussions/:discussion_id/topic", server.UpdateDiscussionTopic)
+	auth.POST("/discussions/:discussion_id/invite", server.InviteUserToDiscussion)
+	auth.POST("/discussions/:discussion_id/join", server.JoinDiscussion)
+	auth.POST("/discussions/:discussion_id/reject", server.RejectDiscussion)
+	auth.GET("/discussions/invites/:user_id", server.ListDiscussionInvites)
+	auth.GET("/discussions/active/:user_id", server.ListActiveDiscussions)
+	auth.GET("/discussions/:discussion_id/participants", server.ListDiscussionParticipants)
+	auth.GET("/discussions/:discussion_id/uninvited", server.ListUninvitedParticipants)
+
+	//// discussion messages
+	auth.POST("/discussions/:discussion_id/messages", server.SendMessageToDiscussion)
+	auth.GET("/discussions/:discussion_id/messages", server.ListDiscussionMessages)
+
+	//// ads
+	auth.POST("/ads", server.CreateAd)
+	//playing ads
+	auth.GET("/ads/playing", server.ListPlayingAds)
+	auth.GET("/ads/expired", server.ListExpiredAds)
+	// extend ad period
+	auth.PUT("/ads/:ad_id/extend", server.ExtendAdPeriod)
+
+	//// admin
+	auth.GET("/attorneys", server.ListAttorneys)
+	auth.GET("/lawyers", server.ListLawyers)
+
+	auth.GET("/referrals/:user_id", server.ListAllReferralProjects)
+	auth.GET("/referrals/completed/:user_id", server.ListCompletedReferralProjects)
+	auth.GET("/referrals/active/:user_id", server.ListActiveReferralProjects)
+
+	auth.POST("/faqs", server.CreateFAQ)
+	auth.GET("/faqs", server.ListFAQs)
+
+	auth.POST("/firms", server.AddFirm)
+	auth.GET("/firms/owner/:owner_user_id", server.ListFirmsByOwner)
+
+	//// save post
+	auth.POST("/saved-posts", server.SavePost)
+	auth.DELETE("/saved-posts/:saved_post_id", server.UnSavePost)
+	auth.GET("/saved-posts/:user_id", server.ListSavedPosts)
+
+	//// feature posts
+	auth.POST("/feature-posts", server.FeaturePost)
+	auth.DELETE("/feature-posts/:post_id", server.UnFeaturePost)
+	auth.GET("/feature-posts/:user_id", server.ListFeaturePosts)
+
+	//// notifications
+	auth.POST("/device-details", server.SaveDevice)
+	auth.POST("/notifications", server.CreateNotification)
+	auth.GET("/notifications/:user_id", server.ListNotifications)
+
+	//// post stats
+	auth.GET("/posts/:post_id/stats", server.GetPostStats)
+
+	//// report
+	auth.POST("/report-post", server.ReportPost)
+	auth.GET("/posts/:post_id/reported-status/:user_id", server.IsPostReported)
+	auth.DELETE("/feeds/:feed_id/ignore", server.IgnoreFeed)
+
+	//// activity
+	auth.GET("/activity/posts/:user_id", server.ListActivityPosts)
+	auth.GET("/activity/comments/:user_id", server.ListActivityComments)
+	auth.GET("/users/:user_id/followers-count", server.GetUserFollowersCount)
 
 	// start the server
 	//err = server.Start(config.ServerAddress)
@@ -435,10 +295,6 @@ func main() {
 	//if err != nil {
 	//	log.Fatal().Err(err).Msg("cannot create server:")
 	//}
-
-	//// GRAPHQL
-	////auth.POST("/query", gin.WrapH(srv))
-	//
 
 	ginLambda = ginadapter.New(r)
 	lambda.Start(Handler)

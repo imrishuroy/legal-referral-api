@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-func (s *Server) createProposal(ctx *gin.Context) {
+func (s *Server) CreateProposal(ctx *gin.Context) {
 	var req *db.CreateProposalParams
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(400, errorResponse(err))
@@ -30,7 +30,7 @@ func (s *Server) createProposal(ctx *gin.Context) {
 	ctx.JSON(200, proposal)
 }
 
-func (s *Server) updateProposal(ctx *gin.Context) {
+func (s *Server) UpdateProposal(ctx *gin.Context) {
 	var req *db.UpdateProposalParams
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(400, errorResponse(err))
@@ -51,7 +51,7 @@ func (s *Server) updateProposal(ctx *gin.Context) {
 	ctx.JSON(200, proposal)
 }
 
-func (s *Server) getProposal(ctx *gin.Context) {
+func (s *Server) GetProposal(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 	projectIDStr := ctx.Param("project_id")
 	projectID, err := strconv.Atoi(projectIDStr)

@@ -426,7 +426,7 @@ func (s *Server) insertAdAtRandomPosition(feedList []feed, ad db.Ad) []feed {
 	return newFeedList
 }
 
-func (s *Server) ignoreFeed(ctx *gin.Context) {
+func (s *Server) IgnoreFeed(ctx *gin.Context) {
 	feedIdStr := ctx.Param("feed_id")
 	feedID, err := strconv.Atoi(feedIdStr)
 	if err != nil {

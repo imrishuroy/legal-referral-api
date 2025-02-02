@@ -44,7 +44,7 @@ type createPostReq struct {
 	EndTime   *time.Time              `form:"end_time"`
 }
 
-func (s *Server) createPost(ctx *gin.Context) {
+func (s *Server) CreatePost(ctx *gin.Context) {
 
 	var req createPostReq
 
@@ -130,7 +130,7 @@ func (s *Server) createPost(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, "Post created successfully")
 }
 
-func (s *Server) isPostFeatured(ctx *gin.Context) {
+func (s *Server) IsPostFeatured(ctx *gin.Context) {
 	postIDStr := ctx.Param("post_id")
 
 	postID, err := strconv.Atoi(postIDStr)
@@ -198,7 +198,7 @@ func (s *Server) postToNewsFeed(ctx *gin.Context, userID string, postID int32) e
 	return nil
 }
 
-func (s *Server) postLikesAndCommentsCount(ctx *gin.Context) {
+func (s *Server) PostLikesAndCommentsCount(ctx *gin.Context) {
 	postIDStr := ctx.Param("post_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -233,7 +233,7 @@ func (s *Server) postLikesAndCommentsCount(ctx *gin.Context) {
 	})
 }
 
-func (s *Server) isPostLiked(ctx *gin.Context) {
+func (s *Server) IsPostLiked(ctx *gin.Context) {
 	postIDStr := ctx.Param("post_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -264,7 +264,7 @@ func (s *Server) isPostLiked(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, liked)
 }
 
-func (s *Server) deletePost(ctx *gin.Context) {
+func (s *Server) DeletePost(ctx *gin.Context) {
 	postIDStr := ctx.Param("post_id")
 	postID, err := strconv.Atoi(postIDStr)
 	if err != nil {
@@ -294,7 +294,7 @@ func (s *Server) deletePost(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Post deleted successfully"})
 }
 
-func (s *Server) getPost(ctx *gin.Context) {
+func (s *Server) GetPost(ctx *gin.Context) {
 	postIDStr := ctx.Param("post_id")
 	postID, err := strconv.Atoi(postIDStr)
 	if err != nil {
@@ -319,7 +319,7 @@ type searchPostsReq struct {
 	SearchQuery string `form:"query"`
 }
 
-func (s *Server) searchPosts(ctx *gin.Context) {
+func (s *Server) SearchPosts(ctx *gin.Context) {
 	var req searchPostsReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))

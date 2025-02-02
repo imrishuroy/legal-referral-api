@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func (s *Server) listChatRooms(ctx *gin.Context) {
+func (s *Server) ListChatRooms(ctx *gin.Context) {
 
 	userID := ctx.Param("user_id")
 
@@ -35,7 +35,7 @@ type createChatRoomReq struct {
 	User2ID string `json:"user2_id" binding:"required"`
 }
 
-func (s *Server) createChatRoom(ctx *gin.Context) {
+func (s *Server) CreateChatRoom(ctx *gin.Context) {
 	var req createChatRoomReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))

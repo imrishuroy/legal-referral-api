@@ -19,7 +19,7 @@ type createReferralReq struct {
 	CaseDescription           string   `json:"case_description"`
 }
 
-func (s *Server) createReferral(ctx *gin.Context) {
+func (s *Server) CreateReferral(ctx *gin.Context) {
 	var req createReferralReq
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -68,7 +68,7 @@ func (s *Server) createReferral(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, "Referral created")
 }
 
-func (s *Server) listActiveReferrals(ctx *gin.Context) {
+func (s *Server) ListActiveReferrals(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID != userID {
@@ -83,7 +83,7 @@ func (s *Server) listActiveReferrals(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, projects)
 }
 
-func (s *Server) listReferredUsers(ctx *gin.Context) {
+func (s *Server) ListReferredUsers(ctx *gin.Context) {
 	projectIDStr := ctx.Param("project_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -127,7 +127,7 @@ type project struct {
 	projectUser      `json:"user"`
 }
 
-func (s *Server) listActiveProposals(ctx *gin.Context) {
+func (s *Server) ListActiveProposals(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -173,7 +173,7 @@ func (s *Server) listActiveProposals(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, projectList)
 }
 
-func (s *Server) awardProject(ctx *gin.Context) {
+func (s *Server) AwardProject(ctx *gin.Context) {
 	var req db.AwardProjectParams
 	if err := ctx.BindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -211,7 +211,7 @@ func (s *Server) awardProject(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, project)
 }
 
-func (s *Server) listAwardedProjects(ctx *gin.Context) {
+func (s *Server) ListAwardedProjects(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -259,7 +259,7 @@ func (s *Server) listAwardedProjects(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, projectList)
 }
 
-func (s *Server) acceptProject(ctx *gin.Context) {
+func (s *Server) AcceptProject(ctx *gin.Context) {
 	projectIdParam := ctx.Param("project_id")
 	projectID, err := strconv.Atoi(projectIdParam)
 	if err != nil {
@@ -287,7 +287,7 @@ func (s *Server) acceptProject(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, project)
 }
 
-func (s *Server) rejectProject(ctx *gin.Context) {
+func (s *Server) RejectProject(ctx *gin.Context) {
 	projectIdParam := ctx.Param("project_id")
 	projectID, err := strconv.Atoi(projectIdParam)
 	if err != nil {
@@ -315,7 +315,7 @@ func (s *Server) rejectProject(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, project)
 }
 
-func (s *Server) listActiveProjects(ctx *gin.Context) {
+func (s *Server) ListActiveProjects(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 	role := ctx.Query("role")
 
@@ -417,7 +417,7 @@ func (s *Server) listActiveProjects(ctx *gin.Context) {
 
 }
 
-func (s *Server) startProject(ctx *gin.Context) {
+func (s *Server) StartProject(ctx *gin.Context) {
 	projectIdParam := ctx.Param("project_id")
 	projectID, err := strconv.Atoi(projectIdParam)
 	if err != nil {
@@ -445,7 +445,7 @@ func (s *Server) startProject(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, project)
 }
 
-func (s *Server) initiateCompleteProject(ctx *gin.Context) {
+func (s *Server) InitiateCompleteProject(ctx *gin.Context) {
 	projectIdParam := ctx.Param("project_id")
 	projectID, err := strconv.Atoi(projectIdParam)
 	if err != nil {
@@ -473,7 +473,7 @@ func (s *Server) initiateCompleteProject(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, project)
 }
 
-func (s *Server) cancelInitiateCompleteProject(ctx *gin.Context) {
+func (s *Server) CancelInitiateCompleteProject(ctx *gin.Context) {
 	projectIdParam := ctx.Param("project_id")
 	projectID, err := strconv.Atoi(projectIdParam)
 	if err != nil {
@@ -501,7 +501,7 @@ func (s *Server) cancelInitiateCompleteProject(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, project)
 }
 
-func (s *Server) completeProject(ctx *gin.Context) {
+func (s *Server) CompleteProject(ctx *gin.Context) {
 	projectIdParam := ctx.Param("project_id")
 	projectID, err := strconv.Atoi(projectIdParam)
 	if err != nil {
@@ -529,7 +529,7 @@ func (s *Server) completeProject(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, project)
 }
 
-func (s *Server) listCompletedProjects(ctx *gin.Context) {
+func (s *Server) ListCompletedProjects(ctx *gin.Context) {
 
 	userID := ctx.Param("user_id")
 	role := ctx.Query("role")

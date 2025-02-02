@@ -66,7 +66,7 @@ type listAttorneysReq struct {
 	Offset int32 `form:"offset"`
 }
 
-func (s *Server) listAttorneys(ctx *gin.Context) {
+func (s *Server) ListAttorneys(ctx *gin.Context) {
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
@@ -95,7 +95,7 @@ func (s *Server) listAttorneys(ctx *gin.Context) {
 
 // lawyers
 
-func (s *Server) listLawyers(ctx *gin.Context) {
+func (s *Server) ListLawyers(ctx *gin.Context) {
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
@@ -114,7 +114,7 @@ func (s *Server) listLawyers(ctx *gin.Context) {
 
 // referrals
 
-func (s *Server) listAllReferralProjects(ctx *gin.Context) {
+func (s *Server) ListAllReferralProjects(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -132,7 +132,7 @@ func (s *Server) listAllReferralProjects(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, referrals)
 }
 
-func (s *Server) listCompletedReferralProjects(ctx *gin.Context) {
+func (s *Server) ListCompletedReferralProjects(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -150,7 +150,7 @@ func (s *Server) listCompletedReferralProjects(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, referrals)
 }
 
-func (s *Server) listActiveReferralProjects(ctx *gin.Context) {
+func (s *Server) ListActiveReferralProjects(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)

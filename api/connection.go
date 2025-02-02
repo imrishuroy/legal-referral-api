@@ -34,7 +34,7 @@ type sendConnectionRes struct {
 	Message string `json:"message"`
 }
 
-func (s *Server) sendConnection(ctx *gin.Context) {
+func (s *Server) SendConnection(ctx *gin.Context) {
 	var req sendConnectionReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
@@ -71,7 +71,7 @@ func (s *Server) sendConnection(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
-func (s *Server) acceptConnection(ctx *gin.Context) {
+func (s *Server) AcceptConnection(ctx *gin.Context) {
 	connIDParams := ctx.Param("id")
 	connID, err := strconv.ParseInt(connIDParams, 10, 32)
 	if err != nil {
@@ -97,7 +97,7 @@ func (s *Server) acceptConnection(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, conn)
 }
 
-func (s *Server) rejectConnection(ctx *gin.Context) {
+func (s *Server) RejectConnection(ctx *gin.Context) {
 
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 32)
@@ -138,7 +138,7 @@ type listConnectionInvitationsReq struct {
 	Offset int32 `form:"offset" binding:"required"`
 }
 
-func (s *Server) listConnectionInvitations(ctx *gin.Context) {
+func (s *Server) ListConnectionInvitations(ctx *gin.Context) {
 
 	var req listConnectionInvitationsReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -174,7 +174,7 @@ type listConnectionsReq struct {
 	Offset int32 `form:"offset" binding:"required"`
 }
 
-func (s *Server) listConnections(ctx *gin.Context) {
+func (s *Server) ListConnections(ctx *gin.Context) {
 
 	var req listConnectionsReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -205,7 +205,7 @@ func (s *Server) listConnections(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, connections)
 }
 
-func (s *Server) checkConnection(ctx *gin.Context) {
+func (s *Server) CheckConnection(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 	otherUserId := ctx.Param("other_user_id")
 

@@ -27,7 +27,7 @@ type UserExperience struct {
 	Firm       db.Firm       `json:"firm"`
 }
 
-func (s *Server) addExperience(ctx *gin.Context) {
+func (s *Server) AddExperience(ctx *gin.Context) {
 	var req addUpdateExperienceReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request body")
@@ -112,7 +112,7 @@ func (s *Server) ListExperiences(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, experiences)
 }
 
-func (s *Server) updateExperience(ctx *gin.Context) {
+func (s *Server) UpdateExperience(ctx *gin.Context) {
 
 	var req addUpdateExperienceReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -183,7 +183,7 @@ func (s *Server) updateExperience(ctx *gin.Context) {
 
 }
 
-func (s *Server) deleteExperience(ctx *gin.Context) {
+func (s *Server) DeleteExperience(ctx *gin.Context) {
 	experienceIDParam := ctx.Param("experience_id")
 
 	experienceID, err := strconv.ParseInt(experienceIDParam, 10, 64)

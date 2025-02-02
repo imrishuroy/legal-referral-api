@@ -18,7 +18,7 @@ type addPriceReq struct {
 	HybridPrice      *string        `json:"hybrid_price"`
 }
 
-func (s *Server) addPrice(ctx *gin.Context) {
+func (s *Server) AddPrice(ctx *gin.Context) {
 	var req addPriceReq
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -59,7 +59,7 @@ type updatePriceReq struct {
 	HybridPrice      *string        `json:"hybrid_price"`
 }
 
-func (s *Server) updatePrice(ctx *gin.Context) {
+func (s *Server) UpdatePrice(ctx *gin.Context) {
 	var req updatePriceReq
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {

@@ -15,7 +15,7 @@ type likePostReq struct {
 	CurrentUserID string `json:"current_user_id" binding:"required"`
 }
 
-func (s *Server) likePost(ctx *gin.Context) {
+func (s *Server) LikePost(ctx *gin.Context) {
 	var req likePostReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
@@ -78,7 +78,7 @@ func (s *Server) likePost(ctx *gin.Context) {
 	}
 }
 
-func (s *Server) unlikePost(ctx *gin.Context) {
+func (s *Server) UnlikePost(ctx *gin.Context) {
 	postIDStr := ctx.Param("post_id")
 	postID, err := strconv.Atoi(postIDStr)
 	if err != nil {
@@ -115,7 +115,7 @@ func (s *Server) unlikePost(ctx *gin.Context) {
 
 }
 
-func (s *Server) listPostLikedUsers(ctx *gin.Context) {
+func (s *Server) ListPostLikedUsers(ctx *gin.Context) {
 	postIDStr := ctx.Param("post_id")
 	postID, err := strconv.Atoi(postIDStr)
 	if err != nil {
@@ -144,7 +144,7 @@ func (s *Server) listPostLikedUsers(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, users)
 }
 
-func (s *Server) likeComment(ctx *gin.Context) {
+func (s *Server) LikeComment(ctx *gin.Context) {
 	commentIDStr := ctx.Param("comment_id")
 	commentID, err := strconv.Atoi(commentIDStr)
 	if err != nil {
@@ -171,7 +171,7 @@ func (s *Server) likeComment(ctx *gin.Context) {
 	}
 }
 
-func (s *Server) unlikeComment(ctx *gin.Context) {
+func (s *Server) UnlikeComment(ctx *gin.Context) {
 	commentIDStr := ctx.Param("comment_id")
 	commentID, err := strconv.Atoi(commentIDStr)
 	if err != nil {

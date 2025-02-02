@@ -27,7 +27,7 @@ type message struct {
 	RepliedMessage  *message  `json:"replied_message"`
 }
 
-func (s *Server) listMessages(ctx *gin.Context) {
+func (s *Server) ListMessages(ctx *gin.Context) {
 	var req listMessagesRequest
 
 	if err := ctx.ShouldBindQuery(&req); err != nil {

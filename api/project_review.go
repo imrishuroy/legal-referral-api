@@ -37,7 +37,7 @@ func (s *Server) CreateProjectReview(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, review)
 }
 
-func (s *Server) getProjectReview(ctx *gin.Context) {
+func (s *Server) GetProjectReview(ctx *gin.Context) {
 	projectIdParam := ctx.Param("project_id")
 	if projectIdParam == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "project_id is required"})
