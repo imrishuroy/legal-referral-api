@@ -37,6 +37,8 @@ type authResponse struct {
 	ExpiresIn    string  `json:"expires_in"`
 }
 
+// TODO: comment the db call for now, and return the user object from the request
+
 func (s *Server) SignIn(ctx *gin.Context) {
 	var req signInReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -92,22 +94,24 @@ func (s *Server) SignIn(ctx *gin.Context) {
 	log.Info().Msgf("Store object: %v", s.Store)
 
 	// Retrieve user data from the database
-	user, err := s.Store.GetUserById(ctx, res.LocalId)
-	if err != nil {
-		log.Error().Err(err).Msg("failed to retrieve user")
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
+	//user, err := s.Store.GetUserById(ctx, res.LocalId)
+	//if err != nil {
+	//	log.Error().Err(err).Msg("failed to retrieve user")
+	//	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+	//	return
+	//}
+	//
+	//// Create and return the authentication response
+	//authResponse := authResponse{
+	//	User:         user,
+	//	IdToken:      res.IdToken,
+	//	RefreshToken: res.RefreshToken,
+	//	ExpiresIn:    res.ExpiresIn,
+	//}
+	//
+	//ctx.JSON(http.StatusOK, authResponse)
 
-	// Create and return the authentication response
-	authResponse := authResponse{
-		User:         user,
-		IdToken:      res.IdToken,
-		RefreshToken: res.RefreshToken,
-		ExpiresIn:    res.ExpiresIn,
-	}
-
-	ctx.JSON(http.StatusOK, authResponse)
+	ctx.JSON(http.StatusOK, res)
 }
 
 type signUpReq struct {
