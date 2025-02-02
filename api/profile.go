@@ -11,7 +11,7 @@ import (
 	"net/http"
 )
 
-func (s *Server) updateUserAvatar(ctx *gin.Context) {
+func (s *Server) UpdateUserAvatar(ctx *gin.Context) {
 
 	form, err := ctx.MultipartForm()
 	if err != nil {
@@ -48,6 +48,7 @@ func (s *Server) updateUserAvatar(ctx *gin.Context) {
 	fileName := generateUniqueFilename() + getFileExtension(files[0])
 	url, err := s.uploadFile(file, fileName, files[0].Header.Get("Content-Type"))
 	if err != nil {
+		log.Error().Err(err).Msg("error uploading file")
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error uploading file"})
 		return
 	}
@@ -57,6 +58,7 @@ func (s *Server) updateUserAvatar(ctx *gin.Context) {
 		AvatarUrl: &url,
 	}
 
+	log.Info().Msgf("avatar url %v", url)
 	err = s.Store.UpdateUserAvatar(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))

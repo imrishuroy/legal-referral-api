@@ -252,7 +252,7 @@ func main() {
 	//auth.PUT("/users/:user_id/banner", server.updateUserBannerImage)
 	//
 	//// profile/user
-	//auth.PUT("/users/:user_id/avatar", server.updateUserAvatar)
+	auth.PUT("/users/:user_id/avatar", server.UpdateUserAvatar)
 	//
 	//// profile/socials
 	//auth.POST("/socials", server.addSocial)
