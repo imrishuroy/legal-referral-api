@@ -1,19 +1,16 @@
 package api
 
 import (
-	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/gin-gonic/gin"
-	"github.com/imrishuroy/legal-referral/chat"
-	"github.com/rs/zerolog/log"
 )
 
-//func playgroundHandler() gin.HandlerFunc {
+// CORSMiddleware func playgroundHandler() gin.HandlerFunc {
 //	h := playground.Handler("GraphQL", "/api/query")
 //	return func(c *gin.Context) {
 //		h.ServeHTTP(c.Writer, c.Request)
 //	}
 //}
-
+/*
 func (s *Server) setupRouter(ginLambda *ginadapter.GinLambda) {
 	// Set Gin to release mode
 	//gin.SetMode(gin.ReleaseMode)
@@ -82,7 +79,7 @@ func (s *Server) setupRouter(ginLambda *ginadapter.GinLambda) {
 
 	// profile/experiences
 	auth.POST("/users/:user_id/experiences", s.addExperience)
-	auth.GET("/users/:user_id/experiences", s.listExperiences)
+	auth.GET("/users/:user_id/experiences", s.ListExperiences)
 	auth.PUT("/users/:user_id/experiences/:experience_id", s.updateExperience)
 	auth.DELETE("/users/:user_id/experiences/:experience_id", s.deleteExperience)
 
@@ -93,7 +90,7 @@ func (s *Server) setupRouter(ginLambda *ginadapter.GinLambda) {
 	auth.DELETE("/users/:user_id/educations/:education_id", s.deleteEducation)
 
 	// account
-	auth.GET("/accounts/:user_id", s.GetAccountInfo)
+	//auth.GET("/accounts/:user_id", s.GetAccountInfo)
 
 	// network
 	auth.POST("/connections/send", s.sendConnection)
@@ -249,7 +246,7 @@ func (s *Server) setupRouter(ginLambda *ginadapter.GinLambda) {
 
 	ginLambda = ginadapter.New(s.Router)
 }
-
+*/
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")

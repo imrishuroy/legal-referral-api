@@ -93,25 +93,23 @@ func (s *Server) SignIn(ctx *gin.Context) {
 	// print the store object
 	log.Info().Msgf("Store object: %v", s.Store)
 
-	// Retrieve user data from the database
-	//user, err := s.Store.GetUserById(ctx, res.LocalId)
-	//if err != nil {
-	//	log.Error().Err(err).Msg("failed to retrieve user")
-	//	ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-	//	return
-	//}
-	//
-	//// Create and return the authentication response
-	//authResponse := authResponse{
-	//	User:         user,
-	//	IdToken:      res.IdToken,
-	//	RefreshToken: res.RefreshToken,
-	//	ExpiresIn:    res.ExpiresIn,
-	//}
-	//
-	//ctx.JSON(http.StatusOK, authResponse)
+	//Retrieve user data from the database
+	user, err := s.Store.GetUserById(ctx, res.LocalId)
+	if err != nil {
+		log.Error().Err(err).Msg("failed to retrieve user")
+		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+		return
+	}
 
-	ctx.JSON(http.StatusOK, res)
+	// Create and return the authentication response
+	authResponse := authResponse{
+		User:         user,
+		IdToken:      res.IdToken,
+		RefreshToken: res.RefreshToken,
+		ExpiresIn:    res.ExpiresIn,
+	}
+
+	ctx.JSON(http.StatusOK, authResponse)
 }
 
 type signUpReq struct {

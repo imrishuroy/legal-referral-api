@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func (s *Server) listLicenseVerifiedUsers(ctx *gin.Context) {
+func (s *Server) ListLicenseVerifiedUsers(ctx *gin.Context) {
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
@@ -34,7 +34,7 @@ func (s *Server) listLicenseVerifiedUsers(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, users)
 }
 
-func (s *Server) listLicenseUnverifiedUsers(ctx *gin.Context) {
+func (s *Server) ListLicenseUnverifiedUsers(ctx *gin.Context) {
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})

@@ -363,7 +363,7 @@ func maxOffset(a, b int32) int32 {
 //	return nil
 //}
 
-func (s *Server) listNewsFeed(ctx *gin.Context) {
+func (s *Server) ListNewsFeed(ctx *gin.Context) {
 	var req listNewsFeedReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})

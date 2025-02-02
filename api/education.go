@@ -63,7 +63,7 @@ func (s *Server) addEducation(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, education)
 }
 
-func (s *Server) listEducations(ctx *gin.Context) {
+func (s *Server) ListEducations(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 	if userID == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid user id"})

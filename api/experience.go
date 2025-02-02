@@ -95,7 +95,7 @@ type listExperienceResponse struct {
 	Firm         db.Firm      `json:"firm"`
 }
 
-func (s *Server) listExperiences(ctx *gin.Context) {
+func (s *Server) ListExperiences(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 	if userID == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid user id"})

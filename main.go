@@ -262,18 +262,18 @@ func main() {
 	//
 	//// profile/experiences
 	//auth.POST("/users/:user_id/experiences", server.addExperience)
-	//auth.GET("/users/:user_id/experiences", server.listExperiences)
+	auth.GET("/users/:user_id/experiences", server.ListExperiences)
 	//auth.PUT("/users/:user_id/experiences/:experience_id", server.updateExperience)
 	//auth.DELETE("/users/:user_id/experiences/:experience_id", server.deleteExperience)
 	//
 	//// profile/educations
 	//auth.POST("/users/:user_id/educations", server.addEducation)
-	//auth.GET("/users/:user_id/educations", server.listEducations)
+	auth.GET("/users/:user_id/educations", server.ListEducations)
 	//auth.PUT("/users/:user_id/educations/:education_id", server.updateEducation)
 	//auth.DELETE("/users/:user_id/educations/:education_id", server.deleteEducation)
 	//
 	//// account
-	//auth.GET("/accounts/:user_id", server.GetAccountInfo)
+	auth.GET("/accounts/:user_id", server.GetAccountInfo)
 	//
 	//// network
 	//auth.POST("/connections/send", server.sendConnection)
@@ -321,8 +321,8 @@ func main() {
 	//auth.GET("/users/:user_id/connected", server.listConnectedUsers)
 	auth.GET("/users", server.ListUsers)
 	//
-	//auth.GET("/users/license-verified", server.listLicenseVerifiedUsers)
-	//auth.GET("/users/license-unverified", server.listLicenseUnverifiedUsers)
+	auth.GET("/users/license-verified", server.ListLicenseVerifiedUsers)
+	auth.GET("/users/license-unverified", server.ListLicenseUnverifiedUsers)
 	//
 	//// approve license
 	//auth.PUT("/users/:user_id/approve-license", server.approveLicense)
@@ -336,7 +336,7 @@ func main() {
 	//auth.GET("/posts/:post_id/is-featured", server.isPostFeatured)
 	//
 	//// news feed
-	//auth.GET("/feeds/:user_id", server.listNewsFeed)
+	auth.GET("/feeds/:user_id", server.ListNewsFeed)
 	////auth.GET("/v2/feeds/:user_id", server.listNewsFeedV2)
 	////auth.GET("/v3/feeds/:user_id", server.listNewsFeedV3)
 	//
