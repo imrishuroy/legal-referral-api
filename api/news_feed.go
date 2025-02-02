@@ -281,7 +281,7 @@ func extractPostIDs(posts []post) []int32 {
 //}
 
 // Helper to build Redis key for feed
-func (s *Server) buildFeedCacheKey(userID string, limit, offset int32) string {
+func (srv *Server) buildFeedCacheKey(userID string, limit, offset int32) string {
 	return fmt.Sprintf("user:%s:feed:limit:%d:offset:%d", userID, limit, offset)
 }
 
@@ -311,7 +311,7 @@ func (s *Server) buildFeedCacheKey(userID string, limit, offset int32) string {
 //}
 
 // Helper to build feed list from database results
-func (s *Server) buildFeedList(feedPosts []db.ListNewsFeedRow) []feed {
+func (srv *Server) buildFeedList(feedPosts []db.ListNewsFeedRow) []feed {
 	feedList := make([]feed, len(feedPosts))
 	for i, post := range feedPosts {
 		feedList[i] = feed{
@@ -363,7 +363,7 @@ func maxOffset(a, b int32) int32 {
 //	return nil
 //}
 
-func (s *Server) ListNewsFeed(ctx *gin.Context) {
+func (srv *Server) ListNewsFeed(ctx *gin.Context) {
 	var req listNewsFeedReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
@@ -385,14 +385,14 @@ func (s *Server) ListNewsFeed(ctx *gin.Context) {
 	}
 
 	// Fetch the feed posts from the database
-	feedPosts, err := s.Store.ListNewsFeed(ctx, arg)
+	feedPosts, err := srv.Store.ListNewsFeed(ctx, arg)
 	if err != nil {
 		log.Printf("Error fetching feed posts: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching feed posts"})
 		return
 	}
 
-	feedList := s.buildFeedList(feedPosts)
+	feedList := srv.buildFeedList(feedPosts)
 
 	if len(feedList) == 0 {
 		ctx.JSON(http.StatusOK, feedList)
@@ -400,7 +400,7 @@ func (s *Server) ListNewsFeed(ctx *gin.Context) {
 	}
 
 	// Fetch a random ad
-	randomAd, err := s.Store.GetRandomAd(ctx)
+	randomAd, err := srv.Store.GetRandomAd(ctx)
 	if err != nil && !errors.Is(err, db.ErrRecordNotFound) {
 		log.Printf("Error fetching ads: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching ads"})
@@ -408,13 +408,13 @@ func (s *Server) ListNewsFeed(ctx *gin.Context) {
 	}
 
 	// Add the ad to the feed if available
-	feedList = s.insertAdAtRandomPosition(feedList, randomAd)
+	feedList = srv.insertAdAtRandomPosition(feedList, randomAd)
 
 	ctx.JSON(http.StatusOK, feedList)
 }
 
 // insertAdAtRandomPosition inserts an ad at a random position within the feed list
-func (s *Server) insertAdAtRandomPosition(feedList []feed, ad db.Ad) []feed {
+func (srv *Server) insertAdAtRandomPosition(feedList []feed, ad db.Ad) []feed {
 	randSource := rand.NewSource(time.Now().UnixNano())
 	random := rand.New(randSource)
 
@@ -426,7 +426,7 @@ func (s *Server) insertAdAtRandomPosition(feedList []feed, ad db.Ad) []feed {
 	return newFeedList
 }
 
-func (s *Server) IgnoreFeed(ctx *gin.Context) {
+func (srv *Server) IgnoreFeed(ctx *gin.Context) {
 	feedIdStr := ctx.Param("feed_id")
 	feedID, err := strconv.Atoi(feedIdStr)
 	if err != nil {
@@ -444,7 +444,7 @@ func (s *Server) IgnoreFeed(ctx *gin.Context) {
 		UserID: authPayload.UID,
 	}
 
-	err = s.Store.IgnoreFeed(ctx, arg)
+	err = srv.Store.IgnoreFeed(ctx, arg)
 	if err != nil {
 		log.Printf("Error ignoring post: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error ignoring post"})

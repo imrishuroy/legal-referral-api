@@ -9,7 +9,7 @@ import (
 	"strconv"
 )
 
-func (s *Server) CreateProposal(ctx *gin.Context) {
+func (srv *Server) CreateProposal(ctx *gin.Context) {
 	var req *db.CreateProposalParams
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(400, errorResponse(err))
@@ -22,7 +22,7 @@ func (s *Server) CreateProposal(ctx *gin.Context) {
 		return
 	}
 
-	proposal, err := s.Store.CreateProposal(ctx, *req)
+	proposal, err := srv.Store.CreateProposal(ctx, *req)
 	if err != nil {
 		ctx.JSON(400, errorResponse(err))
 		return
@@ -30,7 +30,7 @@ func (s *Server) CreateProposal(ctx *gin.Context) {
 	ctx.JSON(200, proposal)
 }
 
-func (s *Server) UpdateProposal(ctx *gin.Context) {
+func (srv *Server) UpdateProposal(ctx *gin.Context) {
 	var req *db.UpdateProposalParams
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(400, errorResponse(err))
@@ -43,7 +43,7 @@ func (s *Server) UpdateProposal(ctx *gin.Context) {
 		return
 	}
 
-	proposal, err := s.Store.UpdateProposal(ctx, *req)
+	proposal, err := srv.Store.UpdateProposal(ctx, *req)
 	if err != nil {
 		ctx.JSON(400, errorResponse(err))
 		return
@@ -51,7 +51,7 @@ func (s *Server) UpdateProposal(ctx *gin.Context) {
 	ctx.JSON(200, proposal)
 }
 
-func (s *Server) GetProposal(ctx *gin.Context) {
+func (srv *Server) GetProposal(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 	projectIDStr := ctx.Param("project_id")
 	projectID, err := strconv.Atoi(projectIDStr)
@@ -67,7 +67,7 @@ func (s *Server) GetProposal(ctx *gin.Context) {
 		UserID:    userID,
 	}
 
-	proposal, err := s.Store.GetProposal(ctx, arg)
+	proposal, err := srv.Store.GetProposal(ctx, arg)
 	if err != nil {
 
 		if errors.Is(err, db.ErrRecordNotFound) {

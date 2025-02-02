@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func (s *Server) ListLicenseVerifiedUsers(ctx *gin.Context) {
+func (srv *Server) ListLicenseVerifiedUsers(ctx *gin.Context) {
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
@@ -25,7 +25,7 @@ func (s *Server) ListLicenseVerifiedUsers(ctx *gin.Context) {
 		Offset: (req.Offset - 1) * req.Limit,
 	}
 
-	users, err := s.Store.ListLicenseVerifiedUsers(ctx, arg)
+	users, err := srv.Store.ListLicenseVerifiedUsers(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -34,7 +34,7 @@ func (s *Server) ListLicenseVerifiedUsers(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, users)
 }
 
-func (s *Server) ListLicenseUnverifiedUsers(ctx *gin.Context) {
+func (srv *Server) ListLicenseUnverifiedUsers(ctx *gin.Context) {
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
@@ -52,7 +52,7 @@ func (s *Server) ListLicenseUnverifiedUsers(ctx *gin.Context) {
 		Offset: (req.Offset - 1) * req.Limit,
 	}
 
-	users, err := s.Store.ListLicenseUnVerifiedUsers(ctx, arg)
+	users, err := srv.Store.ListLicenseUnVerifiedUsers(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -66,7 +66,7 @@ type listAttorneysReq struct {
 	Offset int32 `form:"offset"`
 }
 
-func (s *Server) ListAttorneys(ctx *gin.Context) {
+func (srv *Server) ListAttorneys(ctx *gin.Context) {
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
@@ -84,7 +84,7 @@ func (s *Server) ListAttorneys(ctx *gin.Context) {
 		Offset: req.Offset,
 	}
 
-	users, err := s.Store.ListAttorneys(ctx, arg)
+	users, err := srv.Store.ListAttorneys(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -95,7 +95,7 @@ func (s *Server) ListAttorneys(ctx *gin.Context) {
 
 // lawyers
 
-func (s *Server) ListLawyers(ctx *gin.Context) {
+func (srv *Server) ListLawyers(ctx *gin.Context) {
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
@@ -103,7 +103,7 @@ func (s *Server) ListLawyers(ctx *gin.Context) {
 		return
 	}
 
-	lawyers, err := s.Store.ListLawyers(ctx)
+	lawyers, err := srv.Store.ListLawyers(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -114,7 +114,7 @@ func (s *Server) ListLawyers(ctx *gin.Context) {
 
 // referrals
 
-func (s *Server) ListAllReferralProjects(ctx *gin.Context) {
+func (srv *Server) ListAllReferralProjects(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -123,7 +123,7 @@ func (s *Server) ListAllReferralProjects(ctx *gin.Context) {
 		return
 	}
 
-	referrals, err := s.Store.ListAllReferralProjects(ctx, userId)
+	referrals, err := srv.Store.ListAllReferralProjects(ctx, userId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -132,7 +132,7 @@ func (s *Server) ListAllReferralProjects(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, referrals)
 }
 
-func (s *Server) ListCompletedReferralProjects(ctx *gin.Context) {
+func (srv *Server) ListCompletedReferralProjects(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -141,7 +141,7 @@ func (s *Server) ListCompletedReferralProjects(ctx *gin.Context) {
 		return
 	}
 
-	referrals, err := s.Store.ListCompletedReferralProjects(ctx, userId)
+	referrals, err := srv.Store.ListCompletedReferralProjects(ctx, userId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -150,7 +150,7 @@ func (s *Server) ListCompletedReferralProjects(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, referrals)
 }
 
-func (s *Server) ListActiveReferralProjects(ctx *gin.Context) {
+func (srv *Server) ListActiveReferralProjects(ctx *gin.Context) {
 	userId := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -159,7 +159,7 @@ func (s *Server) ListActiveReferralProjects(ctx *gin.Context) {
 		return
 	}
 
-	referrals, err := s.Store.ListActiveReferralProjects(ctx, userId)
+	referrals, err := srv.Store.ListActiveReferralProjects(ctx, userId)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

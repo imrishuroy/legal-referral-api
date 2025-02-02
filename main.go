@@ -79,10 +79,10 @@ func main() {
 	//	log.Info().Msg("Connected to Redis with TLS: " + pong)
 	//}
 
-	// api server setup
-	server, err := api.NewServer(config, store, hub, producer, ginLambda)
+	// api srv setup
+	srv, err := api.NewServer(config, store, hub, producer, ginLambda)
 	if err != nil {
-		log.Fatal().Err(err).Msg("cannot create server:")
+		log.Fatal().Err(err).Msg("cannot create srv:")
 	}
 
 	log.Info().Msg("Server created")
@@ -93,207 +93,207 @@ func main() {
 	r.GET("/ping", ping)
 
 	// auth routes
-	r.POST("/api/sign-in", server.SignIn)
-	r.POST("/api/sign-up", server.SignUp)
-	r.POST("/api/refresh-token", server.RefreshToken)
-	r.POST("/api/otp/send", server.SendOTP)
-	r.POST("/api/otp/verify", server.VerifyOTP)
-	r.POST("/api/reset-password", server.ResetPassword)
-	r.GET("/api/users/:user_id/wizardstep", server.GetUserWizardStep)
-	r.GET("/api/firms", server.SearchFirms)
-	r.POST("/api/sign-in/linkedin", server.LinkedinLogin)
+	r.POST("/api/sign-in", srv.SignIn)
+	r.POST("/api/sign-up", srv.SignUp)
+	r.POST("/api/refresh-token", srv.RefreshToken)
+	r.POST("/api/otp/send", srv.SendOTP)
+	r.POST("/api/otp/verify", srv.VerifyOTP)
+	r.POST("/api/reset-password", srv.ResetPassword)
+	r.GET("/api/users/:user_id/wizardstep", srv.GetUserWizardStep)
+	r.GET("/api/firms", srv.SearchFirms)
+	r.POST("/api/sign-in/linkedin", srv.LinkedinLogin)
 
 	auth := r.Group("/api").
-		Use(server.AuthMiddleware(server.FirebaseAuth))
+		Use(srv.AuthMiddleware(srv.FirebaseAuth))
 
-	auth.POST("/users", server.CreateUser)
-	auth.GET("/users/:user_id", server.GetUserById)
-	auth.POST("/license", server.SaveLicense)
-	auth.POST("/license/upload", server.UploadLicense)
-	auth.POST("/about-you", server.SaveAboutYou)
-	auth.GET("/users/:user_id/profile", server.FetchUserProfile)
-	auth.PUT("/users/info", server.UpdateUserInfo)
-	auth.POST("/review", server.AddReview)
+	auth.POST("/users", srv.CreateUser)
+	auth.GET("/users/:user_id", srv.GetUserById)
+	auth.POST("/license", srv.SaveLicense)
+	auth.POST("/license/upload", srv.UploadLicense)
+	auth.POST("/about-you", srv.SaveAboutYou)
+	auth.GET("/users/:user_id/profile", srv.FetchUserProfile)
+	auth.PUT("/users/info", srv.UpdateUserInfo)
+	auth.POST("/review", srv.AddReview)
 
-	auth.POST("/price", server.AddPrice)
-	auth.PUT("/price/:price_id", server.UpdatePrice)
-	auth.PUT("/users/:user_id/toggle-referral", server.ToggleOpenToReferral)
-	auth.PUT("/users/:user_id/banner", server.UpdateUserBannerImage)
+	auth.POST("/price", srv.AddPrice)
+	auth.PUT("/price/:price_id", srv.UpdatePrice)
+	auth.PUT("/users/:user_id/toggle-referral", srv.ToggleOpenToReferral)
+	auth.PUT("/users/:user_id/banner", srv.UpdateUserBannerImage)
 
 	//// profile/user
-	auth.PUT("/users/:user_id/avatar", server.UpdateUserAvatar)
+	auth.PUT("/users/:user_id/avatar", srv.UpdateUserAvatar)
 
 	//// profile/socials
-	auth.POST("/socials", server.AddSocial)
-	auth.PUT("/socials/:social_id", server.UpdateSocial)
-	auth.GET("/socials/:entity_type/:entity_id", server.ListSocials)
-	auth.DELETE("/socials/:social_id", server.DeleteSocial)
+	auth.POST("/socials", srv.AddSocial)
+	auth.PUT("/socials/:social_id", srv.UpdateSocial)
+	auth.GET("/socials/:entity_type/:entity_id", srv.ListSocials)
+	auth.DELETE("/socials/:social_id", srv.DeleteSocial)
 
 	//// profile/experiences
-	auth.POST("/users/:user_id/experiences", server.AddExperience)
-	auth.GET("/users/:user_id/experiences", server.ListExperiences)
-	auth.PUT("/users/:user_id/experiences/:experience_id", server.UpdateExperience)
-	auth.DELETE("/users/:user_id/experiences/:experience_id", server.DeleteExperience)
+	auth.POST("/users/:user_id/experiences", srv.AddExperience)
+	auth.GET("/users/:user_id/experiences", srv.ListExperiences)
+	auth.PUT("/users/:user_id/experiences/:experience_id", srv.UpdateExperience)
+	auth.DELETE("/users/:user_id/experiences/:experience_id", srv.DeleteExperience)
 
 	//// profile/educations
-	auth.POST("/users/:user_id/educations", server.AddEducation)
-	auth.GET("/users/:user_id/educations", server.ListEducations)
-	auth.PUT("/users/:user_id/educations/:education_id", server.UpdateEducation)
-	auth.DELETE("/users/:user_id/educations/:education_id", server.DeleteEducation)
+	auth.POST("/users/:user_id/educations", srv.AddEducation)
+	auth.GET("/users/:user_id/educations", srv.ListEducations)
+	auth.PUT("/users/:user_id/educations/:education_id", srv.UpdateEducation)
+	auth.DELETE("/users/:user_id/educations/:education_id", srv.DeleteEducation)
 
 	//// account
-	auth.GET("/accounts/:user_id", server.GetAccountInfo)
+	auth.GET("/accounts/:user_id", srv.GetAccountInfo)
 
 	//// network
-	auth.POST("/connections/send", server.SendConnection)
-	auth.POST("/connections/:id/accept", server.AcceptConnection)
-	auth.POST("/connections/:id/reject", server.RejectConnection)
-	auth.GET("/connections/invitations/:user_id", server.ListConnectionInvitations)
-	auth.GET("/connections/:user_id", server.ListConnections)
-	auth.GET("/recommendations/:user_id", server.ListRecommendations)
-	auth.POST("/recommendations/cancel", server.CancelRecommendation)
-	auth.GET("/search/users", server.SearchUsers)
+	auth.POST("/connections/send", srv.SendConnection)
+	auth.POST("/connections/:id/accept", srv.AcceptConnection)
+	auth.POST("/connections/:id/reject", srv.RejectConnection)
+	auth.GET("/connections/invitations/:user_id", srv.ListConnectionInvitations)
+	auth.GET("/connections/:user_id", srv.ListConnections)
+	auth.GET("/recommendations/:user_id", srv.ListRecommendations)
+	auth.POST("/recommendations/cancel", srv.CancelRecommendation)
+	auth.GET("/search/users", srv.SearchUsers)
 	// check if user is connected to another user
-	auth.GET("/connections/:user_id/:other_user_id", server.CheckConnection)
+	auth.GET("/connections/:user_id/:other_user_id", srv.CheckConnection)
 
 	//// chat
 	auth.GET("/chat/:room_id", func(ctx *gin.Context) {
 		roomId := ctx.Param("room_id")
-		chat.ServeWS(ctx, roomId, server.Hub)
+		chat.ServeWS(ctx, roomId, srv.Hub)
 	})
-	auth.GET("/chat/:room_id/messages", server.ListMessages)
-	auth.GET("/chat/users/:user_id/rooms", server.ListChatRooms)
-	auth.POST("/chat/rooms", server.CreateChatRoom)
+	auth.GET("/chat/:room_id/messages", srv.ListMessages)
+	auth.GET("/chat/users/:user_id/rooms", srv.ListChatRooms)
+	auth.POST("/chat/rooms", srv.CreateChatRoom)
 
 	//// referral
-	auth.POST("/referral", server.CreateReferral)
-	auth.GET("/referrals/:user_id/active", server.ListActiveReferrals)
-	auth.GET("/referrals/users/:project_id", server.ListReferredUsers)
-	auth.GET("/users/:user_id/proposals", server.ListActiveProposals)
-	auth.POST("/proposals", server.CreateProposal)
-	auth.PUT("/proposals/:proposal_id", server.UpdateProposal)
-	auth.GET("users/:user_id/proposals/:project_id", server.GetProposal)
-	auth.POST("/projects/award", server.AwardProject)
-	auth.GET("/projects/awarded/:user_id", server.ListAwardedProjects)
-	auth.PUT("/projects/:project_id/accept", server.AcceptProject)
-	auth.PUT("/projects/:project_id/reject", server.RejectProject)
-	auth.GET("/projects/active/:user_id", server.ListActiveProjects)
-	auth.PUT("/projects/:project_id/start", server.StartProject)
-	auth.PUT("/projects/:project_id/initiate-complete", server.InitiateCompleteProject)
-	auth.PUT("/projects/:project_id/cancel/initiate-complete", server.CancelInitiateCompleteProject)
-	auth.PUT("/projects/:project_id/complete", server.CompleteProject)
-	auth.GET("/projects/completed/:user_id", server.ListCompletedProjects)
-	auth.POST("projects/review", server.CreateProjectReview)
-	auth.GET("projects/review/:project_id", server.GetProjectReview)
+	auth.POST("/referral", srv.CreateReferral)
+	auth.GET("/referrals/:user_id/active", srv.ListActiveReferrals)
+	auth.GET("/referrals/users/:project_id", srv.ListReferredUsers)
+	auth.GET("/users/:user_id/proposals", srv.ListActiveProposals)
+	auth.POST("/proposals", srv.CreateProposal)
+	auth.PUT("/proposals/:proposal_id", srv.UpdateProposal)
+	auth.GET("users/:user_id/proposals/:project_id", srv.GetProposal)
+	auth.POST("/projects/award", srv.AwardProject)
+	auth.GET("/projects/awarded/:user_id", srv.ListAwardedProjects)
+	auth.PUT("/projects/:project_id/accept", srv.AcceptProject)
+	auth.PUT("/projects/:project_id/reject", srv.RejectProject)
+	auth.GET("/projects/active/:user_id", srv.ListActiveProjects)
+	auth.PUT("/projects/:project_id/start", srv.StartProject)
+	auth.PUT("/projects/:project_id/initiate-complete", srv.InitiateCompleteProject)
+	auth.PUT("/projects/:project_id/cancel/initiate-complete", srv.CancelInitiateCompleteProject)
+	auth.PUT("/projects/:project_id/complete", srv.CompleteProject)
+	auth.GET("/projects/completed/:user_id", srv.ListCompletedProjects)
+	auth.POST("projects/review", srv.CreateProjectReview)
+	auth.GET("projects/review/:project_id", srv.GetProjectReview)
 	//
-	auth.GET("/users/:user_id/connected", server.ListConnectedUsers)
-	auth.GET("/users", server.ListUsers)
-	auth.GET("/users/license-verified", server.ListLicenseVerifiedUsers)
-	auth.GET("/users/license-unverified", server.ListLicenseUnverifiedUsers)
+	auth.GET("/users/:user_id/connected", srv.ListConnectedUsers)
+	auth.GET("/users", srv.ListUsers)
+	auth.GET("/users/license-verified", srv.ListLicenseVerifiedUsers)
+	auth.GET("/users/license-unverified", srv.ListLicenseUnverifiedUsers)
 
 	//// approve license
-	auth.PUT("/users/:user_id/approve-license", server.ApproveLicense)
-	auth.PUT("/users/:user_id/reject-license", server.RejectLicense)
+	auth.PUT("/users/:user_id/approve-license", srv.ApproveLicense)
+	auth.PUT("/users/:user_id/reject-license", srv.RejectLicense)
 
 	//// posts
-	auth.POST("/posts", server.CreatePost)
-	auth.GET("/posts/:post_id", server.GetPost)
-	auth.DELETE("/posts/:post_id", server.DeletePost)
-	auth.GET("/search/posts", server.SearchPosts)
-	auth.GET("/posts/:post_id/is-featured", server.IsPostFeatured)
+	auth.POST("/posts", srv.CreatePost)
+	auth.GET("/posts/:post_id", srv.GetPost)
+	auth.DELETE("/posts/:post_id", srv.DeletePost)
+	auth.GET("/search/posts", srv.SearchPosts)
+	auth.GET("/posts/:post_id/is-featured", srv.IsPostFeatured)
 
 	//// news feed
-	auth.GET("/feeds/:user_id", server.ListNewsFeed)
-	////auth.GET("/v2/feeds/:user_id", server.listNewsFeedV2)
-	////auth.GET("/v3/feeds/:user_id", server.listNewsFeedV3)
+	auth.GET("/feeds/:user_id", srv.ListNewsFeed)
+	////auth.GET("/v2/feeds/:user_id", srv.listNewsFeedV2)
+	////auth.GET("/v3/feeds/:user_id", srv.listNewsFeedV3)
 
 	//// like post
-	auth.POST("/posts/:post_id/like", server.LikePost)
-	auth.DELETE("/posts/:post_id/like", server.UnlikePost)
-	auth.GET("/posts/:post_id/liked-users", server.ListPostLikedUsers)
+	auth.POST("/posts/:post_id/like", srv.LikePost)
+	auth.DELETE("/posts/:post_id/like", srv.UnlikePost)
+	auth.GET("/posts/:post_id/liked-users", srv.ListPostLikedUsers)
 
 	//// get post likes and comments count
-	auth.GET("/posts/:post_id/likes-comments-count", server.PostLikesAndCommentsCount)
-	auth.GET("/posts/:post_id/is-liked", server.IsPostLiked)
+	auth.GET("/posts/:post_id/likes-comments-count", srv.PostLikesAndCommentsCount)
+	auth.GET("/posts/:post_id/is-liked", srv.IsPostLiked)
 
 	//// comments
-	auth.POST("/posts/:post_id/comments", server.CommentPost)
-	auth.GET("/posts/:post_id/comments", server.ListComments)
-	auth.POST("/comments/:comment_id/like", server.LikeComment)
-	auth.DELETE("/comments/:comment_id/like", server.UnlikeComment)
+	auth.POST("/posts/:post_id/comments", srv.CommentPost)
+	auth.GET("/posts/:post_id/comments", srv.ListComments)
+	auth.POST("/comments/:comment_id/like", srv.LikeComment)
+	auth.DELETE("/comments/:comment_id/like", srv.UnlikeComment)
 
 	//// discussion
-	auth.POST("/discussions", server.CreateDiscussion)
+	auth.POST("/discussions", srv.CreateDiscussion)
 
 	//// update discussion topic
-	auth.PUT("/discussions/:discussion_id/topic", server.UpdateDiscussionTopic)
-	auth.POST("/discussions/:discussion_id/invite", server.InviteUserToDiscussion)
-	auth.POST("/discussions/:discussion_id/join", server.JoinDiscussion)
-	auth.POST("/discussions/:discussion_id/reject", server.RejectDiscussion)
-	auth.GET("/discussions/invites/:user_id", server.ListDiscussionInvites)
-	auth.GET("/discussions/active/:user_id", server.ListActiveDiscussions)
-	auth.GET("/discussions/:discussion_id/participants", server.ListDiscussionParticipants)
-	auth.GET("/discussions/:discussion_id/uninvited", server.ListUninvitedParticipants)
+	auth.PUT("/discussions/:discussion_id/topic", srv.UpdateDiscussionTopic)
+	auth.POST("/discussions/:discussion_id/invite", srv.InviteUserToDiscussion)
+	auth.POST("/discussions/:discussion_id/join", srv.JoinDiscussion)
+	auth.POST("/discussions/:discussion_id/reject", srv.RejectDiscussion)
+	auth.GET("/discussions/invites/:user_id", srv.ListDiscussionInvites)
+	auth.GET("/discussions/active/:user_id", srv.ListActiveDiscussions)
+	auth.GET("/discussions/:discussion_id/participants", srv.ListDiscussionParticipants)
+	auth.GET("/discussions/:discussion_id/uninvited", srv.ListUninvitedParticipants)
 
 	//// discussion messages
-	auth.POST("/discussions/:discussion_id/messages", server.SendMessageToDiscussion)
-	auth.GET("/discussions/:discussion_id/messages", server.ListDiscussionMessages)
+	auth.POST("/discussions/:discussion_id/messages", srv.SendMessageToDiscussion)
+	auth.GET("/discussions/:discussion_id/messages", srv.ListDiscussionMessages)
 
 	//// ads
-	auth.POST("/ads", server.CreateAd)
+	auth.POST("/ads", srv.CreateAd)
 	//playing ads
-	auth.GET("/ads/playing", server.ListPlayingAds)
-	auth.GET("/ads/expired", server.ListExpiredAds)
+	auth.GET("/ads/playing", srv.ListPlayingAds)
+	auth.GET("/ads/expired", srv.ListExpiredAds)
 	// extend ad period
-	auth.PUT("/ads/:ad_id/extend", server.ExtendAdPeriod)
+	auth.PUT("/ads/:ad_id/extend", srv.ExtendAdPeriod)
 
 	//// admin
-	auth.GET("/attorneys", server.ListAttorneys)
-	auth.GET("/lawyers", server.ListLawyers)
+	auth.GET("/attorneys", srv.ListAttorneys)
+	auth.GET("/lawyers", srv.ListLawyers)
 
-	auth.GET("/referrals/:user_id", server.ListAllReferralProjects)
-	auth.GET("/referrals/completed/:user_id", server.ListCompletedReferralProjects)
-	auth.GET("/referrals/active/:user_id", server.ListActiveReferralProjects)
+	auth.GET("/referrals/:user_id", srv.ListAllReferralProjects)
+	auth.GET("/referrals/completed/:user_id", srv.ListCompletedReferralProjects)
+	auth.GET("/referrals/active/:user_id", srv.ListActiveReferralProjects)
 
-	auth.POST("/faqs", server.CreateFAQ)
-	auth.GET("/faqs", server.ListFAQs)
+	auth.POST("/faqs", srv.CreateFAQ)
+	auth.GET("/faqs", srv.ListFAQs)
 
-	auth.POST("/firms", server.AddFirm)
-	auth.GET("/firms/owner/:owner_user_id", server.ListFirmsByOwner)
+	auth.POST("/firms", srv.AddFirm)
+	auth.GET("/firms/owner/:owner_user_id", srv.ListFirmsByOwner)
 
 	//// save post
-	auth.POST("/saved-posts", server.SavePost)
-	auth.DELETE("/saved-posts/:saved_post_id", server.UnSavePost)
-	auth.GET("/saved-posts/:user_id", server.ListSavedPosts)
+	auth.POST("/saved-posts", srv.SavePost)
+	auth.DELETE("/saved-posts/:saved_post_id", srv.UnSavePost)
+	auth.GET("/saved-posts/:user_id", srv.ListSavedPosts)
 
 	//// feature posts
-	auth.POST("/feature-posts", server.FeaturePost)
-	auth.DELETE("/feature-posts/:post_id", server.UnFeaturePost)
-	auth.GET("/feature-posts/:user_id", server.ListFeaturePosts)
+	auth.POST("/feature-posts", srv.FeaturePost)
+	auth.DELETE("/feature-posts/:post_id", srv.UnFeaturePost)
+	auth.GET("/feature-posts/:user_id", srv.ListFeaturePosts)
 
 	//// notifications
-	auth.POST("/device-details", server.SaveDevice)
-	auth.POST("/notifications", server.CreateNotification)
-	auth.GET("/notifications/:user_id", server.ListNotifications)
+	auth.POST("/device-details", srv.SaveDevice)
+	auth.POST("/notifications", srv.CreateNotification)
+	auth.GET("/notifications/:user_id", srv.ListNotifications)
 
 	//// post stats
-	auth.GET("/posts/:post_id/stats", server.GetPostStats)
+	auth.GET("/posts/:post_id/stats", srv.GetPostStats)
 
 	//// report
-	auth.POST("/report-post", server.ReportPost)
-	auth.GET("/posts/:post_id/reported-status/:user_id", server.IsPostReported)
-	auth.DELETE("/feeds/:feed_id/ignore", server.IgnoreFeed)
+	auth.POST("/report-post", srv.ReportPost)
+	auth.GET("/posts/:post_id/reported-status/:user_id", srv.IsPostReported)
+	auth.DELETE("/feeds/:feed_id/ignore", srv.IgnoreFeed)
 
 	//// activity
-	auth.GET("/activity/posts/:user_id", server.ListActivityPosts)
-	auth.GET("/activity/comments/:user_id", server.ListActivityComments)
-	auth.GET("/users/:user_id/followers-count", server.GetUserFollowersCount)
+	auth.GET("/activity/posts/:user_id", srv.ListActivityPosts)
+	auth.GET("/activity/comments/:user_id", srv.ListActivityComments)
+	auth.GET("/users/:user_id/followers-count", srv.GetUserFollowersCount)
 
-	// start the server
-	//err = server.Start(config.ServerAddress)
-	//err = server.Start(config.ServerAddress)
+	// start the srv
+	//err = srv.Start(config.ServerAddress)
+	//err = srv.Start(config.ServerAddress)
 	//if err != nil {
-	//	log.Fatal().Err(err).Msg("cannot create server:")
+	//	log.Fatal().Err(err).Msg("cannot create srv:")
 	//}
 
 	ginLambda = ginadapter.New(r)

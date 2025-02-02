@@ -15,7 +15,7 @@ type addSocialReq struct {
 	Link       string `json:"link" binding:"required"`
 }
 
-func (s *Server) AddSocial(ctx *gin.Context) {
+func (srv *Server) AddSocial(ctx *gin.Context) {
 	var req addSocialReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
@@ -35,7 +35,7 @@ func (s *Server) AddSocial(ctx *gin.Context) {
 		Link:       req.Link,
 	}
 
-	social, err := s.Store.AddSocial(ctx, arg)
+	social, err := srv.Store.AddSocial(ctx, arg)
 	if err != nil {
 		// check if error the duplicate key error is returned
 		if !errors.Is(err, db.ErrUniqueViolation) {
@@ -55,7 +55,7 @@ type updateSocialReq struct {
 	Link     string `json:"link" binding:"required"`
 }
 
-func (s *Server) UpdateSocial(ctx *gin.Context) {
+func (srv *Server) UpdateSocial(ctx *gin.Context) {
 	var req updateSocialReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
@@ -81,7 +81,7 @@ func (s *Server) UpdateSocial(ctx *gin.Context) {
 		Link:     req.Link,
 	}
 
-	social, err := s.Store.UpdateSocial(ctx, arg)
+	social, err := srv.Store.UpdateSocial(ctx, arg)
 	if err != nil {
 		if !errors.Is(err, db.ErrUniqueViolation) {
 			ctx.JSON(http.StatusBadRequest, gin.H{"message": "Social link already exists"})
@@ -94,7 +94,7 @@ func (s *Server) UpdateSocial(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, social)
 }
 
-func (s *Server) ListSocials(ctx *gin.Context) {
+func (srv *Server) ListSocials(ctx *gin.Context) {
 
 	entityID := ctx.Param("entity_id")
 	entityType := ctx.Param("entity_type")
@@ -111,7 +111,7 @@ func (s *Server) ListSocials(ctx *gin.Context) {
 		EntityType: entityType,
 	}
 
-	socials, err := s.Store.ListSocials(ctx, arg)
+	socials, err := srv.Store.ListSocials(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -120,7 +120,7 @@ func (s *Server) ListSocials(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, socials)
 }
 
-func (s *Server) DeleteSocial(ctx *gin.Context) {
+func (srv *Server) DeleteSocial(ctx *gin.Context) {
 
 	socialIDParam := ctx.Param("social_id")
 	socialID, err := strconv.ParseInt(socialIDParam, 10, 64)
@@ -135,7 +135,7 @@ func (s *Server) DeleteSocial(ctx *gin.Context) {
 		return
 	}
 
-	err = s.Store.DeleteSocial(ctx, socialID)
+	err = srv.Store.DeleteSocial(ctx, socialID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

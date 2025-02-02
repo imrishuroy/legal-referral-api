@@ -14,7 +14,7 @@ type searchUserRequest struct {
 	Offset int32  `form:"offset" binding:"required"`
 }
 
-func (s *Server) SearchUsers(ctx *gin.Context) {
+func (srv *Server) SearchUsers(ctx *gin.Context) {
 	var req searchUserRequest
 	if err := ctx.ShouldBindQuery(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -29,7 +29,7 @@ func (s *Server) SearchUsers(ctx *gin.Context) {
 
 	switch req.Filter {
 	case "All":
-		users, err := s.Store.SearchAllUsers(ctx, req.Query)
+		users, err := srv.Store.SearchAllUsers(ctx, req.Query)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
@@ -42,7 +42,7 @@ func (s *Server) SearchUsers(ctx *gin.Context) {
 			CurrentUserID: authPayload.UID,
 			Query:         req.Query,
 		}
-		users, err := s.Store.Search1stDegreeConnections(ctx, args)
+		users, err := srv.Store.Search1stDegreeConnections(ctx, args)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
@@ -55,7 +55,7 @@ func (s *Server) SearchUsers(ctx *gin.Context) {
 			CurrentUserID: authPayload.UID,
 			Query:         req.Query,
 		}
-		users, err := s.Store.Search2ndDegreeConnections(ctx, args)
+		users, err := srv.Store.Search2ndDegreeConnections(ctx, args)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return

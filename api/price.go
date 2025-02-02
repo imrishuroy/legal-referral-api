@@ -18,7 +18,7 @@ type addPriceReq struct {
 	HybridPrice      *string        `json:"hybrid_price"`
 }
 
-func (s *Server) AddPrice(ctx *gin.Context) {
+func (srv *Server) AddPrice(ctx *gin.Context) {
 	var req addPriceReq
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -41,7 +41,7 @@ func (s *Server) AddPrice(ctx *gin.Context) {
 		HybridPrice:      req.HybridPrice,
 	}
 
-	price, err := s.Store.AddPrice(ctx, priceArg)
+	price, err := srv.Store.AddPrice(ctx, priceArg)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to add price")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -59,7 +59,7 @@ type updatePriceReq struct {
 	HybridPrice      *string        `json:"hybrid_price"`
 }
 
-func (s *Server) UpdatePrice(ctx *gin.Context) {
+func (srv *Server) UpdatePrice(ctx *gin.Context) {
 	var req updatePriceReq
 
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -90,7 +90,7 @@ func (s *Server) UpdatePrice(ctx *gin.Context) {
 		HybridPrice:      req.HybridPrice,
 	}
 
-	price, err := s.Store.UpdatePrice(ctx, priceArg)
+	price, err := srv.Store.UpdatePrice(ctx, priceArg)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to update price")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))

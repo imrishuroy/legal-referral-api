@@ -27,7 +27,7 @@ type UserExperience struct {
 	Firm       db.Firm       `json:"firm"`
 }
 
-func (s *Server) AddExperience(ctx *gin.Context) {
+func (srv *Server) AddExperience(ctx *gin.Context) {
 	var req addUpdateExperienceReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		log.Error().Err(err).Msg("Invalid request body")
@@ -61,7 +61,7 @@ func (s *Server) AddExperience(ctx *gin.Context) {
 		return
 	}
 
-	expRes, err := s.Store.AddExperience(ctx, arg)
+	expRes, err := srv.Store.AddExperience(ctx, arg)
 	if err != nil {
 		log.Error().Err(err).Msg("Error adding experience")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -69,7 +69,7 @@ func (s *Server) AddExperience(ctx *gin.Context) {
 	}
 
 	// get the firm details
-	firm, err := s.Store.GetFirm(ctx, expRes.FirmID)
+	firm, err := srv.Store.GetFirm(ctx, expRes.FirmID)
 	if err != nil {
 		log.Error().Err(err).Msg("Error getting firm details")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -95,14 +95,14 @@ type listExperienceResponse struct {
 	Firm         db.Firm      `json:"firm"`
 }
 
-func (s *Server) ListExperiences(ctx *gin.Context) {
+func (srv *Server) ListExperiences(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 	if userID == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid user id"})
 		return
 	}
 
-	experiences, err := s.Store.ListExperiences(ctx, userID)
+	experiences, err := srv.Store.ListExperiences(ctx, userID)
 	if err != nil {
 		log.Error().Err(err).Msg("Error listing experiences")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -112,7 +112,7 @@ func (s *Server) ListExperiences(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, experiences)
 }
 
-func (s *Server) UpdateExperience(ctx *gin.Context) {
+func (srv *Server) UpdateExperience(ctx *gin.Context) {
 
 	var req addUpdateExperienceReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -158,7 +158,7 @@ func (s *Server) UpdateExperience(ctx *gin.Context) {
 		return
 	}
 
-	expRes, err := s.Store.UpdateExperience(ctx, arg)
+	expRes, err := srv.Store.UpdateExperience(ctx, arg)
 
 	if err != nil {
 		log.Error().Err(err).Msg("Error updating experience")
@@ -167,7 +167,7 @@ func (s *Server) UpdateExperience(ctx *gin.Context) {
 	}
 
 	// get the firm details
-	firm, err := s.Store.GetFirm(ctx, expRes.FirmID)
+	firm, err := srv.Store.GetFirm(ctx, expRes.FirmID)
 	if err != nil {
 		log.Error().Err(err).Msg("Error getting firm details")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -183,7 +183,7 @@ func (s *Server) UpdateExperience(ctx *gin.Context) {
 
 }
 
-func (s *Server) DeleteExperience(ctx *gin.Context) {
+func (srv *Server) DeleteExperience(ctx *gin.Context) {
 	experienceIDParam := ctx.Param("experience_id")
 
 	experienceID, err := strconv.ParseInt(experienceIDParam, 10, 64)
@@ -202,7 +202,7 @@ func (s *Server) DeleteExperience(ctx *gin.Context) {
 		return
 	}
 
-	err = s.Store.DeleteExperience(ctx, experienceID)
+	err = srv.Store.DeleteExperience(ctx, experienceID)
 	if err != nil {
 		log.Error().Err(err).Msg("Error deleting experience")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))

@@ -13,7 +13,7 @@ type addReviewReq struct {
 	Ratting    float64 `json:"ratting" binding:"required"`
 }
 
-func (s *Server) AddReview(ctx *gin.Context) {
+func (srv *Server) AddReview(ctx *gin.Context) {
 	var req addReviewReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
@@ -33,7 +33,7 @@ func (s *Server) AddReview(ctx *gin.Context) {
 		Rating:     req.Ratting,
 	}
 
-	review, err := s.Store.AddReview(ctx, arg)
+	review, err := srv.Store.AddReview(ctx, arg)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))

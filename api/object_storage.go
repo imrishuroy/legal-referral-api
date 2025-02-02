@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func (s *Server) handleFilesUpload(ctx context.Context, files []*multipart.FileHeader) ([]string, error) {
+func (srv *Server) handleFilesUpload(ctx context.Context, files []*multipart.FileHeader) ([]string, error) {
 	if len(files) == 0 {
 		return nil, errors.New("no file uploaded")
 	}
@@ -32,7 +32,7 @@ func (s *Server) handleFilesUpload(ctx context.Context, files []*multipart.FileH
 		go func(file *multipart.FileHeader) {
 			defer wg.Done()
 
-			url, err := s.uploadFileHandler(ctx, file)
+			url, err := srv.uploadFileHandler(ctx, file)
 			if err != nil {
 				errChan <- err
 				return
@@ -76,7 +76,7 @@ func (s *Server) handleFilesUpload(ctx context.Context, files []*multipart.FileH
 //	return urls, nil
 //}
 
-func (s *Server) uploadFileHandler(ctx context.Context, file *multipart.FileHeader) (string, error) {
+func (srv *Server) uploadFileHandler(ctx context.Context, file *multipart.FileHeader) (string, error) {
 	fileName := generateUniqueFilename() + getFileExtension(file)
 	multiPartFile, err := file.Open()
 	if err != nil {
@@ -89,12 +89,12 @@ func (s *Server) uploadFileHandler(ctx context.Context, file *multipart.FileHead
 		}
 	}(multiPartFile)
 
-	return s.uploadFile(ctx, multiPartFile, fileName, file.Header.Get("Content-Type"))
+	return srv.uploadFile(ctx, multiPartFile, fileName, file.Header.Get("Content-Type"))
 }
 
-func (s *Server) uploadFile(ctx context.Context, file multipart.File, fileName string, contentType string) (string, error) {
+func (srv *Server) uploadFile(ctx context.Context, file multipart.File, fileName string, contentType string) (string, error) {
 
-	bucketName := s.config.AWSBucketName
+	bucketName := srv.config.AWSBucketName
 	log.Info().Msgf("Uploading file to bucket: %s", bucketName)
 
 	// Upload the file to S3
@@ -107,7 +107,7 @@ func (s *Server) uploadFile(ctx context.Context, file multipart.File, fileName s
 	//	ServerSideEncryption: aws.String("AES256"),
 	//})
 
-	_, err := s.S3Client.PutObject(ctx, &s3.PutObjectInput{
+	_, err := srv.S3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: &bucketName,
 		Key:    &fileName,
 		Body:   file,

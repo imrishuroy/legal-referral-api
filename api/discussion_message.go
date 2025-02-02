@@ -22,7 +22,7 @@ type discussionMessage struct {
 	RepliedMessage  *discussionMessage `json:"replied_message"`
 }
 
-func (s *Server) SendMessageToDiscussion(ctx *gin.Context) {
+func (srv *Server) SendMessageToDiscussion(ctx *gin.Context) {
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Unauthorized"})
@@ -35,7 +35,7 @@ func (s *Server) SendMessageToDiscussion(ctx *gin.Context) {
 		return
 	}
 
-	message, err := s.Store.SendMessageToDiscussion(ctx, req)
+	message, err := srv.Store.SendMessageToDiscussion(ctx, req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
 		return
@@ -49,7 +49,7 @@ type listDiscussionMessages struct {
 	Limit  int32 `form:"limit" binding:"required"`
 }
 
-func (s *Server) ListDiscussionMessages(ctx *gin.Context) {
+func (srv *Server) ListDiscussionMessages(ctx *gin.Context) {
 
 	var req listDiscussionMessages
 
@@ -76,7 +76,7 @@ func (s *Server) ListDiscussionMessages(ctx *gin.Context) {
 		Limit:        req.Limit,
 	}
 
-	messages, err := s.Store.ListDiscussionMessages(ctx, arg)
+	messages, err := srv.Store.ListDiscussionMessages(ctx, arg)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))

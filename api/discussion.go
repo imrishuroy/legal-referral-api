@@ -14,7 +14,7 @@ type createDiscussionRequest struct {
 	InvitedUsersIDs []string `json:"invited_users_ids"`
 }
 
-func (s *Server) CreateDiscussion(ctx *gin.Context) {
+func (srv *Server) CreateDiscussion(ctx *gin.Context) {
 
 	var req *createDiscussionRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -34,7 +34,7 @@ func (s *Server) CreateDiscussion(ctx *gin.Context) {
 		Topic:    req.Topic,
 	}
 
-	discussion, err := s.Store.CreateDiscussion(ctx, arg)
+	discussion, err := srv.Store.CreateDiscussion(ctx, arg)
 	if err != nil {
 		ctx.JSON(400, errorResponse(err))
 		return
@@ -48,7 +48,7 @@ func (s *Server) CreateDiscussion(ctx *gin.Context) {
 			InvitedUserID: invitedUserID,
 		}
 
-		err = s.Store.InviteUserToDiscussion(ctx, arg)
+		err = srv.Store.InviteUserToDiscussion(ctx, arg)
 		if err != nil {
 			errorCode := db.ErrorCode(err)
 			if errorCode == db.UniqueViolation {
@@ -63,7 +63,7 @@ func (s *Server) CreateDiscussion(ctx *gin.Context) {
 
 }
 
-func (s *Server) UpdateDiscussionTopic(ctx *gin.Context) {
+func (srv *Server) UpdateDiscussionTopic(ctx *gin.Context) {
 
 	var req db.UpdateDiscussionTopicParams
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -78,7 +78,7 @@ func (s *Server) UpdateDiscussionTopic(ctx *gin.Context) {
 		return
 	}
 
-	err := s.Store.UpdateDiscussionTopic(ctx, req)
+	err := srv.Store.UpdateDiscussionTopic(ctx, req)
 	if err != nil {
 		ctx.JSON(400, errorResponse(err))
 		return
@@ -92,7 +92,7 @@ type inviteUserToDiscussionRequest struct {
 	InvitedUserID string `json:"invited_user_id"`
 }
 
-func (s *Server) InviteUserToDiscussion(ctx *gin.Context) {
+func (srv *Server) InviteUserToDiscussion(ctx *gin.Context) {
 	discussionIDStr := ctx.Param("discussion_id")
 	discussionID, err := strconv.Atoi(discussionIDStr)
 	if err != nil {
@@ -118,7 +118,7 @@ func (s *Server) InviteUserToDiscussion(ctx *gin.Context) {
 		InvitedUserID: req.InvitedUserID,
 	}
 
-	err = s.Store.InviteUserToDiscussion(ctx, arg)
+	err = srv.Store.InviteUserToDiscussion(ctx, arg)
 	if err != nil {
 		errorCode := db.ErrorCode(err)
 		if errorCode == db.UniqueViolation {
@@ -132,7 +132,7 @@ func (s *Server) InviteUserToDiscussion(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "Invited"})
 }
 
-func (s *Server) JoinDiscussion(ctx *gin.Context) {
+func (srv *Server) JoinDiscussion(ctx *gin.Context) {
 	discussionIDStr := ctx.Param("discussion_id")
 	discussionID, err := strconv.Atoi(discussionIDStr)
 	if err != nil {
@@ -151,7 +151,7 @@ func (s *Server) JoinDiscussion(ctx *gin.Context) {
 		InvitedUserID: authPayload.UID,
 	}
 
-	err = s.Store.JoinDiscussion(ctx, arg)
+	err = srv.Store.JoinDiscussion(ctx, arg)
 	if err != nil {
 		errorCode := db.ErrorCode(err)
 		if errorCode == db.UniqueViolation {
@@ -165,7 +165,7 @@ func (s *Server) JoinDiscussion(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "Joined"})
 }
 
-func (s *Server) RejectDiscussion(ctx *gin.Context) {
+func (srv *Server) RejectDiscussion(ctx *gin.Context) {
 
 	discussionIDStr := ctx.Param("discussion_id")
 	discussionID, err := strconv.Atoi(discussionIDStr)
@@ -185,7 +185,7 @@ func (s *Server) RejectDiscussion(ctx *gin.Context) {
 		InvitedUserID: authPayload.UID,
 	}
 
-	err = s.Store.RejectDiscussion(ctx, arg)
+	err = srv.Store.RejectDiscussion(ctx, arg)
 	if err != nil {
 		ctx.JSON(400, errorResponse(err))
 		return
@@ -193,7 +193,7 @@ func (s *Server) RejectDiscussion(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "Rejected"})
 }
 
-func (s *Server) ListDiscussionInvites(ctx *gin.Context) {
+func (srv *Server) ListDiscussionInvites(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -202,7 +202,7 @@ func (s *Server) ListDiscussionInvites(ctx *gin.Context) {
 		return
 	}
 
-	invites, err := s.Store.ListDiscussionInvites(ctx, userID)
+	invites, err := srv.Store.ListDiscussionInvites(ctx, userID)
 	if err != nil {
 		ctx.JSON(400, errorResponse(err))
 		return
@@ -211,7 +211,7 @@ func (s *Server) ListDiscussionInvites(ctx *gin.Context) {
 	ctx.JSON(200, invites)
 }
 
-func (s *Server) ListActiveDiscussions(ctx *gin.Context) {
+func (srv *Server) ListActiveDiscussions(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -220,7 +220,7 @@ func (s *Server) ListActiveDiscussions(ctx *gin.Context) {
 		return
 	}
 
-	discussions, err := s.Store.ListActiveDiscussions(ctx, userID)
+	discussions, err := srv.Store.ListActiveDiscussions(ctx, userID)
 	if err != nil {
 		ctx.JSON(400, errorResponse(err))
 		return
@@ -229,7 +229,7 @@ func (s *Server) ListActiveDiscussions(ctx *gin.Context) {
 	ctx.JSON(200, discussions)
 }
 
-func (s *Server) ListDiscussionParticipants(ctx *gin.Context) {
+func (srv *Server) ListDiscussionParticipants(ctx *gin.Context) {
 	discussionIDStr := ctx.Param("discussion_id")
 	discussionID, err := strconv.Atoi(discussionIDStr)
 	if err != nil {
@@ -243,7 +243,7 @@ func (s *Server) ListDiscussionParticipants(ctx *gin.Context) {
 		return
 	}
 
-	participants, err := s.Store.ListDiscussionParticipants(ctx, int32(discussionID))
+	participants, err := srv.Store.ListDiscussionParticipants(ctx, int32(discussionID))
 	if err != nil {
 		ctx.JSON(400, errorResponse(err))
 		return
@@ -252,7 +252,7 @@ func (s *Server) ListDiscussionParticipants(ctx *gin.Context) {
 	ctx.JSON(200, participants)
 }
 
-func (s *Server) ListUninvitedParticipants(ctx *gin.Context) {
+func (srv *Server) ListUninvitedParticipants(ctx *gin.Context) {
 	discussionIDStr := ctx.Param("discussion_id")
 	discussionID, err := strconv.Atoi(discussionIDStr)
 	if err != nil {
@@ -266,7 +266,7 @@ func (s *Server) ListUninvitedParticipants(ctx *gin.Context) {
 		return
 	}
 
-	participants, err := s.Store.ListUninvitedParticipants(ctx, int32(discussionID))
+	participants, err := srv.Store.ListUninvitedParticipants(ctx, int32(discussionID))
 	if err != nil {
 		ctx.JSON(400, errorResponse(err))
 		return
@@ -279,7 +279,7 @@ type invitedUsersToDiscussionReq struct {
 	InvitedUserIDs []string `json:"invited_user_ids"`
 }
 
-func (s *Server) inviteUsersToDiscussion(ctx *gin.Context) {
+func (srv *Server) inviteUsersToDiscussion(ctx *gin.Context) {
 	discussionIDStr := ctx.Param("discussion_id")
 	discussionID, err := strconv.Atoi(discussionIDStr)
 	if err != nil {
@@ -306,7 +306,7 @@ func (s *Server) inviteUsersToDiscussion(ctx *gin.Context) {
 			InvitedUserID: invitedUserID,
 		}
 
-		err = s.Store.InviteUserToDiscussion(ctx, arg)
+		err = srv.Store.InviteUserToDiscussion(ctx, arg)
 		if err != nil {
 			errorCode := db.ErrorCode(err)
 			if errorCode == db.UniqueViolation {

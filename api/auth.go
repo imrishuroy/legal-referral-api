@@ -37,7 +37,7 @@ type authResponse struct {
 	ExpiresIn    string  `json:"expires_in"`
 }
 
-func (s *Server) SignIn(ctx *gin.Context) {
+func (srv *Server) SignIn(ctx *gin.Context) {
 	var req signInReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
@@ -51,7 +51,7 @@ func (s *Server) SignIn(ctx *gin.Context) {
 		return
 	}
 
-	authURL := "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + s.config.FirebaseAuthKey
+	authURL := "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + srv.config.FirebaseAuthKey
 
 	// Marshal the request and make the API call
 	resp, err := makePostRequest(authURL, req)
@@ -83,7 +83,7 @@ func (s *Server) SignIn(ctx *gin.Context) {
 	}
 
 	//Retrieve user data from the database
-	user, err := s.Store.GetUserById(ctx, res.LocalId)
+	user, err := srv.Store.GetUserById(ctx, res.LocalId)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to retrieve user")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -117,7 +117,7 @@ type signUpRes struct {
 }
 
 // TODO: convert this to multi-part request and expect avatar as file
-func (s *Server) SignUp(ctx *gin.Context) {
+func (srv *Server) SignUp(ctx *gin.Context) {
 
 	form, err := ctx.MultipartForm()
 	if err != nil {
@@ -148,7 +148,7 @@ func (s *Server) SignUp(ctx *gin.Context) {
 		ReturnSecureToken: true,
 	}
 
-	authURL := "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + s.config.FirebaseAuthKey
+	authURL := "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + srv.config.FirebaseAuthKey
 
 	// Marshal the request and make the API call
 	resp, err := makePostRequest(authURL, signUpReq)
@@ -202,7 +202,7 @@ func (s *Server) SignUp(ctx *gin.Context) {
 		// create file name with userid and file extension
 		fileName := res.LocalId + getFileExtension(userImageFile)
 
-		imageUrl, err := s.uploadFile(ctx, file, fileName, userImageFile.Header.Get("Content-Type"))
+		imageUrl, err := srv.uploadFile(ctx, file, fileName, userImageFile.Header.Get("Content-Type"))
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error uploading file"})
 			return
@@ -222,7 +222,7 @@ func (s *Server) SignUp(ctx *gin.Context) {
 		AvatarUrl:      &userImageUrl,
 	}
 
-	user, err := s.Store.CreateUser(ctx, arg)
+	user, err := srv.Store.CreateUser(ctx, arg)
 
 	// Create and return the authentication response
 	authResponse := authResponse{
@@ -250,7 +250,7 @@ type refreshTokenRes struct {
 	ProjectId    string `json:"project_id"`
 }
 
-func (s *Server) RefreshToken(ctx *gin.Context) {
+func (srv *Server) RefreshToken(ctx *gin.Context) {
 
 	var req refreshTokenReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -263,7 +263,7 @@ func (s *Server) RefreshToken(ctx *gin.Context) {
 		return
 	}
 
-	authURL := "https://securetoken.googleapis.com/v1/token?key=" + s.config.FirebaseAuthKey
+	authURL := "https://securetoken.googleapis.com/v1/token?key=" + srv.config.FirebaseAuthKey
 
 	// Marshal the request and make the API call
 	resp, err := makePostRequest(authURL, req)
@@ -304,7 +304,7 @@ type resetPasswordRequest struct {
 	Password string `json:"password"`
 }
 
-func (s *Server) ResetPassword(ctx *gin.Context) {
+func (srv *Server) ResetPassword(ctx *gin.Context) {
 	var req resetPasswordRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
@@ -316,7 +316,7 @@ func (s *Server) ResetPassword(ctx *gin.Context) {
 		return
 	}
 
-	user, err := s.FirebaseAuth.GetUserByEmail(ctx, req.Email)
+	user, err := srv.FirebaseAuth.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to get user")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -324,7 +324,7 @@ func (s *Server) ResetPassword(ctx *gin.Context) {
 	}
 
 	// delete the user
-	err = s.FirebaseAuth.DeleteUser(ctx, user.UID)
+	err = srv.FirebaseAuth.DeleteUser(ctx, user.UID)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to delete user")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -338,7 +338,7 @@ func (s *Server) ResetPassword(ctx *gin.Context) {
 	userArg.Password(req.Password)
 	userArg.UID(user.UID)
 
-	_, err = s.FirebaseAuth.CreateUser(ctx, userArg)
+	_, err = srv.FirebaseAuth.CreateUser(ctx, userArg)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create user")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -359,7 +359,7 @@ type linkedinLoginResponse struct {
 	Token  string `json:"token"`
 }
 
-func (s *Server) LinkedinLogin(ctx *gin.Context) {
+func (srv *Server) LinkedinLogin(ctx *gin.Context) {
 
 	var req linkedinLoginRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -367,7 +367,7 @@ func (s *Server) LinkedinLogin(ctx *gin.Context) {
 		return
 	}
 
-	token, err := validateLinkedinToken(req.AccessToken, s.config.LinkedinClientID, s.config.LinkedinClientSecret)
+	token, err := validateLinkedinToken(req.AccessToken, srv.config.LinkedinClientID, srv.config.LinkedinClientSecret)
 	if err != nil {
 		return
 	}
@@ -377,10 +377,10 @@ func (s *Server) LinkedinLogin(ctx *gin.Context) {
 		return
 	}
 
-	userRecord, _ := s.FirebaseAuth.GetUserByEmail(ctx, req.Email)
+	userRecord, _ := srv.FirebaseAuth.GetUserByEmail(ctx, req.Email)
 	if userRecord != nil {
 		userID := userRecord.UserInfo.UID
-		token, err := s.FirebaseAuth.CustomToken(ctx, userID)
+		token, err := srv.FirebaseAuth.CustomToken(ctx, userID)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to create custom token")
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -396,12 +396,12 @@ func (s *Server) LinkedinLogin(ctx *gin.Context) {
 		user.EmailVerified(true)
 		user.UID(userID)
 
-		createUser, err := s.FirebaseAuth.CreateUser(ctx, user)
+		createUser, err := srv.FirebaseAuth.CreateUser(ctx, user)
 		if err != nil {
 			return
 		}
 
-		token, err := s.FirebaseAuth.CustomToken(ctx, createUser.UID)
+		token, err := srv.FirebaseAuth.CustomToken(ctx, createUser.UID)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to create custom token")
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))

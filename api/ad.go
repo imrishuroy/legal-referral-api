@@ -37,7 +37,7 @@ type createAdReq struct {
 	EndDate      *time.Time              `form:"end_date"`
 }
 
-func (s *Server) CreateAd(ctx *gin.Context) {
+func (srv *Server) CreateAd(ctx *gin.Context) {
 
 	var req createAdReq
 
@@ -62,7 +62,7 @@ func (s *Server) CreateAd(ctx *gin.Context) {
 		//		bucketName = "post-videos"
 		//	}
 
-		urls, err := s.handleFilesUpload(ctx, req.Files)
+		urls, err := srv.handleFilesUpload(ctx, req.Files)
 
 		//urls, err := server.handleFilesUpload(req.Files, bucketName)
 		if err != nil {
@@ -87,7 +87,7 @@ func (s *Server) CreateAd(ctx *gin.Context) {
 		EndDate:      *req.EndDate,
 	}
 
-	_, err := s.Store.CreateAd(ctx, arg)
+	_, err := srv.Store.CreateAd(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -96,7 +96,7 @@ func (s *Server) CreateAd(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Ad created successfully"})
 }
 
-func (s *Server) ListPlayingAds(ctx *gin.Context) {
+func (srv *Server) ListPlayingAds(ctx *gin.Context) {
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
@@ -104,7 +104,7 @@ func (s *Server) ListPlayingAds(ctx *gin.Context) {
 		return
 	}
 
-	ads, err := s.Store.ListPlayingAds(ctx)
+	ads, err := srv.Store.ListPlayingAds(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -113,7 +113,7 @@ func (s *Server) ListPlayingAds(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, ads)
 }
 
-func (s *Server) ListExpiredAds(ctx *gin.Context) {
+func (srv *Server) ListExpiredAds(ctx *gin.Context) {
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
@@ -121,7 +121,7 @@ func (s *Server) ListExpiredAds(ctx *gin.Context) {
 		return
 	}
 
-	ads, err := s.Store.ListExpiredAds(ctx)
+	ads, err := srv.Store.ListExpiredAds(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -130,7 +130,7 @@ func (s *Server) ListExpiredAds(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, ads)
 }
 
-func (s *Server) ExtendAdPeriod(ctx *gin.Context) {
+func (srv *Server) ExtendAdPeriod(ctx *gin.Context) {
 	adIDStr := ctx.Param("ad_id")
 	adID, err := strconv.Atoi(adIDStr)
 	if err != nil {
@@ -153,7 +153,7 @@ func (s *Server) ExtendAdPeriod(ctx *gin.Context) {
 
 	req.AdID = int32(adID)
 
-	ad, err := s.Store.ExtendAdPeriod(ctx, req)
+	ad, err := srv.Store.ExtendAdPeriod(ctx, req)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

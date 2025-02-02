@@ -22,7 +22,7 @@ type accountInfo struct {
 	ConnectionsCount int64       `json:"connections_count"`
 }
 
-func (s *Server) GetAccountInfo(ctx *gin.Context) {
+func (srv *Server) GetAccountInfo(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -31,7 +31,7 @@ func (s *Server) GetAccountInfo(ctx *gin.Context) {
 		return
 	}
 
-	acInfo, err := s.Store.GetAccountInfo(ctx, userID)
+	acInfo, err := srv.Store.GetAccountInfo(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

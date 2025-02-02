@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func (s *Server) ListChatRooms(ctx *gin.Context) {
+func (srv *Server) ListChatRooms(ctx *gin.Context) {
 
 	userID := ctx.Param("user_id")
 
@@ -20,7 +20,7 @@ func (s *Server) ListChatRooms(ctx *gin.Context) {
 		return
 	}
 
-	chatRooms, err := s.Store.ListChatRooms(ctx, userID)
+	chatRooms, err := srv.Store.ListChatRooms(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": errorResponse(err)})
 		return
@@ -35,7 +35,7 @@ type createChatRoomReq struct {
 	User2ID string `json:"user2_id" binding:"required"`
 }
 
-func (s *Server) CreateChatRoom(ctx *gin.Context) {
+func (srv *Server) CreateChatRoom(ctx *gin.Context) {
 	var req createChatRoomReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
@@ -59,12 +59,12 @@ func (s *Server) CreateChatRoom(ctx *gin.Context) {
 		User1ID: req.User1ID,
 	}
 
-	chatRoom, err := s.Store.GetChatRoom(ctx, getChatRoomArg)
+	chatRoom, err := srv.Store.GetChatRoom(ctx, getChatRoomArg)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to get chat room")
 		if strings.Contains(err.Error(), "no rows in result set") {
 
-			chatRoom, err := s.Store.CreateChatRoom(ctx, arg)
+			chatRoom, err := srv.Store.CreateChatRoom(ctx, arg)
 			if err != nil {
 				log.Error().Err(err).Msg("Failed to create chat room")
 				ctx.JSON(http.StatusInternalServerError, errorResponse(err))

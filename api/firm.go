@@ -24,7 +24,7 @@ type addFirmReq struct {
 	About       string                  `form:"about" binding:"required"`
 }
 
-func (s *Server) AddFirm(ctx *gin.Context) {
+func (srv *Server) AddFirm(ctx *gin.Context) {
 
 	var req addFirmReq
 
@@ -42,7 +42,7 @@ func (s *Server) AddFirm(ctx *gin.Context) {
 		return
 	}
 
-	urls, err := s.handleFilesUpload(ctx, req.Files)
+	urls, err := srv.handleFilesUpload(ctx, req.Files)
 
 	if err != nil && len(urls) == 0 {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -59,7 +59,7 @@ func (s *Server) AddFirm(ctx *gin.Context) {
 		About:       req.About,
 	}
 
-	firm, err := s.Store.AddFirm(ctx, arg)
+	firm, err := srv.Store.AddFirm(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -74,7 +74,7 @@ type searchFirmsReq struct {
 	SearchQuery string `form:"query"`
 }
 
-func (s *Server) SearchFirms(ctx *gin.Context) {
+func (srv *Server) SearchFirms(ctx *gin.Context) {
 
 	var req searchFirmsReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -89,13 +89,13 @@ func (s *Server) SearchFirms(ctx *gin.Context) {
 	}
 
 	/// check if the store object is nil
-	log.Info().Msgf("Store object ------: %+v", s.Store)
+	log.Info().Msgf("Store object ------: %+v", srv.Store)
 	// check if the context object is nil
 	log.Info().Msgf("Context object -------: %+v", ctx)
 	// check if the arg object is nil s == nil
-	log.Info().Msgf("store object is null -------- : %+v", s.Store == nil)
+	log.Info().Msgf("store object is null -------- : %+v", srv.Store == nil)
 
-	firms, err := s.Store.ListFirms(ctx, arg)
+	firms, err := srv.Store.ListFirms(ctx, arg)
 	if err != nil {
 		log.Err(err).Msg("error fetching firms")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -109,7 +109,7 @@ type listFirmsByOwnerReq struct {
 	OwnerUserID string `uri:"owner_user_id" binding:"required"`
 }
 
-func (s *Server) ListFirmsByOwner(ctx *gin.Context) {
+func (srv *Server) ListFirmsByOwner(ctx *gin.Context) {
 
 	var req listFirmsByOwnerReq
 	if err := ctx.ShouldBindUri(&req); err != nil {
@@ -124,7 +124,7 @@ func (s *Server) ListFirmsByOwner(ctx *gin.Context) {
 		return
 	}
 
-	firms, err := s.Store.ListFirmsByOwner(ctx, "YLFPbwsDBqOpMNdP3C04GC6iEdW2")
+	firms, err := srv.Store.ListFirmsByOwner(ctx, "YLFPbwsDBqOpMNdP3C04GC6iEdW2")
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

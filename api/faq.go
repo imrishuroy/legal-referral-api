@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-func (s *Server) CreateFAQ(ctx *gin.Context) {
+func (srv *Server) CreateFAQ(ctx *gin.Context) {
 
 	var req db.CreateFAQParams
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -21,7 +21,7 @@ func (s *Server) CreateFAQ(ctx *gin.Context) {
 		return
 	}
 
-	faq, err := s.Store.CreateFAQ(ctx, req)
+	faq, err := srv.Store.CreateFAQ(ctx, req)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -30,14 +30,14 @@ func (s *Server) CreateFAQ(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, faq)
 }
 
-func (s *Server) ListFAQs(ctx *gin.Context) {
+func (srv *Server) ListFAQs(ctx *gin.Context) {
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {
 		ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
 
-	faqList, err := s.Store.ListFAQs(ctx)
+	faqList, err := srv.Store.ListFAQs(ctx)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

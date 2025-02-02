@@ -11,7 +11,7 @@ type saveDeviceReq struct {
 	UserID      string `json:"user_id" binding:"required"`
 }
 
-func (s *Server) SaveDevice(ctx *gin.Context) {
+func (srv *Server) SaveDevice(ctx *gin.Context) {
 	var req saveDeviceReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(400, gin.H{"error": err.Error()})
@@ -24,7 +24,7 @@ func (s *Server) SaveDevice(ctx *gin.Context) {
 		UserID:      req.UserID,
 	}
 
-	err := s.Store.SaveDevice(ctx, arg)
+	err := srv.Store.SaveDevice(ctx, arg)
 	if err != nil {
 		ctx.JSON(500, gin.H{"error": err.Error()})
 		return

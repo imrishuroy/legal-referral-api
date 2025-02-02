@@ -27,7 +27,7 @@ type message struct {
 	RepliedMessage  *message  `json:"replied_message"`
 }
 
-func (s *Server) ListMessages(ctx *gin.Context) {
+func (srv *Server) ListMessages(ctx *gin.Context) {
 	var req listMessagesRequest
 
 	if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -48,7 +48,7 @@ func (s *Server) ListMessages(ctx *gin.Context) {
 		Limit:  req.Limit,
 	}
 
-	messages, err := s.Store.ListMessages(ctx, arg)
+	messages, err := srv.Store.ListMessages(ctx, arg)
 
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, errorResponse(err))
