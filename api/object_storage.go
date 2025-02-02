@@ -98,7 +98,7 @@ func (s *Server) uploadFile(file multipart.File, fileName string, contentType st
 	log.Info().Msgf("Uploading file to bucket: %s", bucketName)
 
 	// Upload the file to S3
-	_, err := s.svc.PutObject(&s3.PutObjectInput{
+	_, err := s.SVC.PutObject(&s3.PutObjectInput{
 		Bucket:               aws.String(bucketName),
 		Key:                  aws.String(fileName),
 		Body:                 file,

@@ -40,7 +40,7 @@ type Server struct {
 	FirebaseAuth *auth.Client
 	twilioClient *twilio.RestClient
 	awsSession   *session.Session
-	svc          *s3.S3
+	SVC          *s3.S3
 	//rdb          RedisClient
 	hub      *chat.Hub
 	producer *kafka.Producer
@@ -87,13 +87,21 @@ func NewServer(config util.Config, store db.Store, hub *chat.Hub, producer *kafk
 	// s3 session
 	svc := s3.New(awsSession)
 
+	/// print svc
+	fmt.Println("svc", svc)
+	if svc == nil {
+		fmt.Println("svc is nil")
+	} else {
+		fmt.Println("svc is not nil")
+	}
+
 	server := &Server{
 		config:       config,
 		Store:        store,
 		FirebaseAuth: firebaseAuth,
 		twilioClient: twilioClient,
 		awsSession:   awsSession,
-		svc:          svc,
+		SVC:          svc,
 		//rdb:          rdb,
 		hub:      hub,
 		producer: producer,
