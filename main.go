@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
+	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/gin-gonic/gin"
@@ -291,12 +292,12 @@ func main() {
 	auth.GET("/users/:user_id/followers-count", srv.GetUserFollowersCount)
 
 	// to run local
-	err = r.Run(config.ServerAddress)
-	log.Info().Err(err).Msg("cannot create srv:")
+	//err = r.Run(config.ServerAddress)
+	//log.Info().Err(err).Msg("cannot create srv:")
 
 	// to run on lambda
-	//ginLambda = ginadapter.New(r)
-	//lambda.Start(Handler)
+	ginLambda = ginadapter.New(r)
+	lambda.Start(Handler)
 }
 
 //func GetRedisClient(config util.Config) api.RedisClient {
