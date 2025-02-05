@@ -82,6 +82,7 @@ func main() {
 		TLSConfig: &tls.Config{
 			InsecureSkipVerify: false,
 		},
+		DisableCache: true,
 	})
 	if err != nil {
 		log.Error().Err(err).Msg("cannot create valkey client")
