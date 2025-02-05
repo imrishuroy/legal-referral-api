@@ -36,8 +36,8 @@ type Config struct {
 	SASLUsername           string `mapstructure:"SASL_USERNAME"`
 	SASLPassword           string `mapstructure:"SASL_PASSWORD"`
 	Topic                  string `mapstructure:"TOPIC"`
-	RedisHost              string `mapstructure:"REDIS_HOST"`
-	RedisPort              string `mapstructure:"REDIS_PORT"`
+	ValKeyHost             string `mapstructure:"VALKEY_HOST"`
+	ValKeyPort             string `mapstructure:"VALKEY_PORT"`
 }
 
 // LoadConfig reads configuration from file or environment variables

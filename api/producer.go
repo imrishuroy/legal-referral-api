@@ -30,7 +30,7 @@ func createKafkaProducer(config util.Config) (*kafka.Producer, error) {
 
 func (srv *Server) publishToKafka(topic string, key string, value string) {
 	// create a new producer instance
-	p, err := createKafkaProducer(srv.config)
+	p, err := createKafkaProducer(srv.Config)
 	if err != nil {
 		log.Error().Msgf("Failed to create producer: %s", err)
 		return

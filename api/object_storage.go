@@ -94,7 +94,7 @@ func (srv *Server) uploadFileHandler(ctx context.Context, file *multipart.FileHe
 
 func (srv *Server) uploadFile(ctx context.Context, file multipart.File, fileName string, contentType string) (string, error) {
 
-	bucketName := srv.config.AWSBucketName
+	bucketName := srv.Config.AWSBucketName
 	log.Info().Msgf("Uploading file to bucket: %s", bucketName)
 
 	// Upload the file to S3
@@ -126,7 +126,7 @@ func (srv *Server) uploadFile(ctx context.Context, file multipart.File, fileName
 
 //func (server *Server) uploadFile(file multipart.File, fileName string, contentType string) (string, error) {
 //
-//	bucketName := server.config.AWSBucketName
+//	bucketName := server.Config.AWSBucketName
 //	log.Info().Msgf("Uploading file to bucket: %s", bucketName)
 //
 //	// Upload the file to S3
@@ -144,7 +144,7 @@ func (srv *Server) uploadFile(ctx context.Context, file multipart.File, fileName
 //		return "", err
 //	}
 //
-//	url := generateS3URL(server.config.AWSRegion, bucketName, fileName)
+//	url := generateS3URL(server.Config.AWSRegion, bucketName, fileName)
 //	return url, nil
 //}
 

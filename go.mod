@@ -20,6 +20,7 @@ require (
 	github.com/rs/zerolog v1.33.0
 	github.com/spf13/viper v1.19.0
 	github.com/twilio/twilio-go v1.23.6
+	github.com/valkey-io/valkey-go v1.0.54
 	github.com/vektah/gqlparser/v2 v2.5.19
 	google.golang.org/api v0.206.0
 )
@@ -129,16 +130,16 @@ require (
 	go.opentelemetry.io/otel/trace v1.32.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/arch v0.12.0 // indirect
-	golang.org/x/crypto v0.29.0 // indirect
+	golang.org/x/crypto v0.32.0 // indirect
 	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f // indirect
 	golang.org/x/mod v0.22.0 // indirect
-	golang.org/x/net v0.31.0 // indirect
+	golang.org/x/net v0.34.0 // indirect
 	golang.org/x/oauth2 v0.24.0 // indirect
-	golang.org/x/sync v0.9.0 // indirect
-	golang.org/x/sys v0.27.0 // indirect
-	golang.org/x/text v0.20.0 // indirect
+	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
+	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.8.0 // indirect
-	golang.org/x/tools v0.27.0 // indirect
+	golang.org/x/tools v0.29.0 // indirect
 	google.golang.org/appengine/v2 v2.0.6 // indirect
 	google.golang.org/genproto v0.0.0-20241113202542-65e8d215514f // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20241113202542-65e8d215514f // indirect

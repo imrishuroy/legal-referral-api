@@ -1,6 +1,8 @@
 package api
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
 	"firebase.google.com/go/v4/auth"
 	"fmt"
@@ -63,98 +65,98 @@ type postMetaData struct {
 	IsLiked           bool    `json:"is_liked"`
 }
 
-//func (server *Server) listNewsFeedV3(ctx *gin.Context) {
-//	var req listNewsFeedReq
-//	if err := ctx.ShouldBindQuery(&req); err != nil {
-//		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
-//		return
-//	}
-//
-//	userID := ctx.Param("user_id")
-//	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
-//	if authPayload.UID != userID {
-//		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
-//		return
-//	}
-//
-//	arg := db.ListNewsFeedV3Params{
-//		UserID: userID,
-//		Limit:  req.Limit,
-//		Offset: maxOffset(0, (req.Offset-1)*req.Limit),
-//	}
-//
-//	newsFeed, err := server.Store.ListNewsFeedV3(ctx, arg)
-//	if err != nil {
-//		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching feed posts"})
-//		return
-//	}
-//
-//	var postsToFetchFromDB []int32
-//	var posts []post
-//	feedPostMap := make(map[int32]int32)
-//
-//	for _, feed := range newsFeed {
-//		feedPostMap[feed.PostID] = feed.FeedID
-//		redisKey := fmt.Sprintf("post:%d", feed.PostID)
-//		post, err := server.getCachedPost(ctx, redisKey)
-//		if err != nil {
-//			postsToFetchFromDB = append(postsToFetchFromDB, feed.PostID)
-//		} else {
-//			posts = append(posts, *post)
-//		}
-//	}
-//
-//	if len(postsToFetchFromDB) > 0 {
-//		postsFromDB, err := server.Store.ListPosts(ctx, postsToFetchFromDB)
-//		if err != nil {
-//			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching missing posts from database"})
-//			return
-//		}
-//		postsMap := make(map[string]*post)
-//		for _, p := range postsFromDB {
-//			redisKey := fmt.Sprintf("post:%d", p.PostID)
-//			post := post{
-//				PostID:    p.PostID,
-//				OwnerID:   p.OwnerID,
-//				Content:   p.Content,
-//				Media:     p.Media,
-//				PostType:  PostType(p.PostType),
-//				PollID:    p.PollID,
-//				CreatedAt: p.CreatedAt,
-//			}
-//			postsMap[redisKey] = &post
-//			posts = append(posts, post)
-//		}
-//		if err := server.cachePosts(ctx, postsMap, 12*time.Hour); err != nil {
-//			log.Printf("Error caching posts: %v", err)
-//		}
-//	}
-//
-//	postsIDs := extractPostIDs(posts)
-//	postMetaArg := db.PostsMetaDataParams{
-//		UserID:  userID,
-//		PostIds: postsIDs,
-//	}
-//
-//	postMetaDataMap := make(map[int32]postMetaData)
-//
-//	metaData, err := server.Store.PostsMetaData(ctx, postMetaArg)
-//	for _, md := range metaData {
-//		postMetaDataMap[md.PostID] = postMetaData{
-//			PostID:            md.PostID,
-//			OwnerFirstName:    md.OwnerFirstName,
-//			OwnerLastName:     md.OwnerLastName,
-//			OwnerAvatarUrl:    md.OwnerAvatarUrl,
-//			OwnerPracticeArea: md.OwnerPracticeArea,
-//			LikesCount:        md.LikesCount,
-//			CommentsCount:     md.CommentsCount,
-//			IsLiked:           md.IsLiked,
-//		}
-//	}
-//
-//	feedLists := createFeedList(posts, postMetaDataMap, feedPostMap)
-//	ctx.JSON(http.StatusOK, feedLists)
-//}
+func (srv *Server) ListNewsFeedV3(ctx *gin.Context) {
+	var req listNewsFeedReq
+	if err := ctx.ShouldBindQuery(&req); err != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+		return
+	}
+
+	userID := ctx.Param("user_id")
+	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+	if authPayload.UID != userID {
+		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+		return
+	}
+
+	arg := db.ListNewsFeedV3Params{
+		UserID: userID,
+		Limit:  req.Limit,
+		Offset: maxOffset(0, (req.Offset-1)*req.Limit),
+	}
+
+	newsFeed, err := srv.Store.ListNewsFeedV3(ctx, arg)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching feed posts"})
+		return
+	}
+
+	var postsToFetchFromDB []int32
+	var posts []post
+	feedPostMap := make(map[int32]int32)
+
+	for _, feed := range newsFeed {
+		feedPostMap[feed.PostID] = feed.FeedID
+		redisKey := fmt.Sprintf("post:%d", feed.PostID)
+		post, err := srv.getCachedPost(ctx, redisKey)
+		if err != nil {
+			postsToFetchFromDB = append(postsToFetchFromDB, feed.PostID)
+		} else {
+			posts = append(posts, *post)
+		}
+	}
+
+	if len(postsToFetchFromDB) > 0 {
+		postsFromDB, err := srv.Store.ListPosts(ctx, postsToFetchFromDB)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Error fetching missing posts from database"})
+			return
+		}
+		postsMap := make(map[string]*post)
+		for _, p := range postsFromDB {
+			redisKey := fmt.Sprintf("post:%d", p.PostID)
+			post := post{
+				PostID:    p.PostID,
+				OwnerID:   p.OwnerID,
+				Content:   p.Content,
+				Media:     p.Media,
+				PostType:  PostType(p.PostType),
+				PollID:    p.PollID,
+				CreatedAt: p.CreatedAt,
+			}
+			postsMap[redisKey] = &post
+			posts = append(posts, post)
+		}
+		if err := srv.cachePosts(ctx, postsMap, 12*time.Hour); err != nil {
+			log.Printf("Error caching posts: %v", err)
+		}
+	}
+
+	postsIDs := extractPostIDs(posts)
+	postMetaArg := db.PostsMetaDataParams{
+		UserID:  userID,
+		PostIds: postsIDs,
+	}
+
+	postMetaDataMap := make(map[int32]postMetaData)
+
+	metaData, err := srv.Store.PostsMetaData(ctx, postMetaArg)
+	for _, md := range metaData {
+		postMetaDataMap[md.PostID] = postMetaData{
+			PostID:            md.PostID,
+			OwnerFirstName:    md.OwnerFirstName,
+			OwnerLastName:     md.OwnerLastName,
+			OwnerAvatarUrl:    md.OwnerAvatarUrl,
+			OwnerPracticeArea: md.OwnerPracticeArea,
+			LikesCount:        md.LikesCount,
+			CommentsCount:     md.CommentsCount,
+			IsLiked:           md.IsLiked,
+		}
+	}
+
+	feedLists := createFeedList(posts, postMetaDataMap, feedPostMap)
+	ctx.JSON(http.StatusOK, feedLists)
+}
 
 func createFeedList(posts []post, postMetaDataMap map[int32]postMetaData, feedPostMap map[int32]int32) []feed {
 	feedLists := make([]feed, 0, len(posts))
@@ -194,40 +196,50 @@ func extractPostIDs(posts []post) []int32 {
 	return postsIDs
 }
 
-//
-//func (server *Server) getCachedPost(ctx context.Context, key string) (*post, error) {
-//	cachedData, err := server.rdb.Get(ctx, key).Result()
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	var post post
-//	if err := json.Unmarshal([]byte(cachedData), &post); err != nil {
-//		return nil, fmt.Errorf("error deserializing post data: %v", err)
-//	}
-//
-//	return &post, nil
-//}
-//
-//func (server *Server) cachePosts(ctx context.Context, posts map[string]*post, expiration time.Duration) error {
-//	pipe := server.rdb.Pipeline() // Use a Redis pipeline for batch operations
-//
-//	for key, post := range posts {
-//		data, err := json.Marshal(post)
-//		if err != nil {
-//			return fmt.Errorf("error serializing post data for key %s: %v", key, err)
-//		}
-//		pipe.Set(ctx, key, data, expiration)
-//	}
-//
-//	// Execute all commands in the pipeline
-//	_, err := pipe.Exec(ctx)
-//	if err != nil {
-//		return fmt.Errorf("error executing Redis pipeline: %v", err)
-//	}
-//
-//	return nil
-//}
+func (srv *Server) getCachedPost(ctx context.Context, key string) (*post, error) {
+
+	data, err := srv.ValkeyClient.Do(ctx, srv.ValkeyClient.B().Get().Key(key).Build()).AsBytes()
+	if err != nil {
+		return nil, err
+	}
+
+	var post post
+	if err := json.Unmarshal([]byte(data), &post); err != nil {
+		return nil, fmt.Errorf("error deserializing post data: %v", err)
+	}
+
+	return &post, nil
+}
+
+func (srv *Server) cachePosts(ctx context.Context, posts map[string]*post, expiration time.Duration) error {
+
+	for key, post := range posts {
+		data, err := json.Marshal(post)
+		if err != nil {
+			return fmt.Errorf("error serializing post data for key %s: %v", key, err)
+		}
+		dataStr := string(data)
+		srv.ValkeyClient.Do(ctx, srv.ValkeyClient.B().Set().Key(key).Value(dataStr).Ex(expiration).Build())
+	}
+
+	//pipe := server.rdb.Pipeline() // Use a Redis pipeline for batch operations
+	//
+	//for key, post := range posts {
+	//	data, err := json.Marshal(post)
+	//	if err != nil {
+	//		return fmt.Errorf("error serializing post data for key %s: %v", key, err)
+	//	}
+	//	pipe.Set(ctx, key, data, expiration)
+	//}
+	//
+	//// Execute all commands in the pipeline
+	//_, err := pipe.Exec(ctx)
+	//if err != nil {
+	//	return fmt.Errorf("error executing Redis pipeline: %v", err)
+	//}
+
+	return nil
+}
 
 //func (server *Server) listNewsFeedV2(ctx *gin.Context) {
 //	var req listNewsFeedReq

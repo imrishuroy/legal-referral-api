@@ -13,6 +13,7 @@ import (
 	"github.com/imrishuroy/legal-referral/util"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
+	"github.com/valkey-io/valkey-go"
 )
 
 var ginLambda *ginadapter.GinLambda
@@ -38,7 +39,7 @@ func main() {
 	pool, err := pgxpool.New(context.Background(), config.DBSource)
 
 	if err != nil {
-		fmt.Println("cannot connect to db:", err)
+		log.Fatal().Err(err).Msg("cannot connect to database")
 	}
 	defer pool.Close()
 
@@ -68,18 +69,19 @@ func main() {
 	if err != nil {
 		log.Error().Err(err).Msg("cannot create producer")
 	}
+	defer producer.Close()
 
-	//rdb := GetRedisClient(config)
+	valkeyURL := fmt.Sprintf("%s:%s", config.ValKeyHost, config.ValKeyPort)
+	log.Info().Msg("Valkey URL: " + valkeyURL)
 
-	//pong, err := rdb.Ping(ctx).Result()
-	//if err != nil {
-	//	log.Error().Err(err).Msg("cannot connect to redis")
-	//} else {
-	//	log.Info().Msg("Connected to Redis with TLS: " + pong)
-	//}
+	vkClient, err := valkey.NewClient(valkey.ClientOption{InitAddress: []string{valkeyURL}})
+	if err != nil {
+		log.Error().Err(err).Msg("cannot create valkey client")
+	}
+	defer vkClient.Close()
 
 	// api srv setup
-	srv, err := api.NewServer(config, store, hub, producer, ginLambda)
+	srv, err := api.NewServer(config, store, hub, producer, vkClient)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create srv:")
 	}
@@ -204,7 +206,7 @@ func main() {
 	//// news feed
 	auth.GET("/feeds/:user_id", srv.ListNewsFeed)
 	////auth.GET("/v2/feeds/:user_id", srv.listNewsFeedV2)
-	////auth.GET("/v3/feeds/:user_id", srv.listNewsFeedV3)
+	auth.GET("/v3/feeds/:user_id", srv.ListNewsFeedV3)
 
 	//// like post
 	auth.POST("/posts/:post_id/like", srv.LikePost)

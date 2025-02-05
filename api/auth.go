@@ -51,7 +51,7 @@ func (srv *Server) SignIn(ctx *gin.Context) {
 		return
 	}
 
-	authURL := "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + srv.config.FirebaseAuthKey
+	authURL := "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + srv.Config.FirebaseAuthKey
 
 	// Marshal the request and make the API call
 	resp, err := makePostRequest(authURL, req)
@@ -148,7 +148,7 @@ func (srv *Server) SignUp(ctx *gin.Context) {
 		ReturnSecureToken: true,
 	}
 
-	authURL := "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + srv.config.FirebaseAuthKey
+	authURL := "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + srv.Config.FirebaseAuthKey
 
 	// Marshal the request and make the API call
 	resp, err := makePostRequest(authURL, signUpReq)
@@ -263,7 +263,7 @@ func (srv *Server) RefreshToken(ctx *gin.Context) {
 		return
 	}
 
-	authURL := "https://securetoken.googleapis.com/v1/token?key=" + srv.config.FirebaseAuthKey
+	authURL := "https://securetoken.googleapis.com/v1/token?key=" + srv.Config.FirebaseAuthKey
 
 	// Marshal the request and make the API call
 	resp, err := makePostRequest(authURL, req)
@@ -367,7 +367,7 @@ func (srv *Server) LinkedinLogin(ctx *gin.Context) {
 		return
 	}
 
-	token, err := validateLinkedinToken(req.AccessToken, srv.config.LinkedinClientID, srv.config.LinkedinClientSecret)
+	token, err := validateLinkedinToken(req.AccessToken, srv.Config.LinkedinClientID, srv.Config.LinkedinClientSecret)
 	if err != nil {
 		return
 	}
