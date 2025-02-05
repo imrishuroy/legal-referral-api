@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -75,7 +76,13 @@ func main() {
 	valkeyURL := fmt.Sprintf("%s:%s", config.ValKeyHost, config.ValKeyPort)
 	log.Info().Msg("Valkey URL: " + valkeyURL)
 
-	vkClient, err := valkey.NewClient(valkey.ClientOption{InitAddress: []string{valkeyURL}})
+	vkClient, err := valkey.NewClient(valkey.ClientOption{
+		InitAddress: []string{valkeyURL},
+		Password:    "",
+		TLSConfig: &tls.Config{
+			InsecureSkipVerify: false,
+		},
+	})
 	if err != nil {
 		log.Error().Err(err).Msg("cannot create valkey client")
 	}
