@@ -41,9 +41,9 @@ var (
 )
 
 type Server struct {
-	config       util.Config
-	Store        db.Store
-	Router       *gin.Engine
+	config util.Config
+	Store  db.Store
+	//Router       *gin.Engine
 	FirebaseAuth *auth.Client
 	twilioClient *twilio.RestClient
 	awsSession   *session.Session

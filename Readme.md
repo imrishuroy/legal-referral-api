@@ -157,3 +157,12 @@ Deploy latest changes to elasticbeanstalk ( even if you have not committed the c
     eb deploy
 eb deploy --staged
 
+Lambda
+
+Update func
+
+    aws lambda update-function-code \
+    --function-name legal-referral \
+    --image-uri 021891590100.dkr.ecr.us-east-1.amazonaws.com/legal-referral-lambda:latest \
+    --publish
+
