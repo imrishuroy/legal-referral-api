@@ -37,7 +37,7 @@ type authResponse struct {
 	ExpiresIn    string  `json:"expires_in"`
 }
 
-func (server *Server) signIn(ctx *gin.Context) {
+func (srv *Server) SignIn(ctx *gin.Context) {
 	var req signInReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
@@ -51,12 +51,11 @@ func (server *Server) signIn(ctx *gin.Context) {
 		return
 	}
 
-	authURL := "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + server.config.FirebaseAuthKey
+	authURL := "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + srv.config.FirebaseAuthKey
 
 	// Marshal the request and make the API call
 	resp, err := makePostRequest(authURL, req)
 	if err != nil {
-		log.Error().Err(err).Msg("failed to make sign-in request")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
 	}
@@ -83,8 +82,8 @@ func (server *Server) signIn(ctx *gin.Context) {
 		return
 	}
 
-	// Retrieve user data from the database
-	user, err := server.store.GetUserById(ctx, res.LocalId)
+	//Retrieve user data from the database
+	user, err := srv.Store.GetUserById(ctx, res.LocalId)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to retrieve user")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -118,7 +117,7 @@ type signUpRes struct {
 }
 
 // TODO: convert this to multi-part request and expect avatar as file
-func (server *Server) signUp(ctx *gin.Context) {
+func (srv *Server) SignUp(ctx *gin.Context) {
 
 	form, err := ctx.MultipartForm()
 	if err != nil {
@@ -149,7 +148,7 @@ func (server *Server) signUp(ctx *gin.Context) {
 		ReturnSecureToken: true,
 	}
 
-	authURL := "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + server.config.FirebaseAuthKey
+	authURL := "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + srv.config.FirebaseAuthKey
 
 	// Marshal the request and make the API call
 	resp, err := makePostRequest(authURL, signUpReq)
@@ -203,7 +202,7 @@ func (server *Server) signUp(ctx *gin.Context) {
 		// create file name with userid and file extension
 		fileName := res.LocalId + getFileExtension(userImageFile)
 
-		imageUrl, err := server.uploadFile(file, fileName, userImageFile.Header.Get("Content-Type"))
+		imageUrl, err := srv.uploadFile(ctx, file, fileName, userImageFile.Header.Get("Content-Type"))
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error uploading file"})
 			return
@@ -223,7 +222,7 @@ func (server *Server) signUp(ctx *gin.Context) {
 		AvatarUrl:      &userImageUrl,
 	}
 
-	user, err := server.store.CreateUser(ctx, arg)
+	user, err := srv.Store.CreateUser(ctx, arg)
 
 	// Create and return the authentication response
 	authResponse := authResponse{
@@ -251,7 +250,7 @@ type refreshTokenRes struct {
 	ProjectId    string `json:"project_id"`
 }
 
-func (server *Server) refreshToken(ctx *gin.Context) {
+func (srv *Server) RefreshToken(ctx *gin.Context) {
 
 	var req refreshTokenReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -264,7 +263,7 @@ func (server *Server) refreshToken(ctx *gin.Context) {
 		return
 	}
 
-	authURL := "https://securetoken.googleapis.com/v1/token?key=" + server.config.FirebaseAuthKey
+	authURL := "https://securetoken.googleapis.com/v1/token?key=" + srv.config.FirebaseAuthKey
 
 	// Marshal the request and make the API call
 	resp, err := makePostRequest(authURL, req)
@@ -305,7 +304,7 @@ type resetPasswordRequest struct {
 	Password string `json:"password"`
 }
 
-func (server *Server) resetPassword(ctx *gin.Context) {
+func (srv *Server) ResetPassword(ctx *gin.Context) {
 	var req resetPasswordRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
@@ -317,7 +316,7 @@ func (server *Server) resetPassword(ctx *gin.Context) {
 		return
 	}
 
-	user, err := server.firebaseAuth.GetUserByEmail(ctx, req.Email)
+	user, err := srv.FirebaseAuth.GetUserByEmail(ctx, req.Email)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to get user")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -325,7 +324,7 @@ func (server *Server) resetPassword(ctx *gin.Context) {
 	}
 
 	// delete the user
-	err = server.firebaseAuth.DeleteUser(ctx, user.UID)
+	err = srv.FirebaseAuth.DeleteUser(ctx, user.UID)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to delete user")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -339,7 +338,7 @@ func (server *Server) resetPassword(ctx *gin.Context) {
 	userArg.Password(req.Password)
 	userArg.UID(user.UID)
 
-	_, err = server.firebaseAuth.CreateUser(ctx, userArg)
+	_, err = srv.FirebaseAuth.CreateUser(ctx, userArg)
 	if err != nil {
 		log.Error().Err(err).Msg("failed to create user")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -360,7 +359,7 @@ type linkedinLoginResponse struct {
 	Token  string `json:"token"`
 }
 
-func (server *Server) linkedinLogin(ctx *gin.Context) {
+func (srv *Server) LinkedinLogin(ctx *gin.Context) {
 
 	var req linkedinLoginRequest
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -368,7 +367,7 @@ func (server *Server) linkedinLogin(ctx *gin.Context) {
 		return
 	}
 
-	token, err := validateLinkedinToken(req.AccessToken, server.config.LinkedinClientID, server.config.LinkedinClientSecret)
+	token, err := validateLinkedinToken(req.AccessToken, srv.config.LinkedinClientID, srv.config.LinkedinClientSecret)
 	if err != nil {
 		return
 	}
@@ -378,10 +377,10 @@ func (server *Server) linkedinLogin(ctx *gin.Context) {
 		return
 	}
 
-	userRecord, _ := server.firebaseAuth.GetUserByEmail(ctx, req.Email)
+	userRecord, _ := srv.FirebaseAuth.GetUserByEmail(ctx, req.Email)
 	if userRecord != nil {
 		userID := userRecord.UserInfo.UID
-		token, err := server.firebaseAuth.CustomToken(ctx, userID)
+		token, err := srv.FirebaseAuth.CustomToken(ctx, userID)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to create custom token")
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -397,12 +396,12 @@ func (server *Server) linkedinLogin(ctx *gin.Context) {
 		user.EmailVerified(true)
 		user.UID(userID)
 
-		createUser, err := server.firebaseAuth.CreateUser(ctx, user)
+		createUser, err := srv.FirebaseAuth.CreateUser(ctx, user)
 		if err != nil {
 			return
 		}
 
-		token, err := server.firebaseAuth.CustomToken(ctx, createUser.UID)
+		token, err := srv.FirebaseAuth.CustomToken(ctx, createUser.UID)
 		if err != nil {
 			log.Error().Err(err).Msg("failed to create custom token")
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -488,11 +487,11 @@ func handleFirebaseError(ctx *gin.Context, body []byte) {
 	// Handle specific error messages
 	switch firebaseError.Error.Message {
 	case "EMAIL_EXISTS":
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Email already exists"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Email already exists"})
 	case "INVALID_LOGIN_CREDENTIALS":
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid login credentials"})
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid login credentials"})
 	default:
 		// Generic error handling for any other errors
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": firebaseError.Error.Message})
+		ctx.JSON(http.StatusBadRequest, gin.H{"message": firebaseError.Error.Message})
 	}
 }

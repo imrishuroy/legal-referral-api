@@ -17,7 +17,7 @@ const (
 	authorizationPayloadKey = "authorization_payload"
 )
 
-func authMiddleware(auth *auth.Client) gin.HandlerFunc {
+func (srv *Server) AuthMiddleware(auth *auth.Client) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authorizationHeader := ctx.GetHeader(authorizationHeaderKey)
 		if len(authorizationHeader) == 0 {
@@ -38,12 +38,14 @@ func authMiddleware(auth *auth.Client) gin.HandlerFunc {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
 			return
 		}
+
 		accessToken := fields[1]
 		idToken, err := auth.VerifyIDToken(context.Background(), accessToken)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, errorResponse(err))
 			return
 		}
+
 		ctx.Set(authorizationPayloadKey, idToken)
 		ctx.Next()
 

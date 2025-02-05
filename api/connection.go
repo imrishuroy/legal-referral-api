@@ -34,7 +34,7 @@ type sendConnectionRes struct {
 	Message string `json:"message"`
 }
 
-func (server *Server) sendConnection(ctx *gin.Context) {
+func (srv *Server) SendConnection(ctx *gin.Context) {
 	var req sendConnectionReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
@@ -52,7 +52,7 @@ func (server *Server) sendConnection(ctx *gin.Context) {
 		RecipientID: req.RecipientID,
 	}
 
-	connID, err := server.store.SendConnection(ctx, arg)
+	connID, err := srv.Store.SendConnection(ctx, arg)
 	if err != nil {
 		errorCode := db.ErrorCode(err)
 		if errorCode == db.UniqueViolation {
@@ -71,7 +71,7 @@ func (server *Server) sendConnection(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, res)
 }
 
-func (server *Server) acceptConnection(ctx *gin.Context) {
+func (srv *Server) AcceptConnection(ctx *gin.Context) {
 	connIDParams := ctx.Param("id")
 	connID, err := strconv.ParseInt(connIDParams, 10, 32)
 	if err != nil {
@@ -83,7 +83,7 @@ func (server *Server) acceptConnection(ctx *gin.Context) {
 		ID: int32(connID),
 	}
 
-	conn, err := server.store.AcceptConnectionTx(ctx, arg)
+	conn, err := srv.Store.AcceptConnectionTx(ctx, arg)
 	if err != nil {
 		errorCode := db.ErrorCode(err)
 		if errorCode == db.UniqueViolation {
@@ -97,7 +97,7 @@ func (server *Server) acceptConnection(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, conn)
 }
 
-func (server *Server) rejectConnection(ctx *gin.Context) {
+func (srv *Server) RejectConnection(ctx *gin.Context) {
 
 	idStr := ctx.Param("id")
 	id, err := strconv.ParseInt(idStr, 10, 32)
@@ -112,7 +112,7 @@ func (server *Server) rejectConnection(ctx *gin.Context) {
 		return
 	}
 
-	err = server.store.RejectConnection(ctx, int32(id))
+	err = srv.Store.RejectConnection(ctx, int32(id))
 	if err != nil {
 		errorCode := db.ErrorCode(err)
 		if errorCode == db.UniqueViolation {
@@ -138,7 +138,7 @@ type listConnectionInvitationsReq struct {
 	Offset int32 `form:"offset" binding:"required"`
 }
 
-func (server *Server) listConnectionInvitations(ctx *gin.Context) {
+func (srv *Server) ListConnectionInvitations(ctx *gin.Context) {
 
 	var req listConnectionInvitationsReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -160,7 +160,7 @@ func (server *Server) listConnectionInvitations(ctx *gin.Context) {
 		Offset:      (req.Offset - 1) * req.Limit,
 	}
 
-	connections, err := server.store.ListConnectionInvitations(ctx, arg)
+	connections, err := srv.Store.ListConnectionInvitations(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -174,7 +174,7 @@ type listConnectionsReq struct {
 	Offset int32 `form:"offset" binding:"required"`
 }
 
-func (server *Server) listConnections(ctx *gin.Context) {
+func (srv *Server) ListConnections(ctx *gin.Context) {
 
 	var req listConnectionsReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -196,7 +196,7 @@ func (server *Server) listConnections(ctx *gin.Context) {
 		Offset: (req.Offset - 1) * req.Limit,
 	}
 
-	connections, err := server.store.ListConnections(ctx, arg)
+	connections, err := srv.Store.ListConnections(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -205,7 +205,7 @@ func (server *Server) listConnections(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, connections)
 }
 
-func (server *Server) checkConnection(ctx *gin.Context) {
+func (srv *Server) CheckConnection(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 	otherUserId := ctx.Param("other_user_id")
 
@@ -220,7 +220,7 @@ func (server *Server) checkConnection(ctx *gin.Context) {
 		OtherUserID: otherUserId,
 	}
 
-	conn, err := server.store.CheckConnectionStatus(ctx, arg)
+	conn, err := srv.Store.CheckConnectionStatus(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

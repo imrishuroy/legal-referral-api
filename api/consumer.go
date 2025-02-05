@@ -66,7 +66,7 @@ package api
 //				//PostID: int32(ev.Value[0]),
 //			}
 //
-//			err = server.store.PostToNewsFeed(ctx, arg)
+//			err = server.Store.PostToNewsFeed(ctx, arg)
 //			if err != nil {
 //				return
 //			}
@@ -90,7 +90,7 @@ package api
 //	//			PostID: 12,
 //	//		}
 //	//
-//	//		err := server.store.PostToNewsFeed(ctx, arg)
+//	//		err := server.Store.PostToNewsFeed(ctx, arg)
 //	//		if err != nil {
 //	//			return
 //	//		}

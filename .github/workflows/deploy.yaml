@@ -1,4 +1,4 @@
-name: Deploy to production
+name: Push image to AWS ECR
 
 on:
   workflow_dispatch:
@@ -10,24 +10,15 @@ on:
         type: string
 
 jobs:
-
   deploy:
-    name: Build image and deploy to Amazon EKS
+    name: Build image and push AWS ECR
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check repo
+      - name: Check out code
         uses: actions/checkout@v3
-
-      - name: Install kubectl
-        uses: azure/setup-kubectl@v3
         with:
-          version: 'v1.30.0'
-        id: install
-
-      - name: Install kustomize
-        run: curl -s "https://raw.githubusercontent.com/kubernetes-sigs/kustomize/master/hack/install_kustomize.sh" | bash && mv kustomize /usr/local/bin/
-
+          ref: ${{ github.event.inputs.branch }}  # Use the selected branch for checkout
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -36,7 +27,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
 
-      - name: Login to Amazon ECR
+      - name: Login to AWS ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
@@ -46,29 +37,12 @@ jobs:
       - name: Load secrets and save to service-account-key.json
         run: aws secretsmanager get-secret-value --secret-id legalreferral-service-account-key --query SecretString --output text > service-account-key.json
 
-      - name: Build, tag, and push docker image to Amazon ECR
+      - name: Build, tag, and push docker image to AWS ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: legalreferral
+          ECR_REPOSITORY: legal-referral-lambda
           IMAGE_TAG: "latest"
           GITHUB_SHA: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker build --platform linux/amd64 -t $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push -a $ECR_REGISTRY/$ECR_REPOSITORY
-
-      - name: Update kube config
-        run:  aws eks update-kubeconfig --name legal-referral --region us-east-1
-
-      - name: Replace image tag in deployment file
-        run: |
-          sed -i "s/{{IMAGE_TAG}}/${{ github.sha }}/g" eks/deployment.yaml
-
-      - name: Deploy image to Amazon EKS
-        run: |
-          kubectl apply -f eks/deployment.yaml
-          kubectl apply -f eks/service.yaml
-          kubectl apply -f eks/issuer.yaml
-          kubectl apply -f eks/ingress.yaml
-          
-         
-          

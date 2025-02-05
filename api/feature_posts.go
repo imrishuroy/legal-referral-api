@@ -13,7 +13,7 @@ type featurePostReq struct {
 	UserID string `json:"user_id"`
 }
 
-func (server *Server) featurePost(ctx *gin.Context) {
+func (srv *Server) FeaturePost(ctx *gin.Context) {
 	var req featurePostReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
 		ctx.JSON(400, errorResponse(err))
@@ -31,7 +31,7 @@ func (server *Server) featurePost(ctx *gin.Context) {
 		UserID: req.UserID,
 	}
 
-	err := server.store.FeaturePost(ctx, arg)
+	err := srv.Store.FeaturePost(ctx, arg)
 	if err != nil {
 
 		errorCode := db.ErrorCode(err)
@@ -51,7 +51,7 @@ type unFeaturePostReq struct {
 	UserID string `json:"user_id"`
 }
 
-func (server *Server) unFeaturePost(ctx *gin.Context) {
+func (srv *Server) UnFeaturePost(ctx *gin.Context) {
 	postIdStr := ctx.Param("post_id")
 
 	postID, err := strconv.Atoi(postIdStr)
@@ -77,7 +77,7 @@ func (server *Server) unFeaturePost(ctx *gin.Context) {
 		UserID: authPayload.UID,
 	}
 
-	err = server.store.UnFeaturePost(ctx, arg)
+	err = srv.Store.UnFeaturePost(ctx, arg)
 
 	if err != nil {
 		ctx.JSON(500, errorResponse(err))
@@ -87,7 +87,7 @@ func (server *Server) unFeaturePost(ctx *gin.Context) {
 	ctx.JSON(200, gin.H{"message": "success"})
 }
 
-func (server *Server) listFeaturePosts(ctx *gin.Context) {
+func (srv *Server) ListFeaturePosts(ctx *gin.Context) {
 
 	userID := ctx.Param("user_id")
 
@@ -97,7 +97,7 @@ func (server *Server) listFeaturePosts(ctx *gin.Context) {
 		return
 	}
 
-	posts, err := server.store.ListFeaturedPosts(ctx)
+	posts, err := srv.Store.ListFeaturedPosts(ctx)
 	if err != nil {
 		ctx.JSON(500, errorResponse(err))
 		return

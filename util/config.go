@@ -8,7 +8,12 @@ import "github.com/spf13/viper"
 type Config struct {
 	Env                    string `mapstructure:"ENV"`
 	DBDriver               string `mapstructure:"DB_DRIVER"`
+	DBProxyURL             string `mapstructure:"DB_PROXY_URL"`
 	DBSource               string `mapstructure:"DB_SOURCE"`
+	DBUser                 string `mapstructure:"DB_USER"`
+	DBPassword             string `mapstructure:"DB_PASSWORD"`
+	DBName                 string `mapstructure:"DB_NAME"`
+	DBHost                 string `mapstructure:"DB_HOST"`
 	ServerAddress          string `mapstructure:"SERVER_ADDRESS"`
 	FirebaseAuthKey        string `mapstructure:"FIREBASE_AUTH_KEY"`
 	Auth0Audience          string `mapstructure:"AUTH0_AUDIENCE"`

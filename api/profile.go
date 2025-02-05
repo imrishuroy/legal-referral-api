@@ -11,7 +11,7 @@ import (
 	"net/http"
 )
 
-func (server *Server) updateUserAvatar(ctx *gin.Context) {
+func (srv *Server) UpdateUserAvatar(ctx *gin.Context) {
 
 	form, err := ctx.MultipartForm()
 	if err != nil {
@@ -46,8 +46,9 @@ func (server *Server) updateUserAvatar(ctx *gin.Context) {
 	}
 
 	fileName := generateUniqueFilename() + getFileExtension(files[0])
-	url, err := server.uploadFile(file, fileName, files[0].Header.Get("Content-Type"))
+	url, err := srv.uploadFile(ctx, file, fileName, files[0].Header.Get("Content-Type"))
 	if err != nil {
+		log.Error().Err(err).Msg("error uploading file")
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error uploading file"})
 		return
 	}
@@ -57,7 +58,8 @@ func (server *Server) updateUserAvatar(ctx *gin.Context) {
 		AvatarUrl: &url,
 	}
 
-	err = server.store.UpdateUserAvatar(ctx, arg)
+	log.Info().Msgf("avatar url %v", url)
+	err = srv.Store.UpdateUserAvatar(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -73,7 +75,7 @@ type toggleOpenToReferralReq struct {
 	OpenToReferral bool `json:"open_to_referral"`
 }
 
-func (server *Server) toggleOpenToReferral(ctx *gin.Context) {
+func (srv *Server) ToggleOpenToReferral(ctx *gin.Context) {
 
 	var req toggleOpenToReferralReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -95,7 +97,7 @@ func (server *Server) toggleOpenToReferral(ctx *gin.Context) {
 		OpenToReferral: req.OpenToReferral,
 	}
 
-	err := server.store.ToggleOpenToRefferal(ctx, arg)
+	err := srv.Store.ToggleOpenToRefferal(ctx, arg)
 	if err != nil {
 		log.Err(err).Msg("error changing open to referral")
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -127,7 +129,7 @@ type userProfile struct {
 	ConnectionsCount        int64          `json:"connections_count"`
 }
 
-func (server *Server) fetchUserProfile(ctx *gin.Context) {
+func (srv *Server) FetchUserProfile(ctx *gin.Context) {
 
 	userID := ctx.Param("user_id")
 
@@ -137,7 +139,7 @@ func (server *Server) fetchUserProfile(ctx *gin.Context) {
 		return
 	}
 
-	profile, err := server.store.FetchUserProfile(ctx, userID)
+	profile, err := srv.Store.FetchUserProfile(ctx, userID)
 	log.Error().Err(err).Msg("error fetching user profile")
 	if err != nil {
 		if errors.Is(err, db.ErrRecordNotFound) {
@@ -196,7 +198,7 @@ func (server *Server) fetchUserProfile(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, userProfile)
 }
 
-func (server *Server) updateUserBannerImage(ctx *gin.Context) {
+func (srv *Server) UpdateUserBannerImage(ctx *gin.Context) {
 
 	form, err := ctx.MultipartForm()
 	if err != nil {
@@ -232,7 +234,7 @@ func (server *Server) updateUserBannerImage(ctx *gin.Context) {
 
 	fileName := generateUniqueFilename() + getFileExtension(files[0])
 
-	url, err := server.uploadFile(file, fileName, files[0].Header.Get("Content-Type"))
+	url, err := srv.uploadFile(ctx, file, fileName, files[0].Header.Get("Content-Type"))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error uploading file"})
 		return
@@ -243,7 +245,7 @@ func (server *Server) updateUserBannerImage(ctx *gin.Context) {
 		BannerUrl: &url,
 	}
 
-	err = server.store.UpdateUserBannerImage(ctx, arg)
+	err = srv.Store.UpdateUserBannerImage(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

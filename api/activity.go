@@ -12,7 +12,7 @@ type listActivityPostsReq struct {
 	Limit  int32 `form:"limit" binding:"required"`
 }
 
-func (server *Server) listActivityPosts(ctx *gin.Context) {
+func (srv *Server) ListActivityPosts(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -33,7 +33,7 @@ func (server *Server) listActivityPosts(ctx *gin.Context) {
 		Limit:   req.Limit,
 	}
 
-	posts, err := server.store.ListUserPosts(ctx, arg)
+	posts, err := srv.Store.ListUserPosts(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -47,7 +47,7 @@ type listUserCommentsReq struct {
 	Limit  int32 `form:"limit" binding:"required"`
 }
 
-func (server *Server) listActivityComments(ctx *gin.Context) {
+func (srv *Server) ListActivityComments(ctx *gin.Context) {
 
 	userID := ctx.Param("user_id")
 
@@ -69,7 +69,7 @@ func (server *Server) listActivityComments(ctx *gin.Context) {
 		Limit:  req.Limit,
 	}
 
-	comments, err := server.store.ListUserComments(ctx, arg)
+	comments, err := srv.Store.ListUserComments(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return
@@ -78,7 +78,7 @@ func (server *Server) listActivityComments(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, comments)
 }
 
-func (server *Server) getUserFollowersCount(ctx *gin.Context) {
+func (srv *Server) GetUserFollowersCount(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
@@ -87,7 +87,7 @@ func (server *Server) getUserFollowersCount(ctx *gin.Context) {
 		return
 	}
 
-	count, err := server.store.GetUserFollowersCount(ctx, userID)
+	count, err := srv.Store.GetUserFollowersCount(ctx, userID)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 		return

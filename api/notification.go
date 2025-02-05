@@ -16,7 +16,7 @@ type createNotificationReq struct {
 	Message          string `json:"message" binding:"required"`
 }
 
-func (server *Server) createNotification(ctx *gin.Context) {
+func (srv *Server) CreateNotification(ctx *gin.Context) {
 
 	var req createNotificationReq
 	if err := ctx.ShouldBindJSON(&req); err != nil {
@@ -39,7 +39,7 @@ func (server *Server) createNotification(ctx *gin.Context) {
 		Message:          req.Message,
 	}
 
-	notification, err := server.store.CreateNotification(ctx, args)
+	notification, err := srv.Store.CreateNotification(ctx, args)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -54,7 +54,7 @@ type listNotificationsReq struct {
 	Offset int32 `form:"offset"`
 }
 
-func (server *Server) listNotifications(ctx *gin.Context) {
+func (srv *Server) ListNotifications(ctx *gin.Context) {
 
 	var req listNotificationsReq
 	if err := ctx.ShouldBindQuery(&req); err != nil {
@@ -76,7 +76,7 @@ func (server *Server) listNotifications(ctx *gin.Context) {
 		Offset: req.Offset,
 	}
 
-	notifications, err := server.store.ListNotifications(ctx, arg)
+	notifications, err := srv.Store.ListNotifications(ctx, arg)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

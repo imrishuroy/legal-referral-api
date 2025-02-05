@@ -1,12 +1,12 @@
 package api
 
 import (
+	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/zerolog/log"
 	"mime/multipart"
 	"path/filepath"
@@ -15,7 +15,7 @@ import (
 	"time"
 )
 
-func (server *Server) handleFilesUpload(files []*multipart.FileHeader) ([]string, error) {
+func (srv *Server) handleFilesUpload(ctx context.Context, files []*multipart.FileHeader) ([]string, error) {
 	if len(files) == 0 {
 		return nil, errors.New("no file uploaded")
 	}
@@ -32,7 +32,7 @@ func (server *Server) handleFilesUpload(files []*multipart.FileHeader) ([]string
 		go func(file *multipart.FileHeader) {
 			defer wg.Done()
 
-			url, err := server.uploadFileHandler(file)
+			url, err := srv.uploadFileHandler(ctx, file)
 			if err != nil {
 				errChan <- err
 				return
@@ -76,7 +76,7 @@ func (server *Server) handleFilesUpload(files []*multipart.FileHeader) ([]string
 //	return urls, nil
 //}
 
-func (server *Server) uploadFileHandler(file *multipart.FileHeader) (string, error) {
+func (srv *Server) uploadFileHandler(ctx context.Context, file *multipart.FileHeader) (string, error) {
 	fileName := generateUniqueFilename() + getFileExtension(file)
 	multiPartFile, err := file.Open()
 	if err != nil {
@@ -89,22 +89,31 @@ func (server *Server) uploadFileHandler(file *multipart.FileHeader) (string, err
 		}
 	}(multiPartFile)
 
-	return server.uploadFile(multiPartFile, fileName, file.Header.Get("Content-Type"))
+	return srv.uploadFile(ctx, multiPartFile, fileName, file.Header.Get("Content-Type"))
 }
 
-func (server *Server) uploadFile(file multipart.File, fileName string, contentType string) (string, error) {
+func (srv *Server) uploadFile(ctx context.Context, file multipart.File, fileName string, contentType string) (string, error) {
 
-	bucketName := server.config.AWSBucketName
+	bucketName := srv.config.AWSBucketName
 	log.Info().Msgf("Uploading file to bucket: %s", bucketName)
 
 	// Upload the file to S3
-	_, err := server.svc.PutObject(&s3.PutObjectInput{
-		Bucket:               aws.String(bucketName),
-		Key:                  aws.String(fileName),
-		Body:                 file,
-		ContentType:          aws.String(contentType),
-		ContentDisposition:   aws.String("attachment"),
-		ServerSideEncryption: aws.String("AES256"),
+	//_, err := s.s.PutObject(&s3.PutObjectInput{
+	//	Bucket:               aws.String(bucketName),
+	//	Key:                  aws.String(fileName),
+	//	Body:                 file,
+	//	ContentType:          aws.String(contentType),
+	//	ContentDisposition:   aws.String("attachment"),
+	//	ServerSideEncryption: aws.String("AES256"),
+	//})
+
+	_, err := srv.S3Client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket: &bucketName,
+		Key:    &fileName,
+		Body:   file,
+		//ContentType:          &contentType,
+		//ContentDisposition:   attachment,
+		//ServerSideEncryption: "AES256",
 	})
 
 	if err != nil {
@@ -139,18 +148,18 @@ func (server *Server) uploadFile(file multipart.File, fileName string, contentTy
 //	return url, nil
 //}
 
-func preSignS3Object(svc *s3.S3, bucket string, key string) (string, error) {
-	req, _ := svc.GetObjectRequest(&s3.GetObjectInput{
-		Bucket: aws.String(bucket),
-		Key:    aws.String(key),
-	})
-	url, err := req.Presign(15 * time.Minute) // Pressing URL for 15 minutes
-
-	if err != nil {
-		return "", err
-	}
-	return url, nil
-}
+//func preSignS3Object(svc *s3.S3, bucket string, key string) (string, error) {
+//	req, _ := svc.GetObjectRequest(&s3.GetObjectInput{
+//		Bucket: aws.String(bucket),
+//		Key:    aws.String(key),
+//	})
+//	url, err := req.Presign(15 * time.Minute) // Pressing URL for 15 minutes
+//
+//	if err != nil {
+//		return "", err
+//	}
+//	return url, nil
+//}
 
 func generateS3URL(region, bucketName, key string) string {
 	url := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, key)
