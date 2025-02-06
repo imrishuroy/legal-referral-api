@@ -25,7 +25,7 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 }
 
 func ping(ctx *gin.Context) {
-	ctx.JSON(200, "OK")
+	ctx.JSON(200, "PONG")
 }
 
 func main() {
