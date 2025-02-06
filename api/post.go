@@ -127,8 +127,8 @@ func (srv *Server) CreatePost(ctx *gin.Context) {
 	if err := srv.cachePost(ctx, postKey, post, 12*time.Hour); err != nil {
 		log.Error().Err(err).Msg("Failed to cache post")
 	}
-	// TODO: deploy the fanout service
-	//srv.publishToKafka("publish-feed", req.OwnerID, string(post.PostID))
+
+	srv.publishToKafka("publish-feed", req.OwnerID, string(post.PostID))
 
 	ctx.JSON(http.StatusOK, gin.H{"success": "Post created successfully"})
 }
@@ -195,9 +195,7 @@ func (srv *Server) postToNewsFeed(ctx *gin.Context, userID string, postID int32)
 
 	userIDs = append(userIDs, userID)
 	for _, id := range userIDs {
-
 		srv.publishToKafka("publish-feed", id.(string), string(postID))
-
 	}
 	return nil
 }
