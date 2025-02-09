@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/gin-gonic/gin"
@@ -73,6 +75,13 @@ func main() {
 	}
 	defer producer.Close()
 
+	// aws SQS
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}))
+
+	svc := sqs.New(sess)
+
 	valkeyURL := fmt.Sprintf("%s:%s", config.ValKeyHost, config.ValKeyPort)
 	log.Info().Msg("Valkey URL: " + valkeyURL)
 
@@ -90,7 +99,7 @@ func main() {
 	defer vkClient.Close()
 
 	// api srv setup
-	srv, err := api.NewServer(config, store, hub, producer, vkClient)
+	srv, err := api.NewServer(config, store, hub, producer, vkClient, svc)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create srv:")
 	}

@@ -38,6 +38,7 @@ type Config struct {
 	Topic                  string `mapstructure:"TOPIC"`
 	ValKeyHost             string `mapstructure:"VALKEY_HOST"`
 	ValKeyPort             string `mapstructure:"VALKEY_PORT"`
+	SQSURL                 string `mapstructure:"SQS_URL"`
 }
 
 // LoadConfig reads configuration from file or environment variables

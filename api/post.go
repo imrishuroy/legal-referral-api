@@ -6,6 +6,8 @@ import (
 	"errors"
 	"firebase.google.com/go/v4/auth"
 	"fmt"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/rs/zerolog/log"
 	"mime/multipart"
 	"net/http"
@@ -128,7 +130,19 @@ func (srv *Server) CreatePost(ctx *gin.Context) {
 		log.Error().Err(err).Msg("Failed to cache post")
 	}
 
-	srv.publishToKafka("publish-feed", req.OwnerID, string(post.PostID))
+	log.Info().Msgf("SQS URL: %v", srv.Config.SQSURL)
+
+	out, err := srv.SQS.SendMessage(&sqs.SendMessageInput{
+		QueueUrl:    aws.String(srv.Config.SQSURL),
+		MessageBody: aws.String(fmt.Sprintf(`{"owner_id": "%s", "post_id": "%d"}`, req.OwnerID, post.PostID)),
+	})
+
+	if err != nil {
+		log.Error().Err(err).Msg("cannot send message to SQS")
+	}
+	log.Info().Msgf("Message sent to SQS: %v", out)
+
+	//srv.publishToKafka("publish-feed", req.OwnerID, string(post.PostID))
 
 	ctx.JSON(http.StatusOK, gin.H{"success": "Post created successfully"})
 }
