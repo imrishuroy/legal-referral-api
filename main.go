@@ -7,8 +7,9 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/sqs"
+
+	// "github.com/aws/aws-sdk-go/aws/session"
+	// "github.com/aws/aws-sdk-go/service/sqs"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/gin-gonic/gin"
@@ -19,6 +20,10 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
 	"github.com/valkey-io/valkey-go"
+
+	// "github.com/aws/aws-sdk-go-v2/aws"
+	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
 
 var ginLambda *ginadapter.GinLambda
@@ -77,11 +82,21 @@ func main() {
 	defer producer.Close()
 
 	// aws SQS
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
+	// sess := session.Must(session.NewSessionWithOptions(session.Options{
+	// 	SharedConfigState: session.SharedConfigEnable,
+	// }))
 
-	svc := sqs.New(sess)
+	// svc := sqs.New(sess)
+	//
+
+	cfg, err := awsConfig.LoadDefaultConfig(context.TODO(), awsConfig.WithRegion("us-east-1"))
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to load configuration, " + err.Error())
+	}
+
+	svc := sqs.NewFromConfig(cfg)
+
+	///
 
 	valkeyURL := fmt.Sprintf("%s:%s", config.ValKeyHost, config.ValKeyPort)
 	log.Info().Msg("Valkey URL: " + valkeyURL)

@@ -11,7 +11,9 @@ import (
 	"sync"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/rs/zerolog/log"
 )
 
@@ -107,16 +109,28 @@ func (srv *Server) uploadFile(ctx context.Context, file multipart.File, fileName
 	//	ServerSideEncryption: aws.String("AES256"),
 	//})
 
+	log.Info().Msgf("Uploading file to bucket: %s", bucketName)
+	log.Info().Msgf("File name: %s", fileName)
+	log.Info().Msgf("Content type: %s", contentType)
+
 	_, err := srv.S3Client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket:      &bucketName,
-		Key:         &fileName,
-		Body:        file,
-		ContentType: &contentType,
-		//ContentDisposition:   attachment,
-		//ServerSideEncryption: "AES256",
+		Bucket:               aws.String(bucketName),
+		Key:                  aws.String(fileName),
+		Body:                 file,
+		ContentType:          aws.String(contentType),
+		ContentDisposition:   aws.String("attachment"),
+		ServerSideEncryption: types.ServerSideEncryption(*aws.String("AES256")),
 	})
 
 	if err != nil {
+		// handle EntityTooLarge error
+		// if s3Err, ok := err.(*types.InvalidObjectState); ok {
+		// 	if s3Err.ErrorCode() == "EntityTooLarge" {
+		// 		log.Error().Msg("File size exceeds the limit")
+		// 		return "", errors.New("file size exceeds the limit")
+		// 	}
+		// }
+
 		log.Error().Err(err).Msg("Error uploading file to S3")
 		return "", err
 	}

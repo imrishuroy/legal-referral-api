@@ -7,7 +7,9 @@ import (
 	"firebase.google.com/go/v4/auth"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/aws/aws-sdk-go/service/sqs"
+
+	// "github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/gin-gonic/gin"
 	"github.com/imrishuroy/legal-referral/chat"
@@ -41,10 +43,11 @@ type Server struct {
 	Hub           *chat.Hub
 	KafkaProducer *kafka.Producer
 	ValkeyClient  valkey.Client
-	SQS           *sqs.SQS
+	// SQS           *sqs.SQS
+	SQS *sqs.Client
 }
 
-func NewServer(con util.Config, store db.Store, hub *chat.Hub, producer *kafka.Producer, valkeyClient valkey.Client, sqs *sqs.SQS) (*Server, error) {
+func NewServer(con util.Config, store db.Store, hub *chat.Hub, producer *kafka.Producer, valkeyClient valkey.Client, sqs *sqs.Client) (*Server, error) {
 
 	opt := option.WithCredentialsFile("./service-account-key.json")
 	app, err := firebase.NewApp(context.Background(), nil, opt)
