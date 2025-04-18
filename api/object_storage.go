@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"mime/multipart"
 	"path/filepath"
 	"sync"
@@ -95,20 +96,42 @@ func (srv *Server) uploadFileHandler(ctx context.Context, file *multipart.FileHe
 }
 
 func (srv *Server) uploadFile(ctx context.Context, file multipart.File, fileName string, contentType string) (string, error) {
+	bucketName := srv.Config.AWSBucketName
+	log.Info().Msgf("Uploading file to bucket: %s", bucketName)
+	log.Info().Msgf("File name: %s", fileName)
+	log.Info().Msgf("Content type: %s", contentType)
+
+	// Seek back to beginning if possible
+	if seeker, ok := file.(io.Seeker); ok {
+		if _, err := seeker.Seek(0, io.SeekStart); err != nil {
+			log.Error().Err(err).Msg("Failed to seek to start of file before upload")
+			return "", err
+		}
+	} else {
+		log.Warn().Msg("File is not seekable")
+	}
+
+	_, err := srv.S3Client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket:               aws.String(bucketName),
+		Key:                  aws.String(fileName),
+		Body:                 file,
+		ContentType:          aws.String(contentType),
+		ContentDisposition:   aws.String("attachment"),
+		ServerSideEncryption: types.ServerSideEncryptionAes256,
+	})
+
+	if err != nil {
+		log.Error().Err(err).Msg("Error uploading file to S3")
+		return "", err
+	}
+
+	return fileName, nil
+}
+
+func (srv *Server) uploadFile2(ctx context.Context, file multipart.File, fileName string, contentType string) (string, error) {
 
 	bucketName := srv.Config.AWSBucketName
 	log.Info().Msgf("Uploading file to bucket: %s", bucketName)
-
-	// Upload the file to S3
-	//_, err := s.s.PutObject(&s3.PutObjectInput{
-	//	Bucket:               aws.String(bucketName),
-	//	Key:                  aws.String(fileName),
-	//	Body:                 file,
-	//	ContentType:          aws.String(contentType),
-	//	ContentDisposition:   aws.String("attachment"),
-	//	ServerSideEncryption: aws.String("AES256"),
-	//})
-
 	log.Info().Msgf("Uploading file to bucket: %s", bucketName)
 	log.Info().Msgf("File name: %s", fileName)
 	log.Info().Msgf("Content type: %s", contentType)
@@ -137,6 +160,16 @@ func (srv *Server) uploadFile(ctx context.Context, file multipart.File, fileName
 
 	return fileName, nil
 }
+
+// Upload the file to S3
+//_, err := s.s.PutObject(&s3.PutObjectInput{
+//	Bucket:               aws.String(bucketName),
+//	Key:                  aws.String(fileName),
+//	Body:                 file,
+//	ContentType:          aws.String(contentType),
+//	ContentDisposition:   aws.String("attachment"),
+//	ServerSideEncryption: aws.String("AES256"),
+//})
 
 //func (server *Server) uploadFile(file multipart.File, fileName string, contentType string) (string, error) {
 //
