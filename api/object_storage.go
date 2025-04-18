@@ -101,11 +101,11 @@ func (srv *Server) uploadFile(file multipart.File, fileName string, contentType 
 	log.Info().Msgf("Content type: %s", contentType)
 
 	_, err := srv.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket: aws.String(bucketName),
+		Bucket: aws.String("legalreferral-media"),
 		Key:    aws.String(fileName),
 		Body:   file,
 		// ContentLength: &contentLength,
-		// ContentType:   aws.String(contentType),
+		ContentType: aws.String(contentType),
 		// ACL: types.ObjectCannedACLPublicRead,
 		// ContentDisposition:   aws.String("attachment"),
 		// ServerSideEncryption: types.ServerSideEncryptionAes256,
