@@ -106,7 +106,7 @@ func (srv *Server) uploadFile(file multipart.File, fileName string, contentType 
 		Body:   file,
 		// ContentLength: &contentLength,
 		// ContentType:   aws.String(contentType),
-		ACL: types.ObjectCannedACLPublicRead,
+		// ACL: types.ObjectCannedACLPublicRead,
 		// ContentDisposition:   aws.String("attachment"),
 		// ServerSideEncryption: types.ServerSideEncryptionAes256,
 	})
