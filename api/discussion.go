@@ -1,11 +1,12 @@
 package api
 
 import (
+	"net/http"
+	"strconv"
+
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
-	"net/http"
-	"strconv"
 )
 
 type createDiscussionRequest struct {
@@ -275,49 +276,49 @@ func (srv *Server) ListUninvitedParticipants(ctx *gin.Context) {
 	ctx.JSON(200, participants)
 }
 
-type invitedUsersToDiscussionReq struct {
-	InvitedUserIDs []string `json:"invited_user_ids"`
-}
+// type invitedUsersToDiscussionReq struct {
+// 	InvitedUserIDs []string `json:"invited_user_ids"`
+// }
 
-func (srv *Server) inviteUsersToDiscussion(ctx *gin.Context) {
-	discussionIDStr := ctx.Param("discussion_id")
-	discussionID, err := strconv.Atoi(discussionIDStr)
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid discussion ID"})
-		return
-	}
+// func (srv *Server) inviteUsersToDiscussion(ctx *gin.Context) {
+// 	discussionIDStr := ctx.Param("discussion_id")
+// 	discussionID, err := strconv.Atoi(discussionIDStr)
+// 	if err != nil {
+// 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid discussion ID"})
+// 		return
+// 	}
 
-	var req invitedUsersToDiscussionReq
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(400, errorResponse(err))
-		return
-	}
+// 	var req invitedUsersToDiscussionReq
+// 	if err := ctx.ShouldBindJSON(&req); err != nil {
+// 		ctx.JSON(400, errorResponse(err))
+// 		return
+// 	}
 
-	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
-	if authPayload.UID == "" {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
-		return
-	}
+// 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
+// 	if authPayload.UID == "" {
+// 		ctx.JSON(http.StatusUnauthorized, gin.H{"message": "Unauthorized"})
+// 		return
+// 	}
 
-	for _, invitedUserID := range req.InvitedUserIDs {
-		arg := db.InviteUserToDiscussionParams{
-			DiscussionID:  int32(discussionID),
-			InviteeUserID: authPayload.UID,
-			InvitedUserID: invitedUserID,
-		}
+// 	for _, invitedUserID := range req.InvitedUserIDs {
+// 		arg := db.InviteUserToDiscussionParams{
+// 			DiscussionID:  int32(discussionID),
+// 			InviteeUserID: authPayload.UID,
+// 			InvitedUserID: invitedUserID,
+// 		}
 
-		err = srv.Store.InviteUserToDiscussion(ctx, arg)
-		if err != nil {
-			errorCode := db.ErrorCode(err)
-			if errorCode == db.UniqueViolation {
-				ctx.JSON(400, gin.H{"message": "Already invited"})
-				return
-			}
-			ctx.JSON(400, errorResponse(err))
-			return
-		}
+// 		err = srv.Store.InviteUserToDiscussion(ctx, arg)
+// 		if err != nil {
+// 			errorCode := db.ErrorCode(err)
+// 			if errorCode == db.UniqueViolation {
+// 				ctx.JSON(400, gin.H{"message": "Already invited"})
+// 				return
+// 			}
+// 			ctx.JSON(400, errorResponse(err))
+// 			return
+// 		}
 
-	}
+// 	}
 
-	ctx.JSON(200, gin.H{"message": "Invited"})
-}
+// 	ctx.JSON(200, gin.H{"message": "Invited"})
+// }

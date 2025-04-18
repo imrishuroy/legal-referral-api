@@ -3,8 +3,9 @@ package api
 import (
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
-	"github.com/rs/zerolog/log"
-	verify "github.com/twilio/twilio-go/rest/verify/v2"
+
+	// "github.com/rs/zerolog/log"
+	// verify "github.com/twilio/twilio-go/rest/verify/v2"
 	"net/http"
 )
 
@@ -30,9 +31,9 @@ func (srv *Server) SendOTP(ctx *gin.Context) {
 	//
 	//// Choose Twilio service SID based on the channel
 	//if req.Channel == "sms" {
-	//	serviceSID = server.config.VerifyMobileServiceSID
+	//	serviceSID = server.Config.VerifyMobileServiceSID
 	//} else if req.Channel == "email" {
-	//	serviceSID = server.config.VerifyEmailServiceSID
+	//	serviceSID = server.Config.VerifyEmailServiceSID
 	//}
 	//
 	//err := sendOTP(server, req.To, req.Channel, serviceSID)
@@ -44,20 +45,20 @@ func (srv *Server) SendOTP(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "OTP sent successfully"})
 }
 
-func sendOTP(server *Server, to string, channel string, serviceSID string) (err error) {
-	params := &verify.CreateVerificationParams{}
-	params.SetTo(to)
-	params.SetChannel(channel)
+// func sendOTP(server *Server, to string, channel string, serviceSID string) (err error) {
+// 	params := &verify.CreateVerificationParams{}
+// 	params.SetTo(to)
+// 	params.SetChannel(channel)
 
-	resp, err := server.twilioClient.VerifyV2.CreateVerification(serviceSID, params)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to send verification")
-		return err
-	}
-	log.Logger.Info().Msgf("OTP sent successfully to %s via %s", to, channel)
-	log.Logger.Info().Msgf("SID: %s", *resp.Sid)
-	return nil
-}
+// 	resp, err := server.TwilioClient.VerifyV2.CreateVerification(serviceSID, params)
+// 	if err != nil {
+// 		log.Error().Err(err).Msg("Failed to send verification")
+// 		return err
+// 	}
+// 	log.Logger.Info().Msgf("OTP sent successfully to %s via %s", to, channel)
+// 	log.Logger.Info().Msgf("SID: %s", *resp.Sid)
+// 	return nil
+// }
 
 type verifyOTPRequest struct {
 	UserId  string `json:"user_id"`
@@ -112,13 +113,13 @@ func (srv *Server) VerifyOTP(ctx *gin.Context) {
 	//
 	//// Choose Twilio service SID based on the channel
 	//if req.Channel == "sms" {
-	//	serviceSID = server.config.VerifyMobileServiceSID
+	//	serviceSID = server.Config.VerifyMobileServiceSID
 	//} else if req.Channel == "email" {
-	//	serviceSID = server.config.VerifyEmailServiceSID
+	//	serviceSID = server.Config.VerifyEmailServiceSID
 	//}
 	//
 	//// Verify OTP
-	//resp, err := server.twilioClient.VerifyV2.CreateVerificationCheck(serviceSID, params)
+	//resp, err := server.TwilioClient.VerifyV2.CreateVerificationCheck(serviceSID, params)
 	//if err != nil {
 	//	log.Error().Err(err).Msg("Failed to verify OTP")
 	//	ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Failed to verify OTP"})

@@ -1,11 +1,12 @@
 package api
 
 import (
+	"net/http"
+	"strconv"
+
 	"firebase.google.com/go/v4/auth"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
 	"github.com/rs/zerolog/log"
-	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -150,20 +151,19 @@ func (srv *Server) GetUserById(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, user)
-	return
 }
 
-type updateUserRequest struct {
-	ID              string `json:"id"`
-	FirstName       string `json:"first_name"`
-	LastName        string `json:"last_name"`
-	Mobile          string `json:"mobile"`
-	Address         string `json:"address"`
-	EmailVerified   bool   `json:"email_verified"`
-	MobileVerified  bool   `json:"mobile_verified"`
-	WizardStep      int32  `json:"wizard_step"`
-	WizardCompleted bool   `json:"wizard_completed"`
-}
+// type updateUserRequest struct {
+// 	ID              string `json:"id"`
+// 	FirstName       string `json:"first_name"`
+// 	LastName        string `json:"last_name"`
+// 	Mobile          string `json:"mobile"`
+// 	Address         string `json:"address"`
+// 	EmailVerified   bool   `json:"email_verified"`
+// 	MobileVerified  bool   `json:"mobile_verified"`
+// 	WizardStep      int32  `json:"wizard_step"`
+// 	WizardCompleted bool   `json:"wizard_completed"`
+// }
 
 type getUserWizardStepReq struct {
 	UserID string `uri:"user_id" binding:"required"`
@@ -189,30 +189,30 @@ func (srv *Server) GetUserWizardStep(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, step)
 }
 
-type markWizardCompletedReq struct {
-	UserID string `uri:"user_id" binding:"required"`
-}
+// type markWizardCompletedReq struct {
+// 	UserID string `uri:"user_id" binding:"required"`
+// }
 
-func (srv *Server) markWizardCompleted(ctx *gin.Context) {
-	var req markWizardCompletedReq
-	if err := ctx.ShouldBindUri(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
-		return
-	}
+// func (srv *Server) markWizardCompleted(ctx *gin.Context) {
+// 	var req markWizardCompletedReq
+// 	if err := ctx.ShouldBindUri(&req); err != nil {
+// 		ctx.JSON(http.StatusBadRequest, gin.H{"message": "Invalid request body"})
+// 		return
+// 	}
 
-	markWizardCompArg := db.MarkWizardCompletedParams{
-		UserID:          req.UserID,
-		WizardCompleted: true,
-	}
+// 	markWizardCompArg := db.MarkWizardCompletedParams{
+// 		UserID:          req.UserID,
+// 		WizardCompleted: true,
+// 	}
 
-	_, err := srv.Store.MarkWizardCompleted(ctx, markWizardCompArg)
-	if err != nil {
-		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
-		return
-	}
+// 	_, err := srv.Store.MarkWizardCompleted(ctx, markWizardCompArg)
+// 	if err != nil {
+// 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))
+// 		return
+// 	}
 
-	ctx.JSON(http.StatusOK, gin.H{"message": "Wizard marked as completed"})
-}
+// 	ctx.JSON(http.StatusOK, gin.H{"message": "Wizard marked as completed"})
+// }
 
 type saveAboutYouReq struct {
 	Address          string `json:"address"`

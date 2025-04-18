@@ -2,11 +2,12 @@ package api
 
 import (
 	"errors"
+	"net/http"
+	"strconv"
+
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
-	"net/http"
-	"strconv"
 )
 
 func (srv *Server) CreateProposal(ctx *gin.Context) {
@@ -54,7 +55,7 @@ func (srv *Server) UpdateProposal(ctx *gin.Context) {
 func (srv *Server) GetProposal(ctx *gin.Context) {
 	userID := ctx.Param("user_id")
 	projectIDStr := ctx.Param("project_id")
-	projectID, err := strconv.Atoi(projectIDStr)
+	projectID, _ := strconv.Atoi(projectIDStr)
 
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)
 	if authPayload.UID == "" {

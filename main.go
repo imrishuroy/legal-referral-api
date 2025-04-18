@@ -2,9 +2,14 @@ package main
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
+
 	"github.com/aws/aws-lambda-go/events"
-	"github.com/awslabs/aws-lambda-go-api-proxy/gin"
+	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sqs"
+	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/gin-gonic/gin"
 	"github.com/imrishuroy/legal-referral/api"
@@ -13,6 +18,7 @@ import (
 	"github.com/imrishuroy/legal-referral/util"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
+	"github.com/valkey-io/valkey-go"
 )
 
 var ginLambda *ginadapter.GinLambda
@@ -22,7 +28,7 @@ func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (events
 }
 
 func ping(ctx *gin.Context) {
-	ctx.JSON(200, "OK")
+	ctx.JSON(200, "PONG")
 }
 
 func main() {
@@ -38,7 +44,7 @@ func main() {
 	pool, err := pgxpool.New(context.Background(), config.DBSource)
 
 	if err != nil {
-		fmt.Println("cannot connect to db:", err)
+		log.Fatal().Err(err).Msg("cannot connect to database")
 	}
 	defer pool.Close()
 
@@ -68,18 +74,33 @@ func main() {
 	if err != nil {
 		log.Error().Err(err).Msg("cannot create producer")
 	}
+	defer producer.Close()
 
-	//rdb := GetRedisClient(config)
+	// aws SQS
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
+		SharedConfigState: session.SharedConfigEnable,
+	}))
 
-	//pong, err := rdb.Ping(ctx).Result()
-	//if err != nil {
-	//	log.Error().Err(err).Msg("cannot connect to redis")
-	//} else {
-	//	log.Info().Msg("Connected to Redis with TLS: " + pong)
-	//}
+	svc := sqs.New(sess)
+
+	valkeyURL := fmt.Sprintf("%s:%s", config.ValKeyHost, config.ValKeyPort)
+	log.Info().Msg("Valkey URL: " + valkeyURL)
+
+	vkClient, err := valkey.NewClient(valkey.ClientOption{
+		InitAddress: []string{valkeyURL},
+		Password:    "",
+		TLSConfig: &tls.Config{
+			InsecureSkipVerify: false,
+		},
+		DisableCache: true,
+	})
+	if err != nil {
+		log.Error().Err(err).Msg("cannot create valkey client")
+	}
+	defer vkClient.Close()
 
 	// api srv setup
-	srv, err := api.NewServer(config, store, hub, producer, ginLambda)
+	srv, err := api.NewServer(config, store, hub, producer, vkClient, svc)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create srv:")
 	}
@@ -204,7 +225,7 @@ func main() {
 	//// news feed
 	auth.GET("/feeds/:user_id", srv.ListNewsFeed)
 	////auth.GET("/v2/feeds/:user_id", srv.listNewsFeedV2)
-	////auth.GET("/v3/feeds/:user_id", srv.listNewsFeedV3)
+	auth.GET("/v3/feeds/:user_id", srv.ListNewsFeedV3)
 
 	//// like post
 	auth.POST("/posts/:post_id/like", srv.LikePost)
@@ -289,12 +310,12 @@ func main() {
 	auth.GET("/users/:user_id/followers-count", srv.GetUserFollowersCount)
 
 	// to run local
-	err = r.Run(config.ServerAddress)
-	log.Info().Err(err).Msg("cannot create srv:")
+	//err = r.Run(config.ServerAddress)
+	//log.Info().Err(err).Msg("cannot create srv:")
 
 	// to run on lambda
-	//ginLambda = ginadapter.New(r)
-	//lambda.Start(Handler)
+	ginLambda = ginadapter.New(r)
+	lambda.Start(Handler)
 }
 
 //func GetRedisClient(config util.Config) api.RedisClient {

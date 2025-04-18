@@ -1,13 +1,19 @@
 package api
 
 import (
+	"context"
+	"encoding/json"
 	"errors"
-	"firebase.google.com/go/v4/auth"
-	"github.com/rs/zerolog/log"
+	"fmt"
 	"mime/multipart"
 	"net/http"
 	"strconv"
 	"time"
+
+	"firebase.google.com/go/v4/auth"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/rs/zerolog/log"
 
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
@@ -66,7 +72,6 @@ func (srv *Server) CreatePost(ctx *gin.Context) {
 	imageUrls := make([]string, 0)
 
 	if req.PostType == PostTypeImage || req.PostType == PostTypeVideo || req.PostType == PostTypeDocument {
-		//urls, err := server.handleFilesUpload(req.Files, s3BucketName(req.PostType))
 		urls, err := srv.handleFilesUpload(ctx, req.Files)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
@@ -119,15 +124,28 @@ func (srv *Server) CreatePost(ctx *gin.Context) {
 	}
 
 	// cache the post
-	//redisKey := fmt.Sprintf("post:%d", post.PostID)
+	postKey := fmt.Sprintf("post:%d", post.PostID)
+	log.Info().Msg(postKey)
 
-	//if err := server.cachePost(ctx, redisKey, post, 12*time.Hour); err != nil {
-	//	log.Error().Err(err).Msg("Failed to cache post")
-	//}
+	if err := srv.cachePost(ctx, postKey, post, 12*time.Hour); err != nil {
+		log.Error().Err(err).Msg("Failed to cache post")
+	}
 
-	srv.publishToKafka("publish-feed", req.OwnerID, string(post.PostID))
+	log.Info().Msgf("SQS URL: %v", srv.Config.SQSURL)
 
-	ctx.JSON(http.StatusOK, "Post created successfully")
+	out, err := srv.SQS.SendMessage(&sqs.SendMessageInput{
+		QueueUrl:    aws.String(srv.Config.SQSURL),
+		MessageBody: aws.String(fmt.Sprintf(`{"owner_id": "%s", "post_id": "%d"}`, req.OwnerID, post.PostID)),
+	})
+
+	if err != nil {
+		log.Error().Err(err).Msg("cannot send message to SQS")
+	}
+	log.Info().Msgf("Message sent to SQS: %v", out)
+
+	//srv.publishToKafka("publish-feed", req.OwnerID, string(post.PostID))
+
+	ctx.JSON(http.StatusOK, gin.H{"success": "Post created successfully"})
 }
 
 func (srv *Server) IsPostFeatured(ctx *gin.Context) {
@@ -154,14 +172,15 @@ func (srv *Server) IsPostFeatured(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, featured)
 }
 
-//func (server *Server) cachePost(ctx context.Context, key string, post post, expiration time.Duration) error {
-//	data, err := json.Marshal(post)
-//	if err != nil {
-//		return fmt.Errorf("error serializing post data: %v", err)
-//	}
-//
-//	return server.rdb.Set(ctx, key, data, expiration).Err()
-//}
+func (srv *Server) cachePost(ctx context.Context, key string, post post, expDuration time.Duration) error {
+	data, err := json.Marshal(post)
+	if err != nil {
+		return fmt.Errorf("error serializing post data: %v", err)
+	}
+	// convert data to string
+	dataStr := string(data)
+	return srv.ValkeyClient.Do(ctx, srv.ValkeyClient.B().Set().Key(key).Value(dataStr).Ex(expDuration).Build()).Error()
+}
 
 func (srv *Server) createPoll(ctx *gin.Context, req *createPollReq) (*db.Poll, error) {
 	if req == nil {
@@ -183,20 +202,18 @@ func (srv *Server) createPoll(ctx *gin.Context, req *createPollReq) (*db.Poll, e
 	return &poll, nil
 }
 
-func (srv *Server) postToNewsFeed(ctx *gin.Context, userID string, postID int32) error {
-	userIDs, err := srv.Store.ListConnectedUserIDs(ctx, userID)
-	if err != nil {
-		return err
-	}
+// func (srv *Server) postToNewsFeed(ctx *gin.Context, userID string, postID int32) error {
+// 	userIDs, err := srv.Store.ListConnectedUserIDs(ctx, userID)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	userIDs = append(userIDs, userID)
-	for _, id := range userIDs {
-
-		srv.publishToKafka("publish-feed", id.(string), string(postID))
-
-	}
-	return nil
-}
+// 	userIDs = append(userIDs, userID)
+// 	for _, id := range userIDs {
+// 		srv.publishToKafka("publish-feed", id.(string), string(postID))
+// 	}
+// 	return nil
+// }
 
 func (srv *Server) PostLikesAndCommentsCount(ctx *gin.Context) {
 	postIDStr := ctx.Param("post_id")

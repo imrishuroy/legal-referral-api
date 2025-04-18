@@ -3,14 +3,15 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"io"
+	"net/http"
+	"net/url"
+
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
 	"github.com/rs/zerolog/log"
-	"io"
-	"net/http"
-	"net/url"
 )
 
 type signInReq struct {
@@ -51,7 +52,7 @@ func (srv *Server) SignIn(ctx *gin.Context) {
 		return
 	}
 
-	authURL := "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + srv.config.FirebaseAuthKey
+	authURL := "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=" + srv.Config.FirebaseAuthKey
 
 	// Marshal the request and make the API call
 	resp, err := makePostRequest(authURL, req)
@@ -148,7 +149,7 @@ func (srv *Server) SignUp(ctx *gin.Context) {
 		ReturnSecureToken: true,
 	}
 
-	authURL := "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + srv.config.FirebaseAuthKey
+	authURL := "https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=" + srv.Config.FirebaseAuthKey
 
 	// Marshal the request and make the API call
 	resp, err := makePostRequest(authURL, signUpReq)
@@ -222,7 +223,7 @@ func (srv *Server) SignUp(ctx *gin.Context) {
 		AvatarUrl:      &userImageUrl,
 	}
 
-	user, err := srv.Store.CreateUser(ctx, arg)
+	user, _ := srv.Store.CreateUser(ctx, arg)
 
 	// Create and return the authentication response
 	authResponse := authResponse{
@@ -263,7 +264,7 @@ func (srv *Server) RefreshToken(ctx *gin.Context) {
 		return
 	}
 
-	authURL := "https://securetoken.googleapis.com/v1/token?key=" + srv.config.FirebaseAuthKey
+	authURL := "https://securetoken.googleapis.com/v1/token?key=" + srv.Config.FirebaseAuthKey
 
 	// Marshal the request and make the API call
 	resp, err := makePostRequest(authURL, req)
@@ -346,7 +347,6 @@ func (srv *Server) ResetPassword(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
-	return
 }
 
 type linkedinLoginRequest struct {
@@ -367,7 +367,7 @@ func (srv *Server) LinkedinLogin(ctx *gin.Context) {
 		return
 	}
 
-	token, err := validateLinkedinToken(req.AccessToken, srv.config.LinkedinClientID, srv.config.LinkedinClientSecret)
+	token, err := validateLinkedinToken(req.AccessToken, srv.Config.LinkedinClientID, srv.Config.LinkedinClientSecret)
 	if err != nil {
 		return
 	}

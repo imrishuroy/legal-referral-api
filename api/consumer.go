@@ -20,9 +20,9 @@ package api
 //
 //	consumer, err := kafka.NewConsumer(&kafka.ConfigMap{
 //		// User-specific properties that you must set
-//		"bootstrap.servers": server.config.BootStrapServers,
-//		"sasl.username":     server.config.SASLUsername,
-//		"sasl.password":     server.config.SASLPassword,
+//		"bootstrap.servers": server.Config.BootStrapServers,
+//		"sasl.username":     server.Config.SASLUsername,
+//		"sasl.password":     server.Config.SASLPassword,
 //
 //		// Fixed properties
 //		"security.protocol": "SASL_SSL",
