@@ -1,10 +1,12 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"path/filepath"
@@ -67,13 +69,44 @@ func (server *Server) handleFilesUpload(files []*multipart.FileHeader) ([]string
 
 	urls := make([]string, 0, len(files))
 	for _, file := range files {
-		url, err := server.uploadFileHandler(file)
+		url, err := uploadFileToS3(file, server.Config.AWSBucketName)
 		if err != nil {
 			return nil, err
 		}
 		urls = append(urls, url)
 	}
 	return urls, nil
+}
+
+func uploadFileToS3(fileHeader *multipart.FileHeader, bucketName string) (string, error) {
+	// Open file from multipart header
+	srcFile, err := fileHeader.Open()
+	if err != nil {
+		return "", fmt.Errorf("failed to open file: %w", err)
+	}
+	defer srcFile.Close()
+
+	// Read the entire file into memory
+	var buf bytes.Buffer
+	if _, err := io.Copy(&buf, srcFile); err != nil {
+		return "", fmt.Errorf("failed to read file into buffer: %w", err)
+	}
+
+	key := fileHeader.Filename
+	contentType := fileHeader.Header.Get("Content-Type")
+
+	_, err = s3Client.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket:      aws.String(bucketName),
+		Key:         aws.String(key),
+		Body:        bytes.NewReader(buf.Bytes()),
+		ContentType: aws.String(contentType),
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to upload to s3: %w", err)
+	}
+
+	url := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bucketName, "us-east-1", key)
+	return url, nil
 }
 
 func (srv *Server) uploadFileHandler(file *multipart.FileHeader) (string, error) {
@@ -83,13 +116,6 @@ func (srv *Server) uploadFileHandler(file *multipart.FileHeader) (string, error)
 		return "", err
 	}
 	defer multiPartFile.Close()
-
-	// defer func(multiPartFile multipart.File) {
-	// 	err := multiPartFile.Close()
-	// 	if err != nil {
-	// 		log.Error().Err(err).Msg("Error closing file")
-	// 	}
-	// }(multiPartFile)
 
 	return srv.uploadFile(multiPartFile, file.Filename, file.Header.Get("Content-Type"))
 }
