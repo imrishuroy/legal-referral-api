@@ -74,7 +74,6 @@ func (srv *Server) CreatePost(ctx *gin.Context) {
 	imageUrls := make([]string, 0)
 
 	if req.PostType == PostTypeImage || req.PostType == PostTypeVideo || req.PostType == PostTypeDocument {
-		// urls, err := srv.handleFilesUpload(ctx, req.Files)
 		urls, err := srv.handleFilesUpload(req.Files)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))

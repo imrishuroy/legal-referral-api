@@ -94,7 +94,7 @@ func (srv *Server) UploadLicense(ctx *gin.Context) {
 		return
 	}
 
-	fileName := generateUniqueFilename() + getFileExtension(files[0])
+	fileName := generateRandomFileName() + getFileExtension(files[0])
 	url, err := srv.uploadFile(file, fileName, files[0].Header.Get("Content-Type"))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error uploading file"})

@@ -5,11 +5,9 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"io"
 	"mime/multipart"
 	"path/filepath"
-	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -79,19 +77,21 @@ func (server *Server) handleFilesUpload(files []*multipart.FileHeader) ([]string
 }
 
 func (srv *Server) uploadFileHandler(file *multipart.FileHeader) (string, error) {
-	fileName := generateUniqueFilename() + getFileExtension(file)
+	// fileName := generateRandomFileName() + getFileExtension(file)
 	multiPartFile, err := file.Open()
 	if err != nil {
 		return "", err
 	}
-	defer func(multiPartFile multipart.File) {
-		err := multiPartFile.Close()
-		if err != nil {
-			log.Error().Err(err).Msg("Error closing file")
-		}
-	}(multiPartFile)
+	defer multiPartFile.Close()
 
-	return srv.uploadFile(multiPartFile, fileName, file.Header.Get("Content-Type"))
+	// defer func(multiPartFile multipart.File) {
+	// 	err := multiPartFile.Close()
+	// 	if err != nil {
+	// 		log.Error().Err(err).Msg("Error closing file")
+	// 	}
+	// }(multiPartFile)
+
+	return srv.uploadFile(multiPartFile, file.Filename, file.Header.Get("Content-Type"))
 }
 
 func (srv *Server) uploadFile(file multipart.File, fileName string, contentType string) (string, error) {
@@ -100,36 +100,13 @@ func (srv *Server) uploadFile(file multipart.File, fileName string, contentType 
 	log.Info().Msgf("File name: %s", fileName)
 	log.Info().Msgf("Content type: %s", contentType)
 
-	var contentLength int64
-
-	if seeker, ok := file.(io.Seeker); ok {
-		// Get current position
-		currentPos, _ := seeker.Seek(0, io.SeekCurrent)
-
-		// Seek to end to get file size
-		size, err := seeker.Seek(0, io.SeekEnd)
-		if err != nil {
-			log.Error().Err(err).Msg("Failed to seek to end of file")
-			return "", err
-		}
-		contentLength = size
-
-		// Seek back to original position (should be 0)
-		_, err = seeker.Seek(currentPos, io.SeekStart)
-		if err != nil {
-			log.Error().Err(err).Msg("Failed to seek to start of file before upload")
-			return "", err
-		}
-	} else {
-		log.Warn().Msg("File is not seekable; content length will be unknown")
-	}
-
-	_, err := srv.S3Client.PutObject(context.Background(), &s3.PutObjectInput{
-		Bucket:        aws.String(bucketName),
-		Key:           aws.String(fileName),
-		Body:          file,
-		ContentLength: &contentLength,
-		ContentType:   aws.String(contentType),
+	res, err := srv.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(fileName),
+		Body:   file,
+		// ContentLength: &contentLength,
+		// ContentType:   aws.String(contentType),
+		ACL: types.ObjectCannedACLPublicRead,
 		// ContentDisposition:   aws.String("attachment"),
 		// ServerSideEncryption: types.ServerSideEncryptionAes256,
 	})
@@ -138,6 +115,7 @@ func (srv *Server) uploadFile(file multipart.File, fileName string, contentType 
 		log.Error().Err(err).Msg("Error uploading file to S3")
 		return "", err
 	}
+	log.Info().Msgf("File uploaded successfully: %d", *res.Size)
 
 	return fileName, nil
 }
@@ -273,21 +251,14 @@ func getFileExtension(fileHeader *multipart.FileHeader) string {
 	return extension
 }
 
-func generateUniqueFilename() string {
-	// Get the current time
-	timestamp := time.Now().Format("20060102_150405")
-
-	// Generate a random component
-	randomBytes := make([]byte, 4)
-	_, err := rand.Read(randomBytes)
+func generateRandomFileName() string {
+	bytes := make([]byte, 16) // 16 bytes = 32-character hex string
+	_, err := rand.Read(bytes)
 	if err != nil {
-		panic(err)
+		log.Error().Err(err).Msg("Error generating random bytes")
+		return "default_filename"
 	}
-	randomComponent := hex.EncodeToString(randomBytes)
-
-	// Combine timestamp and random component to form the filename
-	filename := fmt.Sprintf("%s_%s", timestamp, randomComponent)
-	return filename
+	return hex.EncodeToString(bytes)
 }
 
 // func openFile(fileHeader *multipart.FileHeader) (multipart.File, error) {

@@ -46,7 +46,7 @@ func (srv *Server) UpdateUserAvatar(ctx *gin.Context) {
 		return
 	}
 
-	fileName := generateUniqueFilename() + getFileExtension(files[0])
+	fileName := generateRandomFileName() + getFileExtension(files[0])
 	url, err := srv.uploadFile(file, fileName, files[0].Header.Get("Content-Type"))
 	if err != nil {
 		log.Error().Err(err).Msg("error uploading file")
@@ -233,7 +233,7 @@ func (srv *Server) UpdateUserBannerImage(ctx *gin.Context) {
 		return
 	}
 
-	fileName := generateUniqueFilename() + getFileExtension(files[0])
+	fileName := generateRandomFileName() + getFileExtension(files[0])
 
 	url, err := srv.uploadFile(file, fileName, files[0].Header.Get("Content-Type"))
 	if err != nil {
