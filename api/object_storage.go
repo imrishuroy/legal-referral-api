@@ -9,7 +9,6 @@ import (
 	"io"
 	"mime/multipart"
 	"path/filepath"
-	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
@@ -18,68 +17,68 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-func (srv *Server) handleFilesUpload(ctx context.Context, files []*multipart.FileHeader) ([]string, error) {
+// func (srv *Server) handleFilesUpload(ctx context.Context, files []*multipart.FileHeader) ([]string, error) {
+// 	if len(files) == 0 {
+// 		return nil, errors.New("no file uploaded")
+// 	}
+
+// 	// Channels to collect results and errors
+// 	urlsChan := make(chan string, len(files))
+// 	errChan := make(chan error, len(files))
+
+// 	// Wait group to wait for all Go routines to finish
+// 	var wg sync.WaitGroup
+
+// 	for _, file := range files {
+// 		wg.Add(1)
+// 		go func(file *multipart.FileHeader) {
+// 			defer wg.Done()
+
+// 			url, err := srv.uploadFileHandler(ctx, file)
+// 			if err != nil {
+// 				errChan <- err
+// 				return
+// 			}
+// 			urlsChan <- url
+// 		}(file)
+// 	}
+
+// 	// Wait for all uploads to complete
+// 	wg.Wait()
+// 	close(urlsChan)
+// 	close(errChan)
+
+// 	// Check if there were any errors
+// 	if len(errChan) > 0 {
+// 		return nil, <-errChan // Return the first error
+// 	}
+
+// 	// Collect all URLs
+// 	urls := make([]string, 0, len(files))
+// 	for url := range urlsChan {
+// 		urls = append(urls, url)
+// 	}
+
+// 	return urls, nil
+// }
+
+func (server *Server) handleFilesUpload(files []*multipart.FileHeader) ([]string, error) {
 	if len(files) == 0 {
 		return nil, errors.New("no file uploaded")
 	}
 
-	// Channels to collect results and errors
-	urlsChan := make(chan string, len(files))
-	errChan := make(chan error, len(files))
-
-	// Wait group to wait for all Go routines to finish
-	var wg sync.WaitGroup
-
-	for _, file := range files {
-		wg.Add(1)
-		go func(file *multipart.FileHeader) {
-			defer wg.Done()
-
-			url, err := srv.uploadFileHandler(ctx, file)
-			if err != nil {
-				errChan <- err
-				return
-			}
-			urlsChan <- url
-		}(file)
-	}
-
-	// Wait for all uploads to complete
-	wg.Wait()
-	close(urlsChan)
-	close(errChan)
-
-	// Check if there were any errors
-	if len(errChan) > 0 {
-		return nil, <-errChan // Return the first error
-	}
-
-	// Collect all URLs
 	urls := make([]string, 0, len(files))
-	for url := range urlsChan {
+	for _, file := range files {
+		url, err := server.uploadFileHandler(file)
+		if err != nil {
+			return nil, err
+		}
 		urls = append(urls, url)
 	}
-
 	return urls, nil
 }
 
-//func (server *Server) handleFilesUpload(files []*multipart.FileHeader) ([]string, error) {
-//	if len(files) == 0 {
-//		return nil, errors.New("no file uploaded")
-//	}
-//
-//	urls := make([]string, 0, len(files))
-//	for _, file := range files {
-//		url, err := server.uploadFileHandler(file)
-//		if err != nil {
-//			return nil, err
-//		}
-//		urls = append(urls, url)
-//	}
-//	return urls, nil
-//}
-
-func (srv *Server) uploadFileHandler(ctx context.Context, file *multipart.FileHeader) (string, error) {
+func (srv *Server) uploadFileHandler(file *multipart.FileHeader) (string, error) {
 	fileName := generateUniqueFilename() + getFileExtension(file)
 	multiPartFile, err := file.Open()
 	if err != nil {
@@ -92,10 +91,58 @@ func (srv *Server) uploadFileHandler(ctx context.Context, file *multipart.FileHe
 		}
 	}(multiPartFile)
 
-	return srv.uploadFile(ctx, multiPartFile, fileName, file.Header.Get("Content-Type"))
+	return srv.uploadFile(multiPartFile, fileName, file.Header.Get("Content-Type"))
 }
 
-func (srv *Server) uploadFile(ctx context.Context, file multipart.File, fileName string, contentType string) (string, error) {
+func (srv *Server) uploadFile(file multipart.File, fileName string, contentType string) (string, error) {
+	bucketName := srv.Config.AWSBucketName
+	log.Info().Msgf("Uploading file to bucket: %s", bucketName)
+	log.Info().Msgf("File name: %s", fileName)
+	log.Info().Msgf("Content type: %s", contentType)
+
+	var contentLength int64
+
+	if seeker, ok := file.(io.Seeker); ok {
+		// Get current position
+		currentPos, _ := seeker.Seek(0, io.SeekCurrent)
+
+		// Seek to end to get file size
+		size, err := seeker.Seek(0, io.SeekEnd)
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to seek to end of file")
+			return "", err
+		}
+		contentLength = size
+
+		// Seek back to original position (should be 0)
+		_, err = seeker.Seek(currentPos, io.SeekStart)
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to seek to start of file before upload")
+			return "", err
+		}
+	} else {
+		log.Warn().Msg("File is not seekable; content length will be unknown")
+	}
+
+	_, err := srv.S3Client.PutObject(context.Background(), &s3.PutObjectInput{
+		Bucket:        aws.String(bucketName),
+		Key:           aws.String(fileName),
+		Body:          file,
+		ContentLength: &contentLength,
+		ContentType:   aws.String(contentType),
+		// ContentDisposition:   aws.String("attachment"),
+		// ServerSideEncryption: types.ServerSideEncryptionAes256,
+	})
+
+	if err != nil {
+		log.Error().Err(err).Msg("Error uploading file to S3")
+		return "", err
+	}
+
+	return fileName, nil
+}
+
+func (srv *Server) uploadFile2(file multipart.File, fileName string, contentType string) (string, error) {
 	bucketName := srv.Config.AWSBucketName
 	log.Info().Msgf("Uploading file to bucket: %s", bucketName)
 	log.Info().Msgf("File name: %s", fileName)
@@ -111,10 +158,11 @@ func (srv *Server) uploadFile(ctx context.Context, file multipart.File, fileName
 		log.Warn().Msg("File is not seekable")
 	}
 
-	_, err := srv.S3Client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket:               aws.String(bucketName),
-		Key:                  aws.String(fileName),
-		Body:                 file,
+	_, err := srv.S3Client.PutObject(context.Background(), &s3.PutObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(fileName),
+		Body:   file,
+
 		ContentType:          aws.String(contentType),
 		ContentDisposition:   aws.String("attachment"),
 		ServerSideEncryption: types.ServerSideEncryptionAes256,
@@ -128,7 +176,7 @@ func (srv *Server) uploadFile(ctx context.Context, file multipart.File, fileName
 	return fileName, nil
 }
 
-func (srv *Server) uploadFile2(ctx context.Context, file multipart.File, fileName string, contentType string) (string, error) {
+func (srv *Server) uploadFile3(ctx context.Context, file multipart.File, fileName string, contentType string) (string, error) {
 
 	bucketName := srv.Config.AWSBucketName
 	log.Info().Msgf("Uploading file to bucket: %s", bucketName)

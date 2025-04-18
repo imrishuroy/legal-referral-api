@@ -1,13 +1,13 @@
 package api
 
 import (
-	"encoding/json"
+	"net/http"
+	"strconv"
+
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
 	"github.com/rs/zerolog/log"
-	"net/http"
-	"strconv"
 )
 
 type likePostReq struct {
@@ -55,26 +55,26 @@ func (srv *Server) LikePost(ctx *gin.Context) {
 	if !alreadyLiked {
 
 		// Prepare notification data
-		data := map[string]string{
-			"user_id":           req.PostUserID,
-			"sender_id":         req.CurrentUserID,
-			"target_id":         postIDStr,
-			"target_type":       "post",
-			"notification_type": "like",
-			"already_liked":     strconv.FormatBool(alreadyLiked),
-		}
+		// data := map[string]string{
+		// 	"user_id":           req.PostUserID,
+		// 	"sender_id":         req.CurrentUserID,
+		// 	"target_id":         postIDStr,
+		// 	"target_type":       "post",
+		// 	"notification_type": "like",
+		// 	"already_liked":     strconv.FormatBool(alreadyLiked),
+		// }
 
 		// Convert the map to a JSON string
-		jsonData, err := json.Marshal(data)
+		// jsonData, err := json.Marshal(data)
 		if err != nil {
 			log.Error().Err(err).Msg("Error marshalling data")
 		}
 
 		// Launch a goroutine to publish to Kafka
-		go func() {
-			jsonString := string(jsonData)
-			srv.publishToKafka("likes", authPayload.UID, jsonString)
-		}()
+		// go func() {
+		// 	jsonString := string(jsonData)
+		// 	srv.publishToKafka("likes", authPayload.UID, jsonString)
+		// }()
 	}
 }
 

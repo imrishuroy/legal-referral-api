@@ -1,13 +1,12 @@
 package api
 
 import (
-	"encoding/json"
+	"net/http"
+	"strconv"
+
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
-	"github.com/rs/zerolog/log"
-	"net/http"
-	"strconv"
 )
 
 type commentPostReq struct {
@@ -39,7 +38,7 @@ func (srv *Server) CommentPost(ctx *gin.Context) {
 		ParentCommentID: req.ParentCommentId,
 	}
 
-	postIDStr := strconv.Itoa(req.PostId)
+	// postIDStr := strconv.Itoa(req.PostId)
 
 	comment, err := srv.Store.CommentPost(ctx, arg)
 	if err != nil {
@@ -48,25 +47,26 @@ func (srv *Server) CommentPost(ctx *gin.Context) {
 	}
 
 	// Prepare notification data
-	data := map[string]string{
-		"user_id":           req.UserID,
-		"sender_id":         req.SenderID,
-		"target_id":         postIDStr,
-		"target_type":       "comment",
-		"notification_type": "like",
-	}
+	// data := map[string]string{
+	// 	"user_id":           req.UserID,
+	// 	"sender_id":         req.SenderID,
+	// 	"target_id":         postIDStr,
+	// 	"target_type":       "comment",
+	// 	"notification_type": "like",
+	// }
 
 	// Convert the map to a JSON string
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		log.Error().Err(err).Msg("Error marshalling data")
-	}
+	// jsonData, err := json.Marshal(data)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("Error marshalling data")
+	// }
 
 	// Launch a goroutine to publish to Kafka
-	go func() {
-		jsonString := string(jsonData)
-		srv.publishToKafka("likes", authPayload.UID, jsonString)
-	}()
+	// go func() {
+	// TODO: Implement the Kafka producer
+	// jsonString := string(jsonData)
+	// srv.publishToKafka("likes", authPayload.UID, jsonString)
+	// }()
 
 	ctx.JSON(http.StatusOK, comment)
 

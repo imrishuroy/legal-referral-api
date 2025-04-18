@@ -11,7 +11,6 @@ import (
 	// "github.com/aws/aws-sdk-go/aws/session"
 	// "github.com/aws/aws-sdk-go/service/sqs"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
-	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/gin-gonic/gin"
 	"github.com/imrishuroy/legal-referral/api"
 	"github.com/imrishuroy/legal-referral/chat"
@@ -64,22 +63,22 @@ func main() {
 	go hub.Run()
 
 	//setup producer
-	conf := kafka.ConfigMap{
-		// User-specific properties that you must set
-		"bootstrap.servers": config.BootStrapServers,
-		"sasl.username":     config.SASLUsername,
-		"sasl.password":     config.SASLPassword,
+	// conf := kafka.ConfigMap{
+	// 	// User-specific properties that you must set
+	// 	"bootstrap.servers": config.BootStrapServers,
+	// 	"sasl.username":     config.SASLUsername,
+	// 	"sasl.password":     config.SASLPassword,
 
-		// Fixed properties
-		"security.protocol": "SASL_SSL",
-		"sasl.mechanisms":   "PLAIN",
-		"acks":              "all"}
+	// 	// Fixed properties
+	// 	"security.protocol": "SASL_SSL",
+	// 	"sasl.mechanisms":   "PLAIN",
+	// 	"acks":              "all"}
 
-	producer, err := kafka.NewProducer(&conf)
-	if err != nil {
-		log.Error().Err(err).Msg("cannot create producer")
-	}
-	defer producer.Close()
+	// producer, err := kafka.NewProducer(&conf)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("cannot create producer")
+	// }
+	// defer producer.Close()
 
 	// aws SQS
 	// sess := session.Must(session.NewSessionWithOptions(session.Options{
@@ -115,7 +114,8 @@ func main() {
 	defer vkClient.Close()
 
 	// api srv setup
-	srv, err := api.NewServer(config, store, hub, producer, vkClient, svc)
+	// srv, err := api.NewServer(config, store, hub, producer, vkClient, svc)
+	srv, err := api.NewServer(config, store, hub, vkClient, svc)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create srv:")
 	}

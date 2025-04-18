@@ -1,14 +1,15 @@
 package api
 
 import (
-	"firebase.google.com/go/v4/auth"
-	"github.com/gin-gonic/gin"
-	db "github.com/imrishuroy/legal-referral/db/sqlc"
-	"github.com/rs/zerolog/log"
 	"mime/multipart"
 	"net/http"
 	"strconv"
 	"time"
+
+	"firebase.google.com/go/v4/auth"
+	"github.com/gin-gonic/gin"
+	db "github.com/imrishuroy/legal-referral/db/sqlc"
+	"github.com/rs/zerolog/log"
 )
 
 type AdType string
@@ -62,7 +63,7 @@ func (srv *Server) CreateAd(ctx *gin.Context) {
 		//		bucketName = "post-videos"
 		//	}
 
-		urls, err := srv.handleFilesUpload(ctx, req.Files)
+		urls, err := srv.handleFilesUpload(req.Files)
 
 		//urls, err := server.handleFilesUpload(req.Files, bucketName)
 		if err != nil {
