@@ -4,15 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"firebase.google.com/go/v4/auth"
 	"fmt"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/rs/zerolog/log"
 	"mime/multipart"
 	"net/http"
 	"strconv"
 	"time"
+
+	"firebase.google.com/go/v4/auth"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/rs/zerolog/log"
 
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
@@ -201,18 +202,18 @@ func (srv *Server) createPoll(ctx *gin.Context, req *createPollReq) (*db.Poll, e
 	return &poll, nil
 }
 
-func (srv *Server) postToNewsFeed(ctx *gin.Context, userID string, postID int32) error {
-	userIDs, err := srv.Store.ListConnectedUserIDs(ctx, userID)
-	if err != nil {
-		return err
-	}
+// func (srv *Server) postToNewsFeed(ctx *gin.Context, userID string, postID int32) error {
+// 	userIDs, err := srv.Store.ListConnectedUserIDs(ctx, userID)
+// 	if err != nil {
+// 		return err
+// 	}
 
-	userIDs = append(userIDs, userID)
-	for _, id := range userIDs {
-		srv.publishToKafka("publish-feed", id.(string), string(postID))
-	}
-	return nil
-}
+// 	userIDs = append(userIDs, userID)
+// 	for _, id := range userIDs {
+// 		srv.publishToKafka("publish-feed", id.(string), string(postID))
+// 	}
+// 	return nil
+// }
 
 func (srv *Server) PostLikesAndCommentsCount(ctx *gin.Context) {
 	postIDStr := ctx.Param("post_id")

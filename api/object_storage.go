@@ -6,13 +6,13 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/rs/zerolog/log"
 	"mime/multipart"
 	"path/filepath"
-	"strings"
 	"sync"
 	"time"
+
+	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/rs/zerolog/log"
 )
 
 func (srv *Server) handleFilesUpload(ctx context.Context, files []*multipart.FileHeader) ([]string, error) {
@@ -108,10 +108,10 @@ func (srv *Server) uploadFile(ctx context.Context, file multipart.File, fileName
 	//})
 
 	_, err := srv.S3Client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket: &bucketName,
-		Key:    &fileName,
-		Body:   file,
-		//ContentType:          &contentType,
+		Bucket:      &bucketName,
+		Key:         &fileName,
+		Body:        file,
+		ContentType: &contentType,
 		//ContentDisposition:   attachment,
 		//ServerSideEncryption: "AES256",
 	})
@@ -161,11 +161,11 @@ func (srv *Server) uploadFile(ctx context.Context, file multipart.File, fileName
 //	return url, nil
 //}
 
-func generateS3URL(region, bucketName, key string) string {
-	url := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, key)
-	url = strings.ReplaceAll(url, " ", "+")
-	return url
-}
+// func generateS3URL(region, bucketName, key string) string {
+// 	url := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bucketName, region, key)
+// 	url = strings.ReplaceAll(url, " ", "+")
+// 	return url
+// }
 
 func getFileExtension(fileHeader *multipart.FileHeader) string {
 	// Get the filename from the FileHeader
@@ -195,10 +195,10 @@ func generateUniqueFilename() string {
 	return filename
 }
 
-func openFile(fileHeader *multipart.FileHeader) (multipart.File, error) {
-	file, err := fileHeader.Open()
-	if err != nil {
-		return nil, err
-	}
-	return file, nil
-}
+// func openFile(fileHeader *multipart.FileHeader) (multipart.File, error) {
+// 	file, err := fileHeader.Open()
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	return file, nil
+// }

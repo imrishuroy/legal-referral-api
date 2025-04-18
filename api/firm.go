@@ -1,18 +1,19 @@
 package api
 
 import (
+	"mime/multipart"
+	"net/http"
+
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
 	"github.com/rs/zerolog/log"
-	"mime/multipart"
-	"net/http"
 )
 
-type socialReq struct {
-	Platform string `json:"platform" binding:"required"`
-	Link     string `json:"link" binding:"required"`
-}
+// type socialReq struct {
+// 	Platform string `json:"platform" binding:"required"`
+// 	Link     string `json:"link" binding:"required"`
+// }
 
 type addFirmReq struct {
 	Name        string                  `form:"name" binding:"required"`

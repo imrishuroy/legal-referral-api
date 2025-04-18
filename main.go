@@ -4,11 +4,12 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/awslabs/aws-lambda-go-api-proxy/gin"
+	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/gin-gonic/gin"
 	"github.com/imrishuroy/legal-referral/api"

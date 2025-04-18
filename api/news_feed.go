@@ -4,15 +4,16 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"firebase.google.com/go/v4/auth"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	db "github.com/imrishuroy/legal-referral/db/sqlc"
-	"github.com/rs/zerolog/log"
 	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
+
+	"firebase.google.com/go/v4/auth"
+	"github.com/gin-gonic/gin"
+	db "github.com/imrishuroy/legal-referral/db/sqlc"
+	"github.com/rs/zerolog/log"
 )
 
 type feedPost struct {
@@ -140,7 +141,7 @@ func (srv *Server) ListNewsFeedV3(ctx *gin.Context) {
 
 	postMetaDataMap := make(map[int32]postMetaData)
 
-	metaData, err := srv.Store.PostsMetaData(ctx, postMetaArg)
+	metaData, _ := srv.Store.PostsMetaData(ctx, postMetaArg)
 	for _, md := range metaData {
 		postMetaDataMap[md.PostID] = postMetaData{
 			PostID:            md.PostID,
@@ -293,9 +294,9 @@ func (srv *Server) cachePosts(ctx context.Context, posts map[string]*post, expir
 //}
 
 // Helper to build Redis key for feed
-func (srv *Server) buildFeedCacheKey(userID string, limit, offset int32) string {
-	return fmt.Sprintf("user:%s:feed:limit:%d:offset:%d", userID, limit, offset)
-}
+// func (srv *Server) buildFeedCacheKey(userID string, limit, offset int32) string {
+// 	return fmt.Sprintf("user:%s:feed:limit:%d:offset:%d", userID, limit, offset)
+// }
 
 // Helper to get cached feed from Redis
 //func (server *Server) getCachedFeed(ctx context.Context, key string) ([]feed, error) {

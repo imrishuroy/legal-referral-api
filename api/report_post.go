@@ -2,11 +2,12 @@ package api
 
 import (
 	"errors"
+	"net/http"
+	"strconv"
+
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
-	"net/http"
-	"strconv"
 )
 
 type reportPostReq struct {
@@ -50,8 +51,8 @@ func (srv *Server) ReportPost(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Post reported successfully"})
 }
 
-type getReportedPostsReq struct {
-}
+// type getReportedPostsReq struct {
+// }
 
 func (srv *Server) IsPostReported(ctx *gin.Context) {
 	userID := ctx.Param("user_id")

@@ -1,26 +1,26 @@
 package api
 
 import (
+	"net/http"
+	"strconv"
+
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
-	"net/http"
-	"strconv"
-	"time"
 )
 
-type discussionMessage struct {
-	MessageID       int32              `json:"message_id"`
-	ParentMessageID *int32             `json:"parent_message_id"`
-	SenderID        string             `json:"sender_id"`
-	SenderAvatarUrl string             `json:"sender_avatar_url"`
-	SenderFirstName string             `json:"sender_first_name"`
-	SenderLastName  string             `json:"sender_last_name"`
-	Message         string             `json:"message"`
-	DiscussionID    int32              `json:"discussion_id"`
-	SentAt          time.Time          `json:"sent_at"`
-	RepliedMessage  *discussionMessage `json:"replied_message"`
-}
+// type discussionMessage struct {
+// 	MessageID       int32              `json:"message_id"`
+// 	ParentMessageID *int32             `json:"parent_message_id"`
+// 	SenderID        string             `json:"sender_id"`
+// 	SenderAvatarUrl string             `json:"sender_avatar_url"`
+// 	SenderFirstName string             `json:"sender_first_name"`
+// 	SenderLastName  string             `json:"sender_last_name"`
+// 	Message         string             `json:"message"`
+// 	DiscussionID    int32              `json:"discussion_id"`
+// 	SentAt          time.Time          `json:"sent_at"`
+// 	RepliedMessage  *discussionMessage `json:"replied_message"`
+// }
 
 func (srv *Server) SendMessageToDiscussion(ctx *gin.Context) {
 	authPayload := ctx.MustGet(authorizationPayloadKey).(*auth.Token)

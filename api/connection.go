@@ -1,21 +1,22 @@
 package api
 
 import (
-	"firebase.google.com/go/v4/auth"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	db "github.com/imrishuroy/legal-referral/db/sqlc"
 	"net/http"
 	"strconv"
+
+	"firebase.google.com/go/v4/auth"
+	"github.com/gin-gonic/gin"
+	db "github.com/imrishuroy/legal-referral/db/sqlc"
 )
 
 type ConnectionStatus int32
 
-const (
-	pending = iota
-	accepted
-	rejected
-)
+// const (
+// 	pending = iota
+// 	accepted
+// 	rejected
+// )
 
 func (s ConnectionStatus) String() string {
 	return [...]string{"pending", "accepted", "rejected"}[s]
@@ -126,12 +127,12 @@ func (srv *Server) RejectConnection(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "Connection request rejected"})
 }
 
-type listConnectionInvitationRes struct {
-	ID         int32            `json:"id"`
-	Recipient  db.User          `json:"recipient"`
-	Status     ConnectionStatus `json:"status"`
-	CreateTime string           `json:"create_time"`
-}
+// type listConnectionInvitationRes struct {
+// 	ID         int32            `json:"id"`
+// 	Recipient  db.User          `json:"recipient"`
+// 	Status     ConnectionStatus `json:"status"`
+// 	CreateTime string           `json:"create_time"`
+// }
 
 type listConnectionInvitationsReq struct {
 	Limit  int32 `form:"limit" binding:"required"`

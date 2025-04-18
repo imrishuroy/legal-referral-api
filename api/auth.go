@@ -3,14 +3,15 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"io"
+	"net/http"
+	"net/url"
+
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
 	"github.com/rs/zerolog/log"
-	"io"
-	"net/http"
-	"net/url"
 )
 
 type signInReq struct {
@@ -222,7 +223,7 @@ func (srv *Server) SignUp(ctx *gin.Context) {
 		AvatarUrl:      &userImageUrl,
 	}
 
-	user, err := srv.Store.CreateUser(ctx, arg)
+	user, _ := srv.Store.CreateUser(ctx, arg)
 
 	// Create and return the authentication response
 	authResponse := authResponse{
@@ -346,7 +347,6 @@ func (srv *Server) ResetPassword(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusOK, gin.H{"message": "Password reset successfully"})
-	return
 }
 
 type linkedinLoginRequest struct {

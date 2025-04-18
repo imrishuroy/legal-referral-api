@@ -1,13 +1,14 @@
 package api
 
 import (
+	"net/http"
+	"strconv"
+
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/rs/zerolog/log"
-	"net/http"
-	"strconv"
 )
 
 type addUpdateExperienceReq struct {
@@ -83,17 +84,17 @@ func (srv *Server) AddExperience(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, experience)
 }
 
-type listExperienceResponse struct {
-	ExperienceId int64        `json:"experience_id"`
-	Title        string       `json:"title"`
-	PracticeArea string       `json:"practice_area"`
-	Description  string       `json:"description"`
-	StartDate    pgtype.Date  `json:"start_date"`
-	EndDate      *pgtype.Date `json:"end_date"`
-	Current      bool         `json:"current"`
-	Skills       []string     `json:"skills"`
-	Firm         db.Firm      `json:"firm"`
-}
+// type listExperienceResponse struct {
+// 	ExperienceId int64        `json:"experience_id"`
+// 	Title        string       `json:"title"`
+// 	PracticeArea string       `json:"practice_area"`
+// 	Description  string       `json:"description"`
+// 	StartDate    pgtype.Date  `json:"start_date"`
+// 	EndDate      *pgtype.Date `json:"end_date"`
+// 	Current      bool         `json:"current"`
+// 	Skills       []string     `json:"skills"`
+// 	Firm         db.Firm      `json:"firm"`
+// }
 
 func (srv *Server) ListExperiences(ctx *gin.Context) {
 	userID := ctx.Param("user_id")

@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+
 	firebase "firebase.google.com/go/v4"
 	"firebase.google.com/go/v4/auth"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -84,14 +85,14 @@ func NewServer(con util.Config, store db.Store, hub *chat.Hub, producer *kafka.P
 	return server, nil
 }
 
-func successResponse() gin.H {
-	return gin.H{"result": "success"}
-}
+// func successResponse() gin.H {
+// 	return gin.H{"result": "success"}
+// }
 
 func errorResponse(err error) gin.H {
 	return gin.H{"message": err.Error()}
 }
 
-func (srv *Server) ping(ctx *gin.Context) {
-	ctx.JSON(200, "OK")
-}
+// func (srv *Server) ping(ctx *gin.Context) {
+// 	ctx.JSON(200, "OK")
+// }
