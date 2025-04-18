@@ -100,7 +100,7 @@ func (srv *Server) uploadFile(file multipart.File, fileName string, contentType 
 	log.Info().Msgf("File name: %s", fileName)
 	log.Info().Msgf("Content type: %s", contentType)
 
-	res, err := srv.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
+	_, err := srv.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
 		Bucket: aws.String(bucketName),
 		Key:    aws.String(fileName),
 		Body:   file,
@@ -115,7 +115,6 @@ func (srv *Server) uploadFile(file multipart.File, fileName string, contentType 
 		log.Error().Err(err).Msg("Error uploading file to S3")
 		return "", err
 	}
-	log.Info().Msgf("File uploaded successfully: %d", *res.Size)
 
 	return fileName, nil
 }
