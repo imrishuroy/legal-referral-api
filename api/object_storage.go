@@ -96,11 +96,11 @@ func uploadFileToS3(fileHeader *multipart.FileHeader, bucketName string) (string
 	contentType := fileHeader.Header.Get("Content-Type")
 
 	_, err = s3Client.PutObject(context.TODO(), &s3.PutObjectInput{
-		Bucket:            aws.String(bucketName),
-		Key:               aws.String(key),
-		Body:              bytes.NewReader(buf.Bytes()),
-		ContentType:       aws.String(contentType),
-		ChecksumAlgorithm: types.ChecksumAlgorithmCrc64nvme,
+		Bucket:      aws.String(bucketName),
+		Key:         aws.String(key),
+		Body:        bytes.NewReader(buf.Bytes()),
+		ContentType: aws.String(contentType),
+		// ChecksumAlgorithm: types.ChecksumAlgorithmCrc64nvme,
 	})
 	if err != nil {
 		return "", fmt.Errorf("failed to upload to s3: %w", err)
