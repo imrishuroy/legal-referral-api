@@ -17,51 +17,6 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
-// func (srv *Server) handleFilesUpload(ctx context.Context, files []*multipart.FileHeader) ([]string, error) {
-// 	if len(files) == 0 {
-// 		return nil, errors.New("no file uploaded")
-// 	}
-
-// 	// Channels to collect results and errors
-// 	urlsChan := make(chan string, len(files))
-// 	errChan := make(chan error, len(files))
-
-// 	// Wait group to wait for all Go routines to finish
-// 	var wg sync.WaitGroup
-
-// 	for _, file := range files {
-// 		wg.Add(1)
-// 		go func(file *multipart.FileHeader) {
-// 			defer wg.Done()
-
-// 			url, err := srv.uploadFileHandler(ctx, file)
-// 			if err != nil {
-// 				errChan <- err
-// 				return
-// 			}
-// 			urlsChan <- url
-// 		}(file)
-// 	}
-
-// 	// Wait for all uploads to complete
-// 	wg.Wait()
-// 	close(urlsChan)
-// 	close(errChan)
-
-// 	// Check if there were any errors
-// 	if len(errChan) > 0 {
-// 		return nil, <-errChan // Return the first error
-// 	}
-
-// 	// Collect all URLs
-// 	urls := make([]string, 0, len(files))
-// 	for url := range urlsChan {
-// 		urls = append(urls, url)
-// 	}
-
-// 	return urls, nil
-// }
-
 func (server *Server) handleFilesUpload(files []*multipart.FileHeader) ([]string, error) {
 	if len(files) == 0 {
 		return nil, errors.New("no file uploaded")
@@ -92,7 +47,8 @@ func uploadFileToS3(fileHeader *multipart.FileHeader, bucketName string) (string
 		return "", fmt.Errorf("failed to read file into buffer: %w", err)
 	}
 
-	key := fileHeader.Filename
+	key := generateRandomFileName() + getFileExtension(fileHeader)
+
 	contentType := fileHeader.Header.Get("Content-Type")
 
 	_, err = s3Client.PutObject(context.TODO(), &s3.PutObjectInput{
@@ -100,14 +56,12 @@ func uploadFileToS3(fileHeader *multipart.FileHeader, bucketName string) (string
 		Key:         aws.String(key),
 		Body:        bytes.NewReader(buf.Bytes()),
 		ContentType: aws.String(contentType),
-		// ChecksumAlgorithm: types.ChecksumAlgorithmCrc64nvme,
 	})
 	if err != nil {
 		return "", fmt.Errorf("failed to upload to s3: %w", err)
 	}
 
-	url := fmt.Sprintf("https://%s.s3.%s.amazonaws.com/%s", bucketName, "us-east-1", key)
-	return url, nil
+	return key, nil
 }
 
 func (srv *Server) uploadFileHandler(file *multipart.FileHeader) (string, error) {
