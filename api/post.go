@@ -11,8 +11,6 @@ import (
 	"time"
 
 	"firebase.google.com/go/v4/auth"
-	// "github.com/aws/aws-sdk-go/aws"
-	// "github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/rs/zerolog/log"
@@ -81,7 +79,6 @@ func (srv *Server) CreatePost(ctx *gin.Context) {
 		}
 		log.Info().Msgf("URLs: %+v", urls)
 		imageUrls = append(imageUrls, urls...)
-
 	}
 
 	var pollID *int32

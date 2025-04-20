@@ -31,12 +31,8 @@ func (srv *Server) UpdateUserAvatar(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error opening file"})
 		return
 	}
-	defer func(file multipart.File) {
-		err := file.Close()
-		if err != nil {
 
-		}
-	}(file)
+	file.Close()
 
 	userID := ctx.Param("user_id")
 
