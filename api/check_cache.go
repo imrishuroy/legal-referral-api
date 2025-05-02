@@ -78,48 +78,18 @@ func (srv *Server) GetTestCacheData(ctx *gin.Context) {
 
 }
 
-// list all keys in the cache
 func (srv *Server) ListCacheKeys(ctx *gin.Context) {
 	context := context.Background()
-	keys, err := srv.ValkeyClient.Do(context, srv.ValkeyClient.B().Keys().Pattern("*").Build()).AsBytes()
+	keys, err := srv.ValkeyClient.Do(context, srv.ValkeyClient.B().Keys().Pattern("*").Build()).AsStrSlice()
 	if err != nil {
-		log.Error().Err(err).Msg("Failed to get cache keys")
+		log.Error().Err(err).Msg("Failed to list cache keys")
 		ctx.JSON(500, gin.H{
-			"error": "Failed to get cache keys",
+			"error": "Failed to list cache keys",
 		})
 		return
 	}
-	log.Info().Msgf("Cache keys: %v", keys)
-	// convert keys i.e. []byte to list of strings
-	var keyList []string
-	err = json.Unmarshal(keys, &keyList)
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to unmarshal cache keys")
-		ctx.JSON(500, gin.H{
-			"error": "Failed to unmarshal cache keys",
-		})
-		return
-	}
-	// check if keys is nil
-	// if keys is nil, return empty list
-	if keys == nil {
-		log.Info().Msg("No keys found in cache")
-		ctx.JSON(200, gin.H{
-			"message": "No keys found in cache",
-		})
-		return
-	}
-	// check if keys is empty
-	if len(keyList) == 0 {
-		log.Info().Msg("No keys found in cache")
-		ctx.JSON(200, gin.H{
-			"message": "No keys found in cache",
-		})
-		return
-	}
-	// return keys
 	log.Info().Msg("Cache keys retrieved successfully")
 	ctx.JSON(200, gin.H{
-		"keys": keyList,
+		"keys": keys,
 	})
 }
