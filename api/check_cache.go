@@ -79,17 +79,44 @@ func (srv *Server) GetTestCacheData(ctx *gin.Context) {
 }
 
 func (srv *Server) ListCacheKeys(ctx *gin.Context) {
-	context := context.Background()
-	keys, err := srv.ValkeyClient.Do(context, srv.ValkeyClient.B().Keys().Pattern("*").Build()).AsStrSlice()
-	if err != nil {
-		log.Error().Err(err).Msg("Failed to list cache keys")
-		ctx.JSON(500, gin.H{
-			"error": "Failed to list cache keys",
+	// context := context.Background()
+	// keys, err := srv.ValkeyClient.Do(context, srv.ValkeyClient.B().Keys().Pattern("*").Build()).AsStrSlice()
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("Failed to list cache keys")
+	// 	ctx.JSON(500, gin.H{
+	// 		"error": "Failed to list cache keys",
+	// 	})
+	// 	return
+	// }
+	// log.Info().Msg("Cache keys retrieved successfully")
+	// ctx.JSON(200, gin.H{
+	// 	"keys": keys,
+	// })
+
+	var cursor uint64 = 0
+	for {
+		resss := srv.ValkeyClient.Do(ctx, srv.ValkeyClient.B().Scan().Cursor(cursor).Match("*").Count(2).Build())
+		se, err := resss.AsScanEntry()
+		if err != nil {
+			log.Error().Err(err).Msg("Failed to list cache keys")
+			ctx.JSON(500, gin.H{
+				"error": "Failed to list cache keys",
+			})
+			return
+		}
+		log.Info().Msg("Cache keys retrieved successfully")
+		list := make([]string, 0)
+		for _, sitem := range se.Elements {
+			log.Info().Msgf("Key: %s", sitem)
+			list = append(list, sitem)
+		}
+		ctx.JSON(200, gin.H{
+			"keys": list,
 		})
-		return
+
+		cursor = se.Cursor
+		if cursor == 0 {
+			break
+		}
 	}
-	log.Info().Msg("Cache keys retrieved successfully")
-	ctx.JSON(200, gin.H{
-		"keys": keys,
-	})
 }
