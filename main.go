@@ -327,6 +327,8 @@ func main() {
 	// test cache
 	auth.POST("/cache/test", srv.AddTestCacheData)
 	auth.GET("/cache/test", srv.GetTestCacheData)
+	// list cache keys
+	auth.GET("/cache/keys", srv.ListCacheKeys)
 
 	// to run local
 	//err = r.Run(config.ServerAddress)
