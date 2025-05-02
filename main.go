@@ -324,6 +324,10 @@ func main() {
 	auth.GET("/activity/comments/:user_id", srv.ListActivityComments)
 	auth.GET("/users/:user_id/followers-count", srv.GetUserFollowersCount)
 
+	// test cache
+	auth.POST("/cache/test", srv.AddTestCacheData)
+	auth.GET("/cache/test", srv.GetTestCacheData)
+
 	// to run local
 	//err = r.Run(config.ServerAddress)
 	//log.Info().Err(err).Msg("cannot create srv:")
