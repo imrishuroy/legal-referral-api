@@ -126,7 +126,7 @@ func (srv *Server) CreatePost(ctx *gin.Context) {
 	postKey := fmt.Sprintf("post:%d", post.PostID)
 	log.Info().Msg(postKey)
 
-	if err := srv.cachePost(ctx, postKey, post, 12*time.Hour); err != nil {
+	if err := srv.cachePost(ctx, postKey, post, 1*time.Hour); err != nil {
 		log.Error().Err(err).Msg("Failed to cache post")
 	}
 
