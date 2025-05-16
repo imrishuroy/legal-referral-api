@@ -23,6 +23,8 @@ import (
 
 var ginLambda *ginadapter.GinLambda
 
+// testing git setup
+
 func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
 	return ginLambda.ProxyWithContext(ctx, request)
 }
