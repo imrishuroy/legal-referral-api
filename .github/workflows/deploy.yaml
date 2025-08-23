@@ -40,7 +40,7 @@ jobs:
       - name: Build, tag, and push docker image to AWS ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: legal-referral-lambda
+          ECR_REPOSITORY: legalreferral
           IMAGE_TAG: "latest"
           GITHUB_SHA: ${{ github.sha }}
         run: |

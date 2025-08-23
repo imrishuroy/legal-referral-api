@@ -10,7 +10,7 @@ WORKDIR /app
 COPY . .
 
 # Builds your app with optional configuration
-RUN go build -tags 'lambda.norpc musl' -ldflags '-extldflags "-static"' -o main main.go
+RUN go build -o main main.go
 
 # Run state
 FROM alpine:3.20
