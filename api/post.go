@@ -19,6 +19,8 @@ import (
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
 )
 
+const PostCacheTTL = 30 * time.Minute
+
 // PostType represents the type of post
 type PostType string
 
@@ -126,17 +128,11 @@ func (srv *Server) CreatePost(ctx *gin.Context) {
 	postKey := fmt.Sprintf("post:%d", post.PostID)
 	log.Info().Msg(postKey)
 
-	if err := srv.cachePost(ctx, postKey, post, 10*time.Minute); err != nil {
+	if err := srv.cachePost(ctx, postKey, post, PostCacheTTL); err != nil {
 		log.Error().Err(err).Msg("Failed to cache post")
 	}
-
 	log.Info().Msgf("SQS URL: %v", srv.Config.SQSURL)
 
-	// out, err := srv.SQS.SendMessage(&sqs.SendMessageInput{
-	// 	QueueUrl:    aws.String(srv.Config.SQSURL),
-	// 	MessageBody: aws.String(fmt.Sprintf(`{"owner_id": "%s", "post_id": "%d"}`, req.OwnerID, post.PostID)),
-	// })
-	// update to use v2
 	out, err := srv.SQS.SendMessage(context.TODO(), &sqs.SendMessageInput{
 		QueueUrl:    aws.String(srv.Config.SQSURL),
 		MessageBody: aws.String(fmt.Sprintf(`{"owner_id": "%s", "post_id": "%d"}`, req.OwnerID, post.PostID)),
