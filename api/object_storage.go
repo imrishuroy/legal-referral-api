@@ -1,119 +1,76 @@
 package api
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"io"
 	"mime/multipart"
 	"path/filepath"
-	"sync"
-	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/rs/zerolog/log"
 )
 
-func (srv *Server) handleFilesUpload(ctx context.Context, files []*multipart.FileHeader) ([]string, error) {
+func (server *Server) handleFilesUpload(files []*multipart.FileHeader) ([]string, error) {
 	if len(files) == 0 {
 		return nil, errors.New("no file uploaded")
 	}
 
-	// Channels to collect results and errors
-	urlsChan := make(chan string, len(files))
-	errChan := make(chan error, len(files))
-
-	// Wait group to wait for all Go routines to finish
-	var wg sync.WaitGroup
-
-	for _, file := range files {
-		wg.Add(1)
-		go func(file *multipart.FileHeader) {
-			defer wg.Done()
-
-			url, err := srv.uploadFileHandler(ctx, file)
-			if err != nil {
-				errChan <- err
-				return
-			}
-			urlsChan <- url
-		}(file)
-	}
-
-	// Wait for all uploads to complete
-	wg.Wait()
-	close(urlsChan)
-	close(errChan)
-
-	// Check if there were any errors
-	if len(errChan) > 0 {
-		return nil, <-errChan // Return the first error
-	}
-
-	// Collect all URLs
 	urls := make([]string, 0, len(files))
-	for url := range urlsChan {
+	for _, file := range files {
+		url, err := uploadFileToS3(file, server.Config.AWSBucketName)
+		if err != nil {
+			return nil, err
+		}
 		urls = append(urls, url)
 	}
-
 	return urls, nil
 }
 
-//func (server *Server) handleFilesUpload(files []*multipart.FileHeader) ([]string, error) {
-//	if len(files) == 0 {
-//		return nil, errors.New("no file uploaded")
-//	}
-//
-//	urls := make([]string, 0, len(files))
-//	for _, file := range files {
-//		url, err := server.uploadFileHandler(file)
-//		if err != nil {
-//			return nil, err
-//		}
-//		urls = append(urls, url)
-//	}
-//	return urls, nil
-//}
-
-func (srv *Server) uploadFileHandler(ctx context.Context, file *multipart.FileHeader) (string, error) {
-	fileName := generateUniqueFilename() + getFileExtension(file)
-	multiPartFile, err := file.Open()
+func uploadFileToS3(fileHeader *multipart.FileHeader, bucketName string) (string, error) {
+	// Open file from multipart header
+	srcFile, err := fileHeader.Open()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("failed to open file: %w", err)
 	}
-	defer func(multiPartFile multipart.File) {
-		err := multiPartFile.Close()
-		if err != nil {
-			log.Error().Err(err).Msg("Error closing file")
-		}
-	}(multiPartFile)
+	defer srcFile.Close()
 
-	return srv.uploadFile(ctx, multiPartFile, fileName, file.Header.Get("Content-Type"))
+	// Read the entire file into memory
+	var buf bytes.Buffer
+	if _, err := io.Copy(&buf, srcFile); err != nil {
+		return "", fmt.Errorf("failed to read file into buffer: %w", err)
+	}
+
+	key := generateRandomFileName() + getFileExtension(fileHeader)
+
+	contentType := fileHeader.Header.Get("Content-Type")
+
+	_, err = s3Client.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket:      aws.String(bucketName),
+		Key:         aws.String(key),
+		Body:        bytes.NewReader(buf.Bytes()),
+		ContentType: aws.String(contentType),
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to upload to s3: %w", err)
+	}
+
+	return key, nil
 }
 
-func (srv *Server) uploadFile(ctx context.Context, file multipart.File, fileName string, contentType string) (string, error) {
-
+func (srv *Server) uploadFile(file multipart.File, fileName string, contentType string) (string, error) {
 	bucketName := srv.Config.AWSBucketName
-	log.Info().Msgf("Uploading file to bucket: %s", bucketName)
 
-	// Upload the file to S3
-	//_, err := s.s.PutObject(&s3.PutObjectInput{
-	//	Bucket:               aws.String(bucketName),
-	//	Key:                  aws.String(fileName),
-	//	Body:                 file,
-	//	ContentType:          aws.String(contentType),
-	//	ContentDisposition:   aws.String("attachment"),
-	//	ServerSideEncryption: aws.String("AES256"),
-	//})
-
-	_, err := srv.S3Client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket:      &bucketName,
-		Key:         &fileName,
+	_, err := srv.S3Client.PutObject(context.TODO(), &s3.PutObjectInput{
+		Bucket:      aws.String(bucketName),
+		Key:         aws.String(fileName),
 		Body:        file,
-		ContentType: &contentType,
-		//ContentDisposition:   attachment,
-		//ServerSideEncryption: "AES256",
+		ContentType: aws.String(contentType),
 	})
 
 	if err != nil {
@@ -123,30 +80,6 @@ func (srv *Server) uploadFile(ctx context.Context, file multipart.File, fileName
 
 	return fileName, nil
 }
-
-//func (server *Server) uploadFile(file multipart.File, fileName string, contentType string) (string, error) {
-//
-//	bucketName := server.Config.AWSBucketName
-//	log.Info().Msgf("Uploading file to bucket: %s", bucketName)
-//
-//	// Upload the file to S3
-//	_, err := server.svc.PutObject(&s3.PutObjectInput{
-//		Bucket:               aws.String(bucketName),
-//		Key:                  aws.String(fileName),
-//		Body:                 file,
-//		ContentType:          aws.String(contentType),
-//		ContentDisposition:   aws.String("attachment"),
-//		ServerSideEncryption: aws.String("AES256"),
-//	})
-//
-//	if err != nil {
-//		log.Error().Err(err).Msg("Error uploading file to S3")
-//		return "", err
-//	}
-//
-//	url := generateS3URL(server.Config.AWSRegion, bucketName, fileName)
-//	return url, nil
-//}
 
 //func preSignS3Object(svc *s3.S3, bucket string, key string) (string, error) {
 //	req, _ := svc.GetObjectRequest(&s3.GetObjectInput{
@@ -178,21 +111,14 @@ func getFileExtension(fileHeader *multipart.FileHeader) string {
 	return extension
 }
 
-func generateUniqueFilename() string {
-	// Get the current time
-	timestamp := time.Now().Format("20060102_150405")
-
-	// Generate a random component
-	randomBytes := make([]byte, 4)
-	_, err := rand.Read(randomBytes)
+func generateRandomFileName() string {
+	bytes := make([]byte, 16) // 16 bytes = 32-character hex string
+	_, err := rand.Read(bytes)
 	if err != nil {
-		panic(err)
+		log.Error().Err(err).Msg("Error generating random bytes")
+		return "default_filename"
 	}
-	randomComponent := hex.EncodeToString(randomBytes)
-
-	// Combine timestamp and random component to form the filename
-	filename := fmt.Sprintf("%s_%s", timestamp, randomComponent)
-	return filename
+	return hex.EncodeToString(bytes)
 }
 
 // func openFile(fileHeader *multipart.FileHeader) (multipart.File, error) {

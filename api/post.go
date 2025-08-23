@@ -11,13 +11,15 @@ import (
 	"time"
 
 	"firebase.google.com/go/v4/auth"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/rs/zerolog/log"
 
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
 )
+
+const PostCacheTTL = 30 * time.Minute
 
 // PostType represents the type of post
 type PostType string
@@ -72,14 +74,13 @@ func (srv *Server) CreatePost(ctx *gin.Context) {
 	imageUrls := make([]string, 0)
 
 	if req.PostType == PostTypeImage || req.PostType == PostTypeVideo || req.PostType == PostTypeDocument {
-		urls, err := srv.handleFilesUpload(ctx, req.Files)
+		urls, err := srv.handleFilesUpload(req.Files)
 		if err != nil {
 			ctx.JSON(http.StatusInternalServerError, errorResponse(err))
 			return
 		}
 		log.Info().Msgf("URLs: %+v", urls)
 		imageUrls = append(imageUrls, urls...)
-
 	}
 
 	var pollID *int32
@@ -127,13 +128,12 @@ func (srv *Server) CreatePost(ctx *gin.Context) {
 	postKey := fmt.Sprintf("post:%d", post.PostID)
 	log.Info().Msg(postKey)
 
-	if err := srv.cachePost(ctx, postKey, post, 12*time.Hour); err != nil {
+	if err := srv.cachePost(ctx, postKey, post, PostCacheTTL); err != nil {
 		log.Error().Err(err).Msg("Failed to cache post")
 	}
-
 	log.Info().Msgf("SQS URL: %v", srv.Config.SQSURL)
 
-	out, err := srv.SQS.SendMessage(&sqs.SendMessageInput{
+	out, err := srv.SQS.SendMessage(context.TODO(), &sqs.SendMessageInput{
 		QueueUrl:    aws.String(srv.Config.SQSURL),
 		MessageBody: aws.String(fmt.Sprintf(`{"owner_id": "%s", "post_id": "%d"}`, req.OwnerID, post.PostID)),
 	})

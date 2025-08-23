@@ -7,10 +7,8 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/sqs"
+
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
-	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/gin-gonic/gin"
 	"github.com/imrishuroy/legal-referral/api"
 	"github.com/imrishuroy/legal-referral/chat"
@@ -19,6 +17,9 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
 	"github.com/valkey-io/valkey-go"
+
+	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
 
 var ginLambda *ginadapter.GinLambda
@@ -59,29 +60,39 @@ func main() {
 	go hub.Run()
 
 	//setup producer
-	conf := kafka.ConfigMap{
-		// User-specific properties that you must set
-		"bootstrap.servers": config.BootStrapServers,
-		"sasl.username":     config.SASLUsername,
-		"sasl.password":     config.SASLPassword,
+	// conf := kafka.ConfigMap{
+	// 	// User-specific properties that you must set
+	// 	"bootstrap.servers": config.BootStrapServers,
+	// 	"sasl.username":     config.SASLUsername,
+	// 	"sasl.password":     config.SASLPassword,
 
-		// Fixed properties
-		"security.protocol": "SASL_SSL",
-		"sasl.mechanisms":   "PLAIN",
-		"acks":              "all"}
+	// 	// Fixed properties
+	// 	"security.protocol": "SASL_SSL",
+	// 	"sasl.mechanisms":   "PLAIN",
+	// 	"acks":              "all"}
 
-	producer, err := kafka.NewProducer(&conf)
-	if err != nil {
-		log.Error().Err(err).Msg("cannot create producer")
-	}
-	defer producer.Close()
+	// producer, err := kafka.NewProducer(&conf)
+	// if err != nil {
+	// 	log.Error().Err(err).Msg("cannot create producer")
+	// }
+	// defer producer.Close()
 
 	// aws SQS
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		SharedConfigState: session.SharedConfigEnable,
-	}))
+	// sess := session.Must(session.NewSessionWithOptions(session.Options{
+	// 	SharedConfigState: session.SharedConfigEnable,
+	// }))
 
-	svc := sqs.New(sess)
+	// svc := sqs.New(sess)
+	//
+
+	cfg, err := awsConfig.LoadDefaultConfig(context.TODO(), awsConfig.WithRegion("us-east-1"))
+	if err != nil {
+		log.Fatal().Err(err).Msg("failed to load configuration, " + err.Error())
+	}
+
+	svc := sqs.NewFromConfig(cfg)
+
+	///
 
 	valkeyURL := fmt.Sprintf("%s:%s", config.ValKeyHost, config.ValKeyPort)
 	log.Info().Msg("Valkey URL: " + valkeyURL)
@@ -100,7 +111,8 @@ func main() {
 	defer vkClient.Close()
 
 	// api srv setup
-	srv, err := api.NewServer(config, store, hub, producer, vkClient, svc)
+	// srv, err := api.NewServer(config, store, hub, producer, vkClient, svc)
+	srv, err := api.NewServer(config, store, hub, vkClient, svc)
 	if err != nil {
 		log.Fatal().Err(err).Msg("cannot create srv:")
 	}
@@ -308,6 +320,12 @@ func main() {
 	auth.GET("/activity/posts/:user_id", srv.ListActivityPosts)
 	auth.GET("/activity/comments/:user_id", srv.ListActivityComments)
 	auth.GET("/users/:user_id/followers-count", srv.GetUserFollowersCount)
+
+	// test cache
+	auth.POST("/cache/test", srv.AddTestCacheData)
+	auth.GET("/cache/test", srv.GetTestCacheData)
+	// list cache keys
+	auth.GET("/cache/keys", srv.ListCacheKeys)
 
 	// to run local
 	//err = r.Run(config.ServerAddress)

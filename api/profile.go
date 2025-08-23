@@ -2,13 +2,14 @@ package api
 
 import (
 	"errors"
+	"mime/multipart"
+	"net/http"
+
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/rs/zerolog/log"
-	"mime/multipart"
-	"net/http"
 )
 
 func (srv *Server) UpdateUserAvatar(ctx *gin.Context) {
@@ -30,12 +31,8 @@ func (srv *Server) UpdateUserAvatar(ctx *gin.Context) {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error opening file"})
 		return
 	}
-	defer func(file multipart.File) {
-		err := file.Close()
-		if err != nil {
 
-		}
-	}(file)
+	file.Close()
 
 	userID := ctx.Param("user_id")
 
@@ -45,8 +42,8 @@ func (srv *Server) UpdateUserAvatar(ctx *gin.Context) {
 		return
 	}
 
-	fileName := generateUniqueFilename() + getFileExtension(files[0])
-	url, err := srv.uploadFile(ctx, file, fileName, files[0].Header.Get("Content-Type"))
+	fileName := generateRandomFileName() + getFileExtension(files[0])
+	url, err := srv.uploadFile(file, fileName, files[0].Header.Get("Content-Type"))
 	if err != nil {
 		log.Error().Err(err).Msg("error uploading file")
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error uploading file"})
@@ -232,9 +229,9 @@ func (srv *Server) UpdateUserBannerImage(ctx *gin.Context) {
 		return
 	}
 
-	fileName := generateUniqueFilename() + getFileExtension(files[0])
+	fileName := generateRandomFileName() + getFileExtension(files[0])
 
-	url, err := srv.uploadFile(ctx, file, fileName, files[0].Header.Get("Content-Type"))
+	url, err := srv.uploadFile(file, fileName, files[0].Header.Get("Content-Type"))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error uploading file"})
 		return

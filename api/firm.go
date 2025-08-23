@@ -43,7 +43,7 @@ func (srv *Server) AddFirm(ctx *gin.Context) {
 		return
 	}
 
-	urls, err := srv.handleFilesUpload(ctx, req.Files)
+	urls, err := srv.handleFilesUpload(req.Files)
 
 	if err != nil && len(urls) == 0 {
 		ctx.JSON(http.StatusInternalServerError, errorResponse(err))

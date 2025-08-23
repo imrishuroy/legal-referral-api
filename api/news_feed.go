@@ -128,7 +128,7 @@ func (srv *Server) ListNewsFeedV3(ctx *gin.Context) {
 			postsMap[redisKey] = &post
 			posts = append(posts, post)
 		}
-		if err := srv.cachePosts(ctx, postsMap, 12*time.Hour); err != nil {
+		if err := srv.cachePosts(ctx, postsMap, PostCacheTTL); err != nil {
 			log.Printf("Error caching posts: %v", err)
 		}
 	}

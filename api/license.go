@@ -1,13 +1,14 @@
 package api
 
 import (
+	"mime/multipart"
+	"net/http"
+
 	"firebase.google.com/go/v4/auth"
 	"github.com/gin-gonic/gin"
 	db "github.com/imrishuroy/legal-referral/db/sqlc"
 	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/rs/zerolog/log"
-	"mime/multipart"
-	"net/http"
 )
 
 type saveLicenseRequest struct {
@@ -93,8 +94,8 @@ func (srv *Server) UploadLicense(ctx *gin.Context) {
 		return
 	}
 
-	fileName := generateUniqueFilename() + getFileExtension(files[0])
-	url, err := srv.uploadFile(ctx, file, fileName, files[0].Header.Get("Content-Type"))
+	fileName := generateRandomFileName() + getFileExtension(files[0])
+	url, err := srv.uploadFile(file, fileName, files[0].Header.Get("Content-Type"))
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, gin.H{"message": "Error uploading file"})
 		return
