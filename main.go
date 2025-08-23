@@ -83,7 +83,6 @@ func main() {
 	// }))
 
 	// svc := sqs.New(sess)
-	//
 
 	cfg, err := awsConfig.LoadDefaultConfig(context.TODO(), awsConfig.WithRegion("us-east-1"))
 	if err != nil {
