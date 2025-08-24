@@ -19,5 +19,8 @@ COPY --from=builder /app/main .
 COPY app.env .
 COPY service-account-key.json .
 
+# Expose port 8080 for App Runner
+EXPOSE 8080
+
 # Specifies the executable command that runs when the container starts
 CMD ["/app/main"]
