@@ -91,8 +91,6 @@ func main() {
 
 	svc := sqs.NewFromConfig(cfg)
 
-	///
-
 	valkeyURL := fmt.Sprintf("%s:%s", config.ValKeyHost, config.ValKeyPort)
 	log.Info().Msg("Valkey URL: " + valkeyURL)
 
