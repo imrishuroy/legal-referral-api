@@ -163,6 +163,6 @@ Update func
 
     aws lambda update-function-code \
     --function-name legal-referral \
-    --image-uri 021891590100.dkr.ecr.us-east-1.amazonaws.com/legal-referral-lambda:latest \
+    --image-uri 021891590100.dkr.ecr.us-east-1.amazonaws.com/legalreferral:latest \
     --publish
 

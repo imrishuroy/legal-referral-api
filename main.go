@@ -2,13 +2,8 @@ package main
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 
-	"github.com/aws/aws-lambda-go/events"
-	"github.com/aws/aws-lambda-go/lambda"
-
-	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
 	"github.com/gin-gonic/gin"
 	"github.com/imrishuroy/legal-referral/api"
 	"github.com/imrishuroy/legal-referral/chat"
@@ -16,17 +11,10 @@ import (
 	"github.com/imrishuroy/legal-referral/util"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/rs/zerolog/log"
-	"github.com/valkey-io/valkey-go"
 
 	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
-
-var ginLambda *ginadapter.GinLambda
-
-func Handler(ctx context.Context, request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
-	return ginLambda.ProxyWithContext(ctx, request)
-}
 
 func ping(ctx *gin.Context) {
 	ctx.JSON(200, "PONG")
@@ -56,34 +44,11 @@ func main() {
 
 	store := db.NewStore(pool)
 
+	// print store with reference
+	log.Info().Msg("Store created successfully: " + fmt.Sprintf("%+v", store))
+
 	hub := chat.NewHub(store)
 	go hub.Run()
-
-	//setup producer
-	// conf := kafka.ConfigMap{
-	// 	// User-specific properties that you must set
-	// 	"bootstrap.servers": config.BootStrapServers,
-	// 	"sasl.username":     config.SASLUsername,
-	// 	"sasl.password":     config.SASLPassword,
-
-	// 	// Fixed properties
-	// 	"security.protocol": "SASL_SSL",
-	// 	"sasl.mechanisms":   "PLAIN",
-	// 	"acks":              "all"}
-
-	// producer, err := kafka.NewProducer(&conf)
-	// if err != nil {
-	// 	log.Error().Err(err).Msg("cannot create producer")
-	// }
-	// defer producer.Close()
-
-	// aws SQS
-	// sess := session.Must(session.NewSessionWithOptions(session.Options{
-	// 	SharedConfigState: session.SharedConfigEnable,
-	// }))
-
-	// svc := sqs.New(sess)
-	//
 
 	cfg, err := awsConfig.LoadDefaultConfig(context.TODO(), awsConfig.WithRegion("us-east-1"))
 	if err != nil {
@@ -92,23 +57,16 @@ func main() {
 
 	svc := sqs.NewFromConfig(cfg)
 
-	///
-
-	valkeyURL := fmt.Sprintf("%s:%s", config.ValKeyHost, config.ValKeyPort)
-	log.Info().Msg("Valkey URL: " + valkeyURL)
-
-	vkClient, err := valkey.NewClient(valkey.ClientOption{
-		InitAddress: []string{valkeyURL},
-		Password:    "",
-		TLSConfig: &tls.Config{
-			InsecureSkipVerify: false,
-		},
-		DisableCache: true,
-	})
+	// Create Valkey client - handles production vs local development
+	vkClient, err := util.CreateValkeyClient(config)
 	if err != nil {
-		log.Error().Err(err).Msg("cannot create valkey client")
+		log.Fatal().Err(err).Msg("failed to create valkey client")
 	}
-	defer vkClient.Close()
+
+	// Only close if client was created (not nil)
+	if vkClient != nil {
+		defer vkClient.Close()
+	}
 
 	// api srv setup
 	// srv, err := api.NewServer(config, store, hub, producer, vkClient, svc)
@@ -327,47 +285,16 @@ func main() {
 	// list cache keys
 	auth.GET("/cache/keys", srv.ListCacheKeys)
 
-	// to run local
-	//err = r.Run(config.ServerAddress)
-	//log.Info().Err(err).Msg("cannot create srv:")
+	// Add CORS middleware
+	// r.Use(CORSMiddleware())
 
-	// to run on lambda
-	ginLambda = ginadapter.New(r)
-	lambda.Start(Handler)
+	// Start HTTP server
+	log.Info().Str("address", config.ServerAddress).Msg("Starting server")
+	err = r.Run(config.ServerAddress)
+	if err != nil {
+		log.Fatal().Err(err).Msg("cannot start server")
+	}
 }
-
-//func GetRedisClient(config util.Config) api.RedisClient {
-//	redisURL := fmt.Sprintf("%s:%s", config.RedisHost, config.RedisPort)
-//	if config.Env == "prod" {
-//		clusterClient := redis.NewClusterClient(&redis.ClusterOptions{
-//			Addrs:           []string{redisURL},
-//			Password:        "",
-//			PoolSize:        50,
-//			MinIdleConns:    20,
-//			DialTimeout:     3 * time.Second,
-//			ReadTimeout:     1 * time.Second,
-//			WriteTimeout:    1 * time.Second,
-//			PoolTimeout:     2 * time.Second,
-//			MaxRetries:      3,
-//			MinRetryBackoff: 8 * time.Millisecond,
-//			MaxRetryBackoff: 256 * time.Millisecond,
-//			TLSConfig: &tls.Config{
-//				InsecureSkipVerify: false,
-//			},
-//			ReadOnly:       false,
-//			RouteByLatency: true,  // Prioritize low-latency nodes
-//			RouteRandomly:  false, // Avoid random routing to improve predictability
-//		})
-//		return clusterClient
-//	} else {
-//		client := redis.NewClient(&redis.Options{
-//			Addr:     redisURL,
-//			Password: "",
-//			DB:       0,
-//		})
-//		return client
-//	}
-//}
 
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {

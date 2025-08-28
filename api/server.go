@@ -46,6 +46,11 @@ type Server struct {
 	SQS *sqs.Client
 }
 
+// IsValkeyAvailable checks if Valkey client is available
+func (srv *Server) IsValkeyAvailable() bool {
+	return srv.ValkeyClient != nil
+}
+
 // func NewServer(con util.Config, store db.Store, hub *chat.Hub, producer *kafka.Producer, valkeyClient valkey.Client, sqs *sqs.Client) (*Server, error) {
 func NewServer(con util.Config, store db.Store, hub *chat.Hub, valkeyClient valkey.Client, sqs *sqs.Client) (*Server, error) {
 

@@ -31,6 +31,20 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
+      - name: Ensure jq is installed
+        run: |
+          if ! command -v jq >/dev/null 2>&1; then
+            sudo apt-get update -y
+            sudo apt-get install -y jq
+          fi
+
+      - name: Ensure ECR repository exists
+        env:
+          ECR_REPOSITORY: legalreferral
+        run: |
+          aws ecr describe-repositories --repository-names "$ECR_REPOSITORY" >/dev/null 2>&1 || \
+          aws ecr create-repository --repository-name "$ECR_REPOSITORY" >/dev/null
+
       - name: Load secrets and save to env file
         run: aws secretsmanager get-secret-value --secret-id legalreferral-env --query SecretString --output text | jq -r 'to_entries|map("\(.key)=\(.value)")|.[]' > app.env
 
@@ -40,7 +54,7 @@ jobs:
       - name: Build, tag, and push docker image to AWS ECR
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: legal-referral-lambda
+          ECR_REPOSITORY: legalreferral
           IMAGE_TAG: "latest"
           GITHUB_SHA: ${{ github.sha }}
         run: |

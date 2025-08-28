@@ -16,6 +16,25 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+func (srv *Server) cachePosts(ctx context.Context, posts map[string]*post, expiration time.Duration) error {
+
+	if !srv.IsValkeyAvailable() {
+		log.Warn().Msg("Valkey client not available - skipping cache operation")
+		return nil
+	}
+
+	for key, post := range posts {
+		data, err := json.Marshal(post)
+		if err != nil {
+			return fmt.Errorf("error serializing post data for key %s: %v", key, err)
+		}
+		dataStr := string(data)
+		srv.ValkeyClient.Do(ctx, srv.ValkeyClient.B().Set().Key(key).Value(dataStr).Ex(expiration).Build())
+	}
+
+	return nil
+}
+
 type feedPost struct {
 	OwnerID           string      `json:"owner_id"`
 	OwnerFirstName    string      `json:"owner_first_name"`
@@ -199,6 +218,10 @@ func extractPostIDs(posts []post) []int32 {
 
 func (srv *Server) getCachedPost(ctx context.Context, key string) (*post, error) {
 
+	if !srv.IsValkeyAvailable() {
+		return nil, fmt.Errorf("cache not available")
+	}
+
 	data, err := srv.ValkeyClient.Do(ctx, srv.ValkeyClient.B().Get().Key(key).Build()).AsBytes()
 	if err != nil {
 		return nil, err
@@ -210,36 +233,6 @@ func (srv *Server) getCachedPost(ctx context.Context, key string) (*post, error)
 	}
 
 	return &post, nil
-}
-
-func (srv *Server) cachePosts(ctx context.Context, posts map[string]*post, expiration time.Duration) error {
-
-	for key, post := range posts {
-		data, err := json.Marshal(post)
-		if err != nil {
-			return fmt.Errorf("error serializing post data for key %s: %v", key, err)
-		}
-		dataStr := string(data)
-		srv.ValkeyClient.Do(ctx, srv.ValkeyClient.B().Set().Key(key).Value(dataStr).Ex(expiration).Build())
-	}
-
-	//pipe := server.rdb.Pipeline() // Use a Redis pipeline for batch operations
-	//
-	//for key, post := range posts {
-	//	data, err := json.Marshal(post)
-	//	if err != nil {
-	//		return fmt.Errorf("error serializing post data for key %s: %v", key, err)
-	//	}
-	//	pipe.Set(ctx, key, data, expiration)
-	//}
-	//
-	//// Execute all commands in the pipeline
-	//_, err := pipe.Exec(ctx)
-	//if err != nil {
-	//	return fmt.Errorf("error executing Redis pipeline: %v", err)
-	//}
-
-	return nil
 }
 
 //func (server *Server) listNewsFeedV2(ctx *gin.Context) {

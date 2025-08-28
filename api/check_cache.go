@@ -18,6 +18,15 @@ type TestCacheData struct {
 }
 
 func (srv *Server) AddTestCacheData(ctx *gin.Context) {
+
+	if !srv.IsValkeyAvailable() {
+		log.Warn().Msg("Valkey client not available - skipping cache operation")
+		ctx.JSON(200, gin.H{
+			"message": "Cache not available in local mode",
+		})
+		return
+	}
+
 	testCacheData := TestCacheData{
 		OwnerID:  "12345",
 		PostType: "text",
@@ -44,6 +53,16 @@ func (srv *Server) AddTestCacheData(ctx *gin.Context) {
 }
 
 func (srv *Server) GetTestCacheData(ctx *gin.Context) {
+
+	if !srv.IsValkeyAvailable() {
+		log.Warn().Msg("Valkey client not available - returning mock data")
+		ctx.JSON(200, gin.H{
+			"message": "Cache not available in local mode",
+			"data":    nil,
+		})
+		return
+	}
+
 	context := context.Background()
 	data, err := srv.ValkeyClient.Do(context, srv.ValkeyClient.B().Get().Key(KEY).Build()).AsBytes()
 
@@ -79,6 +98,16 @@ func (srv *Server) GetTestCacheData(ctx *gin.Context) {
 }
 
 func (srv *Server) ListCacheKeys(ctx *gin.Context) {
+
+	if !srv.IsValkeyAvailable() {
+		log.Warn().Msg("Valkey client not available - returning empty list")
+		ctx.JSON(200, gin.H{
+			"message": "Cache not available in local mode",
+			"keys":    []string{},
+		})
+		return
+	}
+
 	var cursor uint64 = 0
 	list := make([]string, 0)
 

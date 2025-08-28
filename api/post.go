@@ -173,6 +173,12 @@ func (srv *Server) IsPostFeatured(ctx *gin.Context) {
 }
 
 func (srv *Server) cachePost(ctx context.Context, key string, post post, expDuration time.Duration) error {
+
+	if !srv.IsValkeyAvailable() {
+		log.Warn().Msg("Valkey client not available - skipping cache operation")
+		return nil
+	}
+
 	data, err := json.Marshal(post)
 	if err != nil {
 		return fmt.Errorf("error serializing post data: %v", err)
